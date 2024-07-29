@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seminars</title>
+</head>
+<body>
+    <h1>Seminars</h1>
+    <ul>
+        {% for seminar in seminars %}
+            <li>
+                <h2>{{ seminar.title }}</h2>
+                <p>{{ seminar.description }}</p>
+                <p>{{ seminar.date }}</p>
+                <a href="{% url 'create_order' seminar.id %}">Order</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

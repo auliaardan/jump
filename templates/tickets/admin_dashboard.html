@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Seminar</th>
+                <th>Payment Proof</th>
+                <th>Transaction ID</th>
+                <th>Confirmation Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.user.username }}</td>
+                <td>{{ order.seminar.title }}</td>
+                <td>
+                    {% for proof in order.paymentproof_set.all %}
+                        <img src="{{ proof.proof.url }}" alt="Payment Proof" width="100">
+                    {% endfor %}
+                </td>
+                <td>{{ order.transaction_id }}</td>
+                <td>{{ order.confirmation_date }}</td>
+                <td>
+                    <form method="post" action="{% url 'confirm_order' order.id %}">
+                        {% csrf_token %}
+                        <input type="text" name="transaction_id" placeholder="Transaction ID" required>
+                        <button type="submit">Confirm</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

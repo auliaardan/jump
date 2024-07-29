@@ -1,0 +1,15 @@
+.padding {
+    padding-left: 5em;
+    padding-right: 5em;
+}
+
+.nav-margin-auto{
+    margin:0 auto;
+}
+
+@media only screen and (max-width: 600px) {
+    .padding {
+        padding-left: 2em;
+        padding-right: 2em;
+    }
+}
