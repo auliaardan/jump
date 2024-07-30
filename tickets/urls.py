@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.baseView.as_view(), name='seminar_list'),
@@ -10,4 +12,4 @@ urlpatterns = [
     path('confirm_order/<int:order_id>/', views.confirm_order, name='confirm_order'),
     path('profile/', views.profile, name='profile'),
     path('order_history/', views.order_history, name='order_history'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

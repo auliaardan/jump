@@ -1,15 +1,68 @@
-.padding {
+.pxn-5 {
     padding-left: 5em;
     padding-right: 5em;
 }
 
-.nav-margin-auto{
-    margin:0 auto;
+.margin-auto {
+    margin: 0 auto;
 }
 
-@media only screen and (max-width: 600px) {
-    .padding {
+.py-6 {
+    padding-top: 6em;
+    padding-bottom: 6em;
+}
+
+.box-caption {
+    background-color: #002B36;
+    color: white;
+    width: 100%;
+    height: 200px;
+    padding-top: 2em;
+}
+
+.rem-12 {
+    width: 12rem;
+}
+
+a {
+    text-decoration: none;
+}
+
+.px-10em {
+    padding-left: 10em;
+    padding-right: 10em;
+}
+
+.no-border-color {
+    border-color: rgba(255, 255, 255, 0) !important;
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+}
+
+@media only screen and (max-width: 1200px) {
+    .px-10em {
         padding-left: 2em;
         padding-right: 2em;
     }
+}
+
+@media only screen and (max-width: 1000px) {
+    .mt-r-3 {
+        margin-top: 2em;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .pxn-5 {
+        padding-left: 2em;
+        padding-right: 2em;
+    }
+
 }

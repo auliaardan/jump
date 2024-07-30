@@ -11,11 +11,15 @@ from django.views.generic import ListView
 
 from .forms import PaymentProofForm, UserUpdateForm, ProfileUpdateForm
 from .forms import UserRegisterForm
-from .models import Seminar, Order
+from .models import Seminar, Order, landing_page
 
 class baseView(ListView):
-    model = Seminar
+    model = landing_page
     template_name = 'index.html'
+    context_object_name = "landing"
+
+    def get_queryset(self):
+        return landing_page.objects.last()
 
 def seminar_list(request):
     seminars = Seminar.objects.all()

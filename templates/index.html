@@ -1,115 +1,81 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>JUMP {% now "Y" %}</title>
-    <script src="/docs/5.3/assets/js/color-modes.js"></script>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description"
-          content="Jakarta Urology Medical Update {% now "Y" %}, is a yearly seminar and workshop hosted by Department of Urologi RSCM-FKUI, to give the latest knowledge update on Urology field">
-    <meta name="author"
-          content="Aulia Rahman Ardan">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+{% extends 'base.html' %}
+{% block title %}Jump {% now "Y" %}{% endblock title %}
 
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/cover/">
-    <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
-</head>
-<body>
-<nav class="navbar navbar-expand-lg bg-light sticky-sm-top padding">
-    <div class="container-fluid">
-        <a href="/" class="navbar-brand d-inline-flex link-body-emphasis text-decoration-none col-lg-3 me-0">
-            <span class="fs-4" style="font-weight: bold">JUMP {% now "Y" %}</span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample06"
-                aria-controls="navbarsExample06" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div id="navbarsExample06" class="collapse navbar-collapse">
-
-            <ul class="navbar-nav col-lg-9 justify-content-lg-center">
-                <li><a href="#" class="nav-link px-2 link-secondary">Home</a></li>
-                <li><a href="#" class="nav-link px-2">Features</a></li>
-                <li><a href="#" class="nav-link px-2">Pricing</a></li>
-                <li><a href="#" class="nav-link px-2">FAQs</a></li>
-                <li><a href="#" class="nav-link px-2">About</a></li>
-            </ul>
-            <div class="d-lg-flex col-lg-3 justify-content-lg-end">
-                <button type="button" class="btn btn-outline-primary me-2">Login</button>
-                <button type="button" class="btn btn-primary">Sign-up</button>
-            </div>
-        </div>
-
-    </div>
-</nav>
-<div class="padding col-xxl-8 py-5" style="width: 100%; background: rgba(144,173,198,0.33)">
+{% block content %}
+<div class="pxn-5 col-xxl-8 py-5 animate-on-scroll" style="width: 100%; background: rgba(144,173,198,0.33)">
     <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
         <div class="col-10 col-sm-8 col-lg-6">
-            <img src="{% static 'images/logo jump.jpeg' %}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes"
+            <img src="{{ landing.image_section_one.url }}" class="d-block mx-lg-auto img-fluid"
+                 alt="Jakarta Urology Medical Update past events documentation"
                  width="700"
                  height="500" loading="lazy" style="max-height: 500px">
         </div>
         <div class="col-lg-6">
-            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Jakarta Urology Medical Update {% now "Y" %}</h1>
-            <p class="lead">Quickly design and customize responsive mobile-first sites with Bootstrap, the world’s most
-                popular front-end open source toolkit, featuring Sass variables and mixins, responsive grid system,
-                extensive prebuilt components, and powerful JavaScript plugins.</p>
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ landing.header_section_one }}</h1>
+            <p class="lead">{{ landing.text_section_one }}</p>
             <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Primary</button>
-                <button type="button" class="btn btn-outline-secondary btn-lg px-4">Default</button>
+                <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Reserve Now</button>
+                <button type="button" class="btn btn-outline-secondary btn-lg px-4">Learn More</button>
             </div>
         </div>
     </div>
 
 </div>
-<div>
-    <div class="">
-        <h1>Workshop & Seminars</h1>
-        <h3>Leading the current updates on Urology disease</h3>
+<div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
+    <div class="d-flex flex-column justify-content-center margin-auto text-center">
+        <h1>{{ landing.header_section_two }}</h1>
+        <h3>{{ landing.text_section_two }}</h3>
     </div>
-    <div>
-        <div>
-            <a>
-                <img src="">
-                <div>
-
-                </div>
-            </a>
+    <div class="container text-center mt-5">
+        <div class="row px-10em">
+            <div class="col-lg mx-2 mt-r-3">
+                <a href="#" class="card no-border-color">
+                    <img src="{{ landing.image_section_two_left.url }}"
+                         class="img-fluid rounded-4 card-img-top"
+                         alt="Jakarta Urology Medical Update Seminar past events documentation"
+                         width="100%"
+                         height="600px" loading="lazy" style="max-height: 500px">
+                    <div class="box-caption card-body">
+                        <h2>{{ landing.image_section_two_header_left }}</h2>
+                        <p>{{ landing.image_section_two_text_left }}</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg mx-2 mt-r-3">
+                <a href="#" class="card no-border-color" style="border-color: rgba(255,255,255,0) !important;">
+                    <img src="{{ landing.image_section_two_right.url }}"
+                         class="img-fluid rounded-4 card-img-top"
+                         alt="Jakarta Urology Medical Update Workshop past events documentations"
+                         width="100%"
+                         height="600px" loading="lazy" style="max-height: 500px">
+                    <div class="box-caption card-body">
+                        <h2 class="card-title">{{ landing.image_section_two_header_right }}</h2>
+                        <p class="card-text">{{ landing.image_section_two_header_right }}</p>
+                    </div>
+                </a>
+            </div>
         </div>
-        <div>
-            <a>
-                <img src="">
-                <div>
+    </div>
+</div>
+<div class="animate-on-scroll">
 
-                </div>
-            </a>
+</div>
+<div class="animate-on-scroll py-6 bg-light pxn-5">
+    <div class="row">
+        <div class="col-lg">
+            <h1 style="font-weight: bold">{{ landing.header_section_three }}</h1>
+            <p>{{ landing.text_section_three }}</p>
+            <button type="button" class="btn btn-outline-secondary btn-lg">Default</button>
         </div>
+        <img src="{{ landing.image_section_three_left.url }}"
+             class="img-fluid rounded-4 col-lg mt-r-3"
+             alt="Jakarta Urology Medical Update Workshop past events documentations"
+             height="600px" loading="lazy" style="max-height: 400px">
+        <img src="{{ landing.image_section_three_right.url }}"
+             class="img-fluid rounded-4 col-lg mt-r-3"
+             alt="Jakarta Urology Medical Update Workshop past events documentations"
+             height="600px" loading="lazy" style="max-height: 400px">
     </div>
 </div>
-<div>
-
-</div>
-<div>
-    <div>
-        <h1>About JUMP {% now "Y" %}</h1>
-        <p>We are dedicated urologists offering annual seminars and workshops, providing valuable knowledge in the field
-            of urology.</p>
-        <button>Explore</button>
-    </div>
-    <div>
-
-    </div>
-</div>
-<footer>
-
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-        crossorigin="anonymous"></script>
-</body>
-</html>
+{% endblock content %}

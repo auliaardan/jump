@@ -1,13 +1,35 @@
-from django.db.models.signals import post_save
+import os
+
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import Profile
+
+from .models import Profile, landing_page
+
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
 
+
 @receiver(post_save, sender=User)
 def save_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+@receiver(post_delete, sender=landing_page)
+def delete_media_files(sender, instance, **kwargs):
+    image_fields = [
+        instance.image_section_one,
+        instance.image_section_two_left,
+        instance.image_section_two_right,
+        instance.image_section_three_left,
+        instance.image_section_three_right
+    ]
+
+    for image_field in image_fields:
+        if image_field:
+            image_path = image_field.path
+            if os.path.isfile(image_path):
+                os.remove(image_path)
