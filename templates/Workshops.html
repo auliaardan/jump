@@ -1,10 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Workshops | Jump {% now "Y" %}{% endblock title %}
 
-</body>
-</html>
+{% block content %}
+    <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
+        <div class="d-flex flex-column justify-content-center margin-auto text-center">
+            <h1>JUMP Workshops</h1>
+            <h3>{{ workshops.text_section_one }}</h3>
+        </div>
+    </div>
+    <div>
+
+    </div>
+    <div class="animate-on-scroll py-6 bg-light pxn-5">
+        <div class="bg-light d-flex flex-column justify-content-center py-6">
+            <div class="d-flex flex-column justify-content-center margin-auto text-center">
+                <h1>Past Events</h1>
+                <h3>{{ workshops.text_section_two }}</h3>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <img src="{{ workshops.image_section_two_top_left }}" class="col-lg-5" alt="A picture of past Seminars">
+                <img src="{{ workshops.image_section_two_top_right }}" class="col-lg" alt="A picture of past Seminars">
+            </div>
+            <div class="row">
+                <img src="{{ workshops.image_section_two_bot_left }}" class="col-lg" alt="A picture of past Seminars">
+                <img src="{{ workshops.image_section_two_bot_right }}" class="col-lg-5"
+                     alt="A picture of past Seminars">
+            </div>
+        </div>
+    </div>
+{% endblock content %}

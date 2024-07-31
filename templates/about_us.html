@@ -1,32 +1,39 @@
-{% load static %}
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}About Us | Jump {% now "Y" %}{% endblock title %}
 
 {% block content %}
     <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
         <div class="d-flex flex-column justify-content-center margin-auto text-center">
-            <h1>{{ landing.header_section_two }}</h1>
-            <h3>{{ landing.text_section_two }}</h3>
+            <h1>About Us</h1>
+            <h3>{{ about_us.text_section_one }}</h3>
         </div>
     </div>
-    <div class="container">
+    <div class="container animate-on-scroll">
         <div class="row">
-            <div>
-
+            <h1>{{ about_us.header_section_two }}</h1>
+        </div>
+        <div class="row">
+            <div class="col-lg">
+                <h4>{{ about_us.subheader_section_two_left }}</h4>
+                <p>{{ about_us.text_section_two_left }}</p>
             </div>
-            <div>
-
+            <div class="col-lg">
+                <h4>{{ about_us.subheader_section_two_right }}</h4>
+                <p>{{ about_us. text_section_two_right }}</p>
             </div>
         </div>
         <div class="row">
-            <img src="" alt="A past picture of Jakarta Urology Medical Update seminar in a prestigious hotel">
+            <img src="{{ about_us.image_section_two.url }}" class="col-lg" alt="A past picture of Jakarta Urology Medical Update seminar in a prestigious hotel">
         </div>
     </div>
     <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
         <div class="d-flex flex-column justify-content-center margin-auto text-center">
-            <h1>{{ landing.header_section_two }}</h1>
-            <h3>{{ landing.text_section_two }}</h3>
+            <h1>Contact Us</h1>
+            <p>Whatsapp: <a
+                    href="https://api.whatsapp.com/send?phone={{ about_us.whatsapp_number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">{{ about_us.whatsapp_number }}
+                | Click Me</a></p>
+            <p>Telfon: <a href="tel:{{ about_us.phone_number }}"></a>{{ about_us.phone_number }}</p>
         </div>
-
     </div>
 {% endblock content %}
