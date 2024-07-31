@@ -1,6 +1,8 @@
 from PIL import Image
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 
 class workshops_page(models.Model):
@@ -139,15 +141,64 @@ class about_us(models.Model):
 
 
 class Seminar(models.Model):
+    SEMINAR = 'Seminar'
+    WORKSHOP = 'Workshop'
+    CATEGORY_CHOICES = [
+        (SEMINAR, 'Seminar'),
+        (WORKSHOP, 'Workshop'),
+    ]
+
     title = models.CharField(max_length=200)
     description = models.TextField(blank=False, default="Sample Description")
-    image = models.ImageField(blank=True, null=True)
+    image = models.ImageField(upload_to='seminar_images/', blank=True, null=True)
     date = models.DateTimeField()
-    price = models.CharField(max_length=200, blank=False, default="1")
-    available_seats = models.IntegerField(blank=False, default="1")
+    category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SEMINAR)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
+    available_seats = models.IntegerField(blank=False, default=1)
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.image:
+            self.compress_image()
+
+    def compress_image(self):
+        img = Image.open(self.image.path)
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        img.save(self.image.path, 'JPEG', quality=85, optimize=True)
+
+    @property
+    def remaining_seats(self):
+        reserved_seats = sum(item.quantity for item in self.cartitem_set.all())
+        return self.available_seats - reserved_seats
+
+
+class Cart(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Cart for {self.user.username}'
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f'{self.quantity} of {self.seminar.title}'
+
+    def total_price(self):
+        return self.quantity * self.seminar.price
+
+
+@receiver(post_save, sender=CartItem)
+@receiver(post_delete, sender=CartItem)
+def update_remaining_seats(sender, instance, **kwargs):
+    instance.seminar.save()
 
 
 class Order(models.Model):

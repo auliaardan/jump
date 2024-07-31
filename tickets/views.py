@@ -1,17 +1,21 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.views import View
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 
 from .forms import PaymentProofForm, UserUpdateForm, ProfileUpdateForm
-from .forms import UserRegisterForm
-from .models import Seminar, Order, landing_page
+from .forms import UserRegisterForm, AddToCartForm
+from .models import Seminar, Order, landing_page, Cart, CartItem
+
 
 class baseView(ListView):
     model = landing_page
@@ -21,16 +25,10 @@ class baseView(ListView):
     def get_queryset(self):
         return landing_page.objects.last()
 
+
 def seminar_list(request):
     seminars = Seminar.objects.all()
     return render(request, 'tickets/seminar_list.html', {'seminars': seminars})
-
-
-@login_required
-def create_order(request, seminar_id):
-    seminar = get_object_or_404(Seminar, id=seminar_id)
-    order, created = Order.objects.get_or_create(user=request.user, seminar=seminar)
-    return redirect('upload_proof', order_id=order.id)
 
 
 @login_required
@@ -143,3 +141,69 @@ def profile(request):
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'tickets/order_history.html', {'orders': orders})
+
+
+class SeminarDetailView(DetailView):
+    model = Seminar
+    template_name = 'tickets/ticket_detail.html'
+    context_object_name = 'seminar'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seminar = self.get_object()
+        context['form'] = AddToCartForm(seminar=seminar)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        seminar = self.get_object()
+        form = AddToCartForm(request.POST, seminar=seminar)
+        if form.is_valid():
+            quantity = form.cleaned_data['quantity']
+            cart, created = Cart.objects.get_or_create(user=request.user)
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, seminar=seminar)
+            if created:
+                cart_item.quantity = quantity
+            else:
+                cart_item.quantity += quantity
+            if cart_item.quantity > seminar.available_seats:
+                cart_item.quantity = seminar.available_seats
+            cart_item.save()
+            return redirect('cart_detail')
+        return self.get(request, *args, **kwargs)
+
+
+class CartDetailView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        return render(request, 'tickets/cart_detail.html', {'cart': cart})
+
+
+class RemoveFromCartView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        cart_item = get_object_or_404(CartItem, id=kwargs['item_id'])
+        cart_item.delete()
+        return redirect('cart_detail')
+
+
+class AddToCartView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        seminar = get_object_or_404(Seminar, id=kwargs['seminar_id'])
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, seminar=seminar)
+
+        if cart_item.quantity < seminar.remaining_seats:
+            cart_item.quantity += 1
+            cart_item.save()
+            response = {
+                'success': True,
+                'message': 'Added to cart successfully!',
+                'quantity': cart_item.quantity,
+                'remaining_seats': seminar.remaining_seats
+            }
+        else:
+            response = {
+                'success': False,
+                'message': 'No more seats available!'
+            }
+
+        return JsonResponse(response)

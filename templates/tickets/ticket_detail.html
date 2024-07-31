@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ seminar.tittle }} | Jump {% now "Y" %}{% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <img src="{{ seminar.image.url }}" class="col-lg" alt="">
+        <div class="col-lg">
+            <h1>{{ seminar.title }}</h1>
+            <h2>{{ seminar.date }}</h2>
+            <p>Rp {{ seminar.price }}</p>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Add to Cart</button>
+            </form>
+            <p>{{ seminar.description }}</p>
+        </div>
+    </div>
+{% endblock content %}

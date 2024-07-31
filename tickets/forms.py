@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import PaymentProof, Profile
+from .models import PaymentProof, Profile, CartItem
 
 
 class PaymentProofForm(forms.ModelForm):
@@ -31,3 +31,13 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['bio']
+
+class AddToCartForm(forms.ModelForm):
+    class Meta:
+        model = CartItem
+        fields = ['quantity']
+
+    def __init__(self, *args, **kwargs):
+        self.seminar = kwargs.pop('seminar', None)
+        super().__init__(*args, **kwargs)
+        self.fields['quantity'].widget.attrs.update({'max': self.seminar.available_seats})

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h1>Your Cart</h1>
+    <ul>
+        {% for item in cart.cartitem_set.all %}
+        <li>
+            <img src="{{ item.seminar.image.url }}" alt="A picture of the seminar/workshop">
+            <h4>{{ item.seminar.title }}</h4>
+            <p>Quantity: {{ item.quantity }}</p>
+            <p>Price: Rp {{ item.total_price }}</p>
+            <a class="btn btn-danger" role="button" href="{% url 'remove_from_cart' item.id %}">Remove</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-success" role="button" href="{% url 'checkout' %}">Proceed to Checkout</a>
+</div>
+{% endblock %}

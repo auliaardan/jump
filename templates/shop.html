@@ -1,10 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Catalogue | Jump {% now "Y" %}{% endblock title %}
 
-</body>
-</html>
+{% block content %}
+    <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
+        <div class="d-flex flex-column justify-content-center margin-auto text-center">
+            <h1>Reserve now</h1>
+            <h3>View our catalogue of Seminars and Workshop</h3>
+        </div>
+    </div>
+
+{% endblock content %}

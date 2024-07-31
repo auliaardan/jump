@@ -1,19 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Seminars</title>
-</head>
-<body>
-    <h1>Seminars</h1>
-    <ul>
-        {% for seminar in seminars %}
-            <li>
-                <h2>{{ seminar.title }}</h2>
-                <p>{{ seminar.description }}</p>
-                <p>{{ seminar.date }}</p>
-                <a href="{% url 'create_order' seminar.id %}">Order</a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% for seminar in seminars %}
+    <li>
+        <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop">
+        <h4>{{ seminar.title }}</h4>
+        <p>{{ seminar.price }}</p>
+        <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
+                {% if seminar.available_seats <= 0 %}disabled{% endif %}>
+            {% if seminar.available_seats > 0 %}
+                Add to Cart
+            {% else %}
+                Sold Out
+            {% endif %}
+        </button>
+    </li>
+{% endfor %}
+
+<script>
+    $(document).ready(function () {
+        $('.add-to-cart').click(function () {
+            var seminarId = $(this).data('seminar-id');
+            var button = $(this);
+
+            $.ajax({
+                url: "{% url 'add_to_cart' 0 %}".replace('0', seminarId),
+                type: 'POST',
+                data: {
+                    'seminar_id': seminarId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        button.text('Added (' + response.quantity + ')');
+                    } else {
+                        button.text('Sold Out');
+                        button.prop('disabled', true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+</script>
