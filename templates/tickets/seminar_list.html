@@ -11,26 +11,28 @@
         transform: scale(1.1); /* Adjust the scale value as needed */
     }
 </style>
-
-{% for seminar in seminars %}
-    <li class="col-lg">
-        <a href="{% url 'seminar_detail' seminar.id %}">
-            <div class="zoom-effect-container">
-                <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop" sizes="(min-width: 920px) 392px, calc(100vw - 32px)">
-            </div>
-            <h4>{{ seminar.title }}</h4>
-            <p>{{ seminar.price }}</p>
-        </a>
-        <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
-                {% if seminar.remaining_seats <= 0 %}disabled{% endif %}>
-            {% if seminar.remaining_seats > 0 %}
-                Add to Cart
-            {% else %}
-                Sold Out
-            {% endif %}
-        </button>
-    </li>
-{% endfor %}
+<div class="animate-on-scroll container">
+    {% for seminar in seminars %}
+        <li class="col-lg">
+            <a href="{% url 'seminar_detail' seminar.id %}">
+                <div class="zoom-effect-container">
+                    <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
+                         sizes="(min-width: 920px) 392px, calc(100vw - 32px)">
+                </div>
+                <h4>{{ seminar.title }}</h4>
+                <p>{{ seminar.price }}</p>
+            </a>
+            <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
+                    {% if seminar.remaining_seats <= 0 %}disabled{% endif %}>
+                {% if seminar.remaining_seats > 0 %}
+                    Add to Cart
+                {% else %}
+                    Sold Out
+                {% endif %}
+            </button>
+        </li>
+    {% endfor %}
+</div>
 
 <script>
     $(document).ready(function () {
