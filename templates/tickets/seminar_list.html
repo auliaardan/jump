@@ -1,11 +1,29 @@
+<style>
+    .zoom-effect-container {
+        overflow: hidden;
+    }
+
+    .zoom-effect-container img {
+        transition: transform 0.3s ease;
+    }
+
+    .zoom-effect-container img:hover {
+        transform: scale(1.1); /* Adjust the scale value as needed */
+    }
+</style>
+
 {% for seminar in seminars %}
-    <li>
-        <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop">
-        <h4>{{ seminar.title }}</h4>
-        <p>{{ seminar.price }}</p>
+    <li class="col-lg">
+        <a href="{% url 'seminar_detail' seminar.id %}">
+            <div class="zoom-effect-container">
+                <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop" sizes="(min-width: 920px) 392px, calc(100vw - 32px)">
+            </div>
+            <h4>{{ seminar.title }}</h4>
+            <p>{{ seminar.price }}</p>
+        </a>
         <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
-                {% if seminar.available_seats <= 0 %}disabled{% endif %}>
-            {% if seminar.available_seats > 0 %}
+                {% if seminar.remaining_seats <= 0 %}disabled{% endif %}>
+            {% if seminar.remaining_seats > 0 %}
                 Add to Cart
             {% else %}
                 Sold Out
@@ -30,6 +48,11 @@
                 success: function (response) {
                     if (response.success) {
                         button.text('Added (' + response.quantity + ')');
+                        $('p.remaining-seats-' + seminarId).text('Remaining Seats: ' + response.remaining_seats);
+                        if (response.remaining_seats <= 0) {
+                            button.text('Sold Out');
+                            button.prop('disabled', true);
+                        }
                     } else {
                         button.text('Sold Out');
                         button.prop('disabled', true);

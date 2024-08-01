@@ -102,7 +102,7 @@ def confirm_order(request, order_id):
     order.confirmation_date = timezone.now()
     order.transaction_id = request.POST.get('transaction_id')
     order.save()
-    email_subject = 'Order Confirmed'
+    email_subject = 'Order Confirmed for' + order.user.first_name + " " + order.user.last_name
     email_body = render_to_string('tickets/emails/order_confirmed.html', {'user': order.user})
     email = EmailMessage(
         email_subject,
