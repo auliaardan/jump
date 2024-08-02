@@ -11,14 +11,17 @@
         transform: scale(1.1);
     }
 </style>
-<div class="animate-on-scroll container">
+<div class="animate-on-scroll container py-6" style="width: 80%">
     <div class="row">
         {% for seminar in seminars %}
-            <li class="col-lg">
-                <a href="{% url 'seminar_detail' seminar.id %}">
+            <li class="col-lg" style="list-style-type: none; width: 25%;">
+                <a href="{% url 'seminar_detail' seminar.id %}" style="color: black">
                     <div class="zoom-effect-container">
                         <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
-                             sizes="(min-width: 920px) 392px, calc(100vw - 32px)">
+                             class="img-fluid rounded-4"
+                             alt="Jakarta Urology Medical Update Workshop past events documentations"
+                             width="100%"
+                             height="600px" loading="lazy" style="max-height: 500px">
                     </div>
                     <h4>{{ seminar.title }}</h4>
                     <p>{{ seminar.price }}</p>
@@ -34,7 +37,6 @@
             </li>
         {% endfor %}
     </div>
-
 </div>
 
 <script>
