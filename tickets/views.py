@@ -14,7 +14,7 @@ from django.views.generic import ListView, DetailView
 
 from .forms import PaymentProofForm, UserUpdateForm, ProfileUpdateForm
 from .forms import UserRegisterForm, AddToCartForm
-from .models import Seminar, Order, landing_page, Cart, CartItem
+from .models import Seminar, Order, landing_page, Cart, CartItem, about_us
 
 
 class baseView(ListView):
@@ -29,6 +29,16 @@ class baseView(ListView):
         context = super().get_context_data(**kwargs)
         context['seminar_list'] = Seminar.objects.all()
         return context
+
+
+class about_us_view(ListView):
+    model = about_us
+    template_name = 'about_us.html'
+    context_object_name = "about_us"
+
+    def get_queryset(self):
+        return about_us.objects.last()
+
 
 
 @login_required
