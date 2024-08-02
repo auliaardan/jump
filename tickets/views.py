@@ -25,10 +25,10 @@ class baseView(ListView):
     def get_queryset(self):
         return landing_page.objects.last()
 
-
-def seminar_list(request):
-    seminars = Seminar.objects.all()
-    return render(request, 'tickets/seminar_list.html', {'seminars': seminars})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['seminar_list'] = Seminar.objects.all()
+        return context
 
 
 @login_required
