@@ -3,6 +3,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
@@ -27,9 +28,26 @@ class baseView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['seminar_list'] = Seminar.objects.all()
-        return context
+        search_query = self.request.GET.get('search', '')
 
+        if search_query:
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('id')
+        else:
+            seminars = Seminar.objects.all().order_by('id')
+
+        paginator = Paginator(seminars, 4)  # Show 4 seminars per page
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+
+        # Calculate the number of placeholders needed to maintain the layout
+        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
+
+        context['seminar_list'] = page_obj
+        context['num_placeholders'] = num_placeholders
+        context['has_next'] = page_obj.has_next()
+        context['has_previous'] = page_obj.has_previous()
+        context['search_query'] = search_query
+        return context
 
 class about_us_view(ListView):
     model = about_us
@@ -38,7 +56,6 @@ class about_us_view(ListView):
 
     def get_queryset(self):
         return about_us.objects.last()
-
 
 
 @login_required

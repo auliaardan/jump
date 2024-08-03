@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <style>
     .zoom-effect-container {
         overflow: hidden;
@@ -10,11 +12,20 @@
     .zoom-effect-container img:hover {
         transform: scale(1.1);
     }
+
+    .placeholder {
+        visibility: hidden;
+    }
 </style>
-<div class="animate-on-scroll container py-6" style="width: 80%">
-    <div class="row">
-        {% for seminar in seminars %}
-            <li class="col-lg" style="list-style-type: none; width: 25%;">
+<div class="animate-on-scroll container py-6 pad-phone" >
+    <div class="row mb-4">
+        <div class="col-12">
+            <input type="text" id="seminar-search" class="form-control" placeholder="Search seminars...">
+        </div>
+    </div>
+    <div class="row" id="seminar-list">
+        {% for seminar in seminar_list %}
+            <li class="col-lg mt-r-3" style="list-style-type: none;">
                 <a href="{% url 'seminar_detail' seminar.id %}" style="color: black">
                     <div class="zoom-effect-container">
                         <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
@@ -23,8 +34,9 @@
                              width="100%"
                              height="600px" loading="lazy" style="max-height: 500px">
                     </div>
-                    <h4>{{ seminar.title }}</h4>
-                    <p>{{ seminar.price }}</p>
+                    <h4 style="font-weight: bold">{{ seminar.title }}</h4>
+                    <p>{{ seminar.price|idr_format }}</p>
+
                 </a>
                 <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
                         {% if seminar.remaining_seats <= 0 %}disabled{% endif %}>
@@ -36,12 +48,78 @@
                 </button>
             </li>
         {% endfor %}
+        {% for i in num_placeholders|range_filter %}
+            <li class="col-lg placeholder" style="list-style-type: none; width: 25%;"></li>
+        {% endfor %}
+    </div>
+    <div class="d-flex justify-content-center mt-4">
+        <button id="prev-btn" class="btn btn-outline-primary me-2"
+                {% if not seminar_list.has_previous %}disabled{% endif %}>Previous
+        </button>
+        <button id="next-btn" class="btn btn-outline-primary" {% if not seminar_list.has_next %}disabled{% endif %}>
+            Next
+        </button>
     </div>
 </div>
 
 <script>
     $(document).ready(function () {
-        $('.add-to-cart').click(function () {
+        let currentPage = 1;
+        let searchTimeout;
+
+        function loadSeminars(page, query = '') {
+            $.ajax({
+                url: "{% url 'seminar_list' %}",
+                type: 'GET',
+                data: {
+                    'page': page,
+                    'search': query,
+                },
+                success: function (response) {
+                    const newContent = $(response).find('#seminar-list').html();
+                    if (newContent.trim() === "" && query === "") {
+                        currentPage = 1;
+                        loadSeminars(currentPage);
+                    } else {
+                        $('#seminar-list').html(newContent);
+                        updateButtons(page);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        function updateButtons(page) {
+            $.ajax({
+                url: "{% url 'seminar_list' %}",
+                type: 'GET',
+                data: {
+                    'page': page,
+                },
+                success: function (response) {
+                    const has_next = $(response).find('#next-btn').prop('disabled');
+                    const has_previous = $(response).find('#prev-btn').prop('disabled');
+                    $('#next-btn').prop('disabled', has_next);
+                    $('#prev-btn').prop('disabled', has_previous);
+                }
+            });
+        }
+
+        $('#next-btn').click(function () {
+            currentPage++;
+            loadSeminars(currentPage);
+        });
+
+        $('#prev-btn').click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                loadSeminars(currentPage);
+            }
+        });
+
+        $(document).on('click', '.add-to-cart', function () {
             var seminarId = $(this).data('seminar-id');
             var button = $(this);
 
@@ -69,6 +147,20 @@
                     console.error('Error:', error);
                 }
             });
+        });
+
+        $('#seminar-search').on('input', function () {
+            clearTimeout(searchTimeout);
+            const query = $(this).val().trim();
+
+            if (query) {
+                currentPage = 1;
+                loadSeminars(currentPage, query);
+            } else {
+                searchTimeout = setTimeout(function () {
+                    loadSeminars(currentPage);
+                }, 500);
+            }
         });
     });
 </script>

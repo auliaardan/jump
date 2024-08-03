@@ -15,8 +15,9 @@
                 <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ landing.header_section_one }}</h1>
                 <p class="lead">{{ landing.text_section_one }}</p>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Reserve Now</button>
-                    <button type="button" class="btn btn-outline-secondary btn-lg px-4">Learn More</button>
+                    <a href="#" class="btn btn-primary btn-lg px-4 me-md-2" role="button">Reserve Now</a>
+                    <a href="{% url 'about_us' %}" class="btn btn-outline-secondary btn-lg px-4" role="button">Learn
+                        More</a>
                 </div>
             </div>
         </div>
@@ -42,7 +43,8 @@
                     </a>
                 </div>
                 <div class="col-lg mx-2 mt-r-3">
-                    <a href="#" class="card no-border-color" style="border-color: rgba(255,255,255,0) !important;">
+                    <a href="#" class="card no-border-color"
+                       style="border-color: rgba(255,255,255,0) !important;">
                         <img src="{{ landing.image_section_two_right.url }}"
                              class="img-fluid rounded-4 card-img-top"
                              alt="Jakarta Urology Medical Update Workshop past events documentations"
@@ -63,7 +65,7 @@
             <div class="col-lg">
                 <h1 style="font-weight: bold">{{ landing.header_section_three }}</h1>
                 <p>{{ landing.text_section_three }}</p>
-                <button type="button" class="btn btn-outline-secondary btn-lg">Default</button>
+                <a href="{% url 'about_us' %}" class="btn btn-primary btn-lg px-4 me-md-2" role="button">About Us</a>
             </div>
             <img src="{{ landing.image_section_three_left.url }}"
                  class="img-fluid rounded-4 col-lg mt-r-3"
