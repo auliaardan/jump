@@ -108,6 +108,22 @@ class landing_page(models.Model):
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
+class WhatsAppNumber(models.Model):
+    name = models.CharField(max_length=100, blank=False, default="Contact Name")
+    number = models.CharField(max_length=100, blank=False, default="62812345678", help_text="+62812345678 tanpa +")
+
+    def __str__(self):
+        return f"{self.name}: {self.number}"
+
+
+class PhoneNumber(models.Model):
+    name = models.CharField(max_length=100, blank=False, default="Contact Name")
+    number = models.CharField(max_length=100, blank=False, default="+62812345678", help_text="+62812345678")
+
+    def __str__(self):
+        return f"{self.name}: {self.number}"
+
+
 class about_us(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     header_section_two = models.CharField(max_length=100, blank=False, default="Sample Description")
@@ -115,17 +131,14 @@ class about_us(models.Model):
     text_section_two_left = models.TextField(blank=False, default="Sample Description")
     subheader_section_two_right = models.CharField(max_length=100, blank=False, default="Sample Description")
     text_section_two_right = models.TextField(blank=False, default="Sample Description")
-    image_section_two = models.ImageField(upload_to='about_us_images/', )
-    whatsapp_number = models.CharField(max_length=100, blank=False, default="62812345678  tanpa +",
-                                       help_text="+62812345678 tanpa +")
-    phone_number = models.CharField(max_length=100, blank=False, default="+62812345678", help_text="+62812345678")
+    image_section_two = models.ImageField(upload_to='about_us_images/')
+    whatsapp_numbers = models.ManyToManyField(WhatsAppNumber, blank=True)
+    phone_numbers = models.ManyToManyField(PhoneNumber, blank=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        image_fields = [
-            self.image_section_two,
-        ]
+        image_fields = [self.image_section_two]
 
         for image_field in image_fields:
             if image_field:

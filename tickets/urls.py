@@ -3,11 +3,14 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
-from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view
+from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view, SeminarsView, \
+    WorkshopView
 
 urlpatterns = [
                   path('', views.baseView.as_view(), name='seminar_list'),
                   path('seminar/<int:pk>/', SeminarDetailView.as_view(), name='seminar_detail'),
+                  path('seminar_page/', SeminarsView.as_view(), name='seminar_page'),
+                  path('workshop_page/', WorkshopView.as_view(), name='workshop_page'),
                   path('cart/', CartDetailView.as_view(), name='cart_detail'),
                   path('about_us/', about_us_view.as_view(), name='about_us'),
                   path('remove_from_cart/<int:item_id>/', RemoveFromCartView.as_view(), name='remove_from_cart'),

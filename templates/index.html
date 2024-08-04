@@ -30,28 +30,33 @@
         <div class="container text-center mt-5">
             <div class="row px-10em">
                 <div class="col-lg mx-2 mt-r-3">
-                    <a href="#" class="card no-border-color">
-                        <img src="{{ landing.image_section_two_left.url }}"
-                             class="img-fluid rounded-4 card-img-top"
-                             alt="Jakarta Urology Medical Update Seminar past events documentation"
-                             width="100%"
-                             height="600px" loading="lazy" style="max-height: 500px">
+                    <a href="{% url 'seminar_page' %}" class="card no-border-color">
+                        <div class="zoom-effect-container">
+                            <img src="{{ landing.image_section_two_left.url }}"
+                                 class="img-fluid rounded-4 card-img-top"
+                                 alt="Jakarta Urology Medical Update Seminar past events documentation"
+                                 width="100%"
+                                 height="600px" loading="lazy" style="max-height: 500px">
+                        </div>
                         <div class="box-caption card-body">
-                            <h2>{{ landing.image_section_two_header_left }}</h2>
-                            <p>{{ landing.image_section_two_text_left }}</p>
+                            <h2 class="card-title bold">{{ landing.image_section_two_header_left }}</h2>
+                            <p class="card-text">{{ landing.image_section_two_text_left }}</p>
                         </div>
                     </a>
                 </div>
                 <div class="col-lg mx-2 mt-r-3">
-                    <a href="#" class="card no-border-color"
+                    <a href="{% url 'workshop_page' %}" class="card no-border-color"
                        style="border-color: rgba(255,255,255,0) !important;">
-                        <img src="{{ landing.image_section_two_right.url }}"
-                             class="img-fluid rounded-4 card-img-top"
-                             alt="Jakarta Urology Medical Update Workshop past events documentations"
-                             width="100%"
-                             height="600px" loading="lazy" style="max-height: 500px">
+                        <div class="zoom-effect-container">
+                            <img src="{{ landing.image_section_two_right.url }}"
+                                 class="img-fluid rounded-4 card-img-top"
+                                 alt="Jakarta Urology Medical Update Workshop past events documentations"
+                                 width="100%"
+                                 height="600px" loading="lazy" style="max-height: 500px">
+                        </div>
+
                         <div class="box-caption card-body">
-                            <h2 class="card-title">{{ landing.image_section_two_header_right }}</h2>
+                            <h2 class="card-title bold">{{ landing.image_section_two_header_right }}</h2>
                             <p class="card-text">{{ landing.image_section_two_header_right }}</p>
                         </div>
                     </a>

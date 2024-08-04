@@ -13,7 +13,7 @@
         <div class="row pad-phone">
             <h1 class="bold">{{ about_us.header_section_two }}</h1>
         </div>
-        <div class="row mt-5 pad-phone" >
+        <div class="row mt-5 pad-phone">
             <div class="col-lg">
                 <h4 class="bold">{{ about_us.subheader_section_two_left }}</h4>
                 <p class="mt-2">{{ about_us.text_section_two_left }}</p>
@@ -24,16 +24,22 @@
             </div>
         </div>
         <div class="row pt-5">
-            <img src="{{ about_us.image_section_two.url }}" class="col-lg img-about-us rounded pad-phone" alt="A past picture of Jakarta Urology Medical Update seminar in a prestigious hotel" >
+            <img src="{{ about_us.image_section_two.url }}" class="col-lg img-about-us rounded pad-phone"
+                 alt="A past picture of Jakarta Urology Medical Update seminar in a prestigious hotel">
         </div>
     </div>
     <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll pad-phone">
         <div class="d-flex flex-column justify-content-center margin-auto text-center">
             <h1>Contact Us</h1>
-            <p>Whatsapp: <a
-                    href="https://api.whatsapp.com/send?phone={{ about_us.whatsapp_number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">{{ about_us.whatsapp_number }}
-                | Click Me</a></p>
-            <p>Telfon: <a href="tel:{{ about_us.phone_number }}">{{ about_us.phone_number }}</a></p>
+            {% for whatsapp in about_us.whatsapp_numbers.all %}
+                <p>Whatsapp: <a
+                        href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">{{ whatsapp.number }}
+                    | {{ whatsapp.name }}</a></p>
+            {% endfor %}
+
+            {% for phone in about_us.phone_numbers.all %}
+                <p>Telfon: <a href="tel:{{ phone.number }}">{{ phone.number }} | {{ phone.name }}</a></p>
+            {% endfor %}
         </div>
     </div>
 {% endblock content %}

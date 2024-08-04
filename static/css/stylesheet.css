@@ -20,7 +20,7 @@
     padding-top: 2em;
 }
 
-.bold{
+.bold {
     font-weight: bold;
 }
 
@@ -58,9 +58,22 @@ a {
     width: 25%;
 }
 
-.img-about-us{
+.img-about-us {
     max-height: 400px;
 }
+
+.zoom-effect-container {
+    overflow: hidden;
+}
+
+.zoom-effect-container img {
+    transition: transform 0.3s ease;
+}
+
+.zoom-effect-container img:hover {
+    transform: scale(1.1);
+}
+
 
 @media only screen and (max-width: 1200px) {
     .px-10em {
