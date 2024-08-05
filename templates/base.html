@@ -15,8 +15,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/cover/">
     <link rel="stylesheet" href="{% static 'css/stylesheet.css' %}">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.bootstrap5.min.css"/>
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.bootstrap5.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/dashboard/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     {% block head %}{% endblock head %}
 </head>
 <body>
@@ -33,18 +39,31 @@
         <div id="navbarsExample06" class="collapse navbar-collapse">
 
             <ul class="navbar-nav col-xl-9 justify-content-lg-center">
-                <li><a href="#" class="nav-link px-2 link-secondary">Home</a></li>
-                <li><a href="#" class="nav-link px-2">Features</a></li>
-                <li><a href="#" class="nav-link px-2">Pricing</a></li>
-                <li><a href="#" class="nav-link px-2">FAQs</a></li>
-                <li><a href="#" class="nav-link px-2">About</a></li>
+                <li><a href="{% url 'seminar_list' %}" class="nav-link px-2 link-secondary">Home</a></li>
+                <li><a href="{% url 'about_us' %}" class="nav-link px-2">About Us</a></li>
+                <li><a href="{% url 'seminar_page' %}" class="nav-link px-2">Seminars</a></li>
+                <li><a href="{% url 'workshop_page' %}" class="nav-link px-2">Workshop</a></li>
             </ul>
-            <div class="d-lg-flex col-xl-3 justify-content-lg-end">
-                <button type="button" class="btn btn-outline-primary me-2">Login</button>
-                <button type="button" class="btn btn-primary">Sign-up</button>
+            <div class="d-lg-flex col-xl-3 justify-content-lg-end align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="navbar-text">
+                       {% if user.is_staff %}
+                           <a href="{% url 'admin_dashboard' %}">{{ user.username }}</a> |
+                       {% else %}
+                           <a href="{% url 'order_history' %}">{{ user.username }}</a> |
+                       {% endif %}
+                        <a href="{% url 'logout' %}">Sign Out</a>
+                        </span>
+                    <a style="margin-left: 4px" href="{% url 'cart_detail' %}">
+                        <img src="{% static 'images/cart_icon.png' %}" alt="Cart" style="width: 24px; height: 24px;">
+                        (<span style="color:black;" id="cart-item-count">0</span>)
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2" role="button">Login</a>
+                    <a href="{% url 'signup' %}" class="btn btn-primary" role="button">Sign-up</a>
+                {% endif %}
             </div>
         </div>
-
     </div>
 </nav>
 {% block content %}
@@ -57,7 +76,9 @@
                 <use xlink:href="#bootstrap"></use>
             </svg>
         </a>
-        <span class="mb-3 mb-md-0">©{% now "Y" %} Departemen Urologi RSCM-FKUI<br>Developed by <a href="https://www.linkedin.com/in/aulia-rahman-ardan" style="color: white">dr. Aulia Rahman Ardan</a></span>
+        <span class="mb-3 mb-md-0">©{% now "Y" %} Departemen Urologi RSCM-FKUI<br>Developed by <a
+                href="https://www.linkedin.com/in/aulia-rahman-ardan"
+                style="color: white">dr. Aulia Rahman Ardan</a></span>
     </div>
 
     <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
@@ -94,6 +115,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
+<script>
+    function updateCartItemCount() {
+        fetch("{% url 'cart_item_count' %}")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cart-item-count').innerText = data.item_count;
+            });
+    }
+
+    // Call this function after the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        updateCartItemCount();
+    });
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

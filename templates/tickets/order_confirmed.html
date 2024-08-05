@@ -1,9 +1,16 @@
+<!-- order_confirmed.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Order Confirmed</title>
+    <script type="text/javascript">
+        setTimeout(function(){
+            window.location.href = "{% url 'seminar_list' %}";
+        }, 5000);  // Redirect after 5 seconds
+    </script>
 </head>
 <body>
-    <h1>Thank you! Your order has been confirmed.</h1>
+    <h1>Order Confirmed</h1>
+    <p>Thank you for your order! You will be redirected to the homepage shortly.</p>
 </body>
 </html>

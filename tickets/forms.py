@@ -32,6 +32,7 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ['bio']
 
+
 class AddToCartForm(forms.ModelForm):
     class Meta:
         model = CartItem
@@ -40,4 +41,4 @@ class AddToCartForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.seminar = kwargs.pop('seminar', None)
         super().__init__(*args, **kwargs)
-        self.fields['quantity'].widget.attrs.update({'max': self.seminar.available_seats})
+        self.fields['quantity'].widget.attrs.update({'max': self.seminar.remaining_seats})

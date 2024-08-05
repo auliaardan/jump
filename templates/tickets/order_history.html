@@ -4,34 +4,52 @@
     <title>Order History</title>
 </head>
 <body>
-<h1>Order History</h1>
-<table>
-    <thead>
-    <tr>
-        <th>Seminar</th>
-        <th>Order Date</th>
-        <th>Status</th>
-        <th>Confirmation Date</th>
-        <th>Transaction ID</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for order in orders %}
-        <tr>
-            <td>{{ order.seminar.title }}</td>
-            <td>{{ order.created_at }}</td>
-            <td>
-                {% if order.is_confirmed %}
-                    Confirmed
-                {% else %}
-                    Pending
-                {% endif %}
-            </td>
-            <td>{{ order.confirmation_date }}</td>
-            <td>{{ order.transaction_id }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+    <h1>Order History</h1>
+    {% if orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Seminars</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td>
+                            <ul>
+                                {% for seminar in order.seminars.all %}
+                                    <li>{{ seminar.title }} ({{ seminar.date }})</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            {% with total=0 %}
+                                {% for seminar in order.seminars.all %}
+                                    {% with total=total|add:seminar.price %}
+                                    {% endwith %}
+                                {% endfor %}
+                                {{ total }}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if order.is_confirmed %}
+                                Confirmed
+                            {% else %}
+                                Pending
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You have no orders.</p>
+    {% endif %}
 </body>
 </html>

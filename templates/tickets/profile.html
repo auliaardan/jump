@@ -1,15 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Profile</title>
-</head>
-<body>
-    <h1>Profile</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ u_form.as_p }}
-        {{ p_form.as_p }}
-        <button type="submit">Update</button>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Order History</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Created At</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.created_at }}</td>
+            <td>{{ order.is_confirmed|yesno:"Confirmed,Pending" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

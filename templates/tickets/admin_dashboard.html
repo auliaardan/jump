@@ -1,43 +1,99 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>User</th>
-                <th>Seminar</th>
-                <th>Payment Proof</th>
-                <th>Transaction ID</th>
-                <th>Confirmation Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.user.username }}</td>
-                <td>{{ order.seminar.title }}</td>
-                <td>
-                    {% for proof in order.paymentproof_set.all %}
-                        <img src="{{ proof.proof.url }}" alt="Payment Proof" width="100">
-                    {% endfor %}
-                </td>
-                <td>{{ order.transaction_id }}</td>
-                <td>{{ order.confirmation_date }}</td>
-                <td>
-                    <form method="post" action="{% url 'confirm_order' order.id %}">
-                        {% csrf_token %}
-                        <input type="text" name="transaction_id" placeholder="Transaction ID" required>
-                        <button type="submit">Confirm</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Admin Dashboard
+{% endblock title %}
+
+{% block content %}
+    <div class="view-fix py-5">
+    <div class="px-10em" id="MainDiv">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+            <h1 id="medicalrecord-header" class="h2">Konfirmasi Pembayaran</h1>
+            <a href="{% url 'export_orders' %}" class="btn btn-primary justify-content-end">Export Orders</a>
+        </div>
+
+        <div class="table-responsive small">
+            <table id="myTable" class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th scope="col" data-orderable="true">Order ID</th>
+                    <th scope="col" data-orderable="true">User</th>
+                    <th scope="col" data-orderable="true">Created At</th>
+                    <th scope="col" data-orderable="false">Payment Proof</th>
+                    <th scope="col" data-orderable="true">Status</th>
+                    <th scope="col" data-orderable="true">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="table-body">
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user.username }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td>
+                            {% if order.paymentproof_set.exists %}
+                                <a href="{{ order.paymentproof_set.first.proof.url }}">Proof</a>
+                            {% else %}
+                                No proof available
+                            {% endif %}
+                        </td>
+                        <td>{{ order.is_confirmed|yesno:"Confirmed,Pending" }}</td>
+                        <td>
+                            {% if not order.is_confirmed %}
+                                <form action="{% url 'confirm_order' order.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Confirm</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="mt-5 px-10em" id="MainDiv">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+            <h1 id="medicalrecord-header" class="h2">Status Seminar</h1>
+        </div>
+
+        <div class="table-responsive small">
+            <table id="myTable2" class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th scope="col" data-orderable="true">Title</th>
+                    <th scope="col" data-orderable="true">Date</th>
+                    <th scope="col" data-orderable="true">Category</th>
+                    <th scope="col" data-orderable="false">Total Seats</th>
+                    <th scope="col" data-orderable="true">Remaining Seats</th>
+                </tr>
+                </thead>
+                <tbody id="table-body">
+                {% for seminar in seminars %}
+                    <tr>
+                        <td>{{ seminar.title }}</td>
+                        <td>{{ seminar.date }}</td>
+                        <td>{{ seminar.get_category_display }}</td>
+                        <td>{{ seminar.available_seats }}</td>
+                        <td>{{ seminar.remaining_seats }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+
+        $(document).ready(function () {
+            $('#myTable2').DataTable();
+        });
+    </script>
+{% endblock content %}

@@ -19,7 +19,7 @@ from tickets import views as ticket_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('accounts/register/', ticket_views.register, name='register'),
+    path('accounts/', include('accounts.urls')),
+    path("accounts/", include("django.contrib.auth.urls")),
     path('', include('tickets.urls'))
 ]

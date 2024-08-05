@@ -120,6 +120,7 @@
                 },
                 success: function (response) {
                     if (response.success) {
+                        updateCartItemCount();
                         button.text('Added (' + response.quantity + ')');
                         $('p.remaining-seats-' + seminarId).text('Remaining Seats: ' + response.remaining_seats);
                         if (response.remaining_seats <= 0) {

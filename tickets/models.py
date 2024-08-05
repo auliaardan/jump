@@ -1,8 +1,16 @@
 from PIL import Image
-from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
+from jump_project.settings import AUTH_USER_MODEL as User
+
+
+class paymentmethod(models.Model):
+    pay_method = models.TextField(blank=False, default="Sample Description")
+
+    def __str__(self):
+        return f"{self.pay_method}"
 
 
 class workshops_page(models.Model):
@@ -168,6 +176,7 @@ class Seminar(models.Model):
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SEMINAR)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     available_seats = models.IntegerField(blank=False, default=1)
+    reserved_seats = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -185,21 +194,62 @@ class Seminar(models.Model):
 
     @property
     def remaining_seats(self):
-        reserved_seats = sum(item.quantity for item in self.cartitem_set.all())
-        return self.available_seats - reserved_seats
+        return self.available_seats - self.reserved_seats
+
+    def reserve_seats(self, quantity):
+        if self.remaining_seats >= quantity:
+            self.reserved_seats += quantity
+            self.save()
+            return True
+        return False
+
+    def release_seats(self, quantity):
+        if self.reserved_seats >= quantity:
+            self.reserved_seats -= quantity
+            self.save()
+            return True
+        return False
+
+    def confirm_seats(self, quantity):
+        if self.reserved_seats >= quantity:
+            self.available_seats -= quantity
+            self.reserved_seats -= quantity
+            self.save()
+            return True
+        return False
 
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'Cart for {self.user.username}'
+        return f'Cart for {self.User.username}'
+
+
+class DiscountCode(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+    usage_limit = models.PositiveIntegerField()
+    used_count = models.PositiveIntegerField(default=0)
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.valid_from <= now <= self.valid_to and self.used_count < self.usage_limit
+
+    def apply_discount(self, total):
+        return total - (total * (self.discount_percentage / 100))
+
+    def __str__(self):
+        return self.code
 
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.quantity} of {self.seminar.title}'
@@ -208,22 +258,48 @@ class CartItem(models.Model):
         return self.quantity * self.seminar.price
 
 
+@receiver(pre_save, sender=CartItem)
+def track_initial_quantity(sender, instance, **kwargs):
+    if instance.pk:
+        instance._initial_quantity = CartItem.objects.get(pk=instance.pk).quantity
+    else:
+        instance._initial_quantity = 0
+
+
 @receiver(post_save, sender=CartItem)
+def reserve_seats_on_save(sender, instance, created, **kwargs):
+    initial_quantity = getattr(instance, '_initial_quantity', 0)
+    quantity_difference = instance.quantity - initial_quantity
+    if quantity_difference > 0:
+        instance.seminar.reserve_seats(quantity_difference)
+    elif quantity_difference < 0:
+        instance.seminar.release_seats(-quantity_difference)
+
+
 @receiver(post_delete, sender=CartItem)
-def update_remaining_seats(sender, instance, **kwargs):
-    instance.seminar.save()
+def release_seats_on_delete(sender, instance, **kwargs):
+    instance.seminar.release_seats(instance.quantity)
 
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
+    seminars = models.ManyToManyField(Seminar)
     created_at = models.DateTimeField(auto_now_add=True)
     is_confirmed = models.BooleanField(default=False)
     confirmation_date = models.DateTimeField(null=True, blank=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.seminar.title}"
+        return f"{self.user.username} - {', '.join([seminar.title for seminar in self.seminars.all()])}"
+
+
+@receiver(post_save, sender=Order)
+def confirm_order(sender, instance, **kwargs):
+    if instance.is_confirmed:
+        for seminar in instance.seminars.all():
+            cart_item = CartItem.objects.filter(cart__user=instance.user, seminar=seminar).first()
+            if cart_item:
+                seminar.confirm_seats(cart_item.quantity)
 
 
 class PaymentProof(models.Model):

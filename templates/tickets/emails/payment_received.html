@@ -1,12 +1,21 @@
+<!-- payment_received.html -->
+{% load custom_filters %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Payment Proof Received</title>
+    <title>Order Confirmation</title>
 </head>
 <body>
-    <h1>Payment Proof Received</h1>
-    <p>Dear {{ user.username }},</p>
-    <p>We have received your payment proof. Your order will be confirmed shortly.</p>
-    <p>Thank you!</p>
+    <img src="{{ image_url }}" alt="Header Image" style="width: 100%; max-width: 600px;">
+    <h1>Thank you for your order, {{ user.username }}!</h1>
+    <p>Your order has been received and is being processed. Here are the details:</p>
+    <p>Order ID: {{ order.id }}</p>
+    <p>Total: {{ total|idr_format }}</p>
+    <h3>Order Summary</h3>
+    <ul>
+        {% for item in cart.cartitem_set.all %}
+        <li>{{ item.seminar.title }} - Quantity: {{ item.quantity }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
