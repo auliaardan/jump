@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
-    WhatsAppNumber, PhoneNumber, paymentmethod, DiscountCode
+    WhatsAppNumber, PhoneNumber, PaymentMethod, DiscountCode
 
 admin.site.register(Seminar)
 admin.site.register(Order)
 admin.site.register(PaymentProof)
 admin.site.register(landing_page)
-admin.site.register(paymentmethod)
+admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 
 

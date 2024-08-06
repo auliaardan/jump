@@ -3,10 +3,11 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+
 from jump_project.settings import AUTH_USER_MODEL as User
 
 
-class paymentmethod(models.Model):
+class PaymentMethod(models.Model):
     pay_method = models.TextField(blank=False, default="Sample Description")
 
     def __str__(self):
@@ -177,6 +178,7 @@ class Seminar(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     available_seats = models.IntegerField(blank=False, default=1)
     reserved_seats = models.IntegerField(default=0)
+    booked = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -193,37 +195,23 @@ class Seminar(models.Model):
         img.save(self.image.path, 'JPEG', quality=85, optimize=True)
 
     @property
+    def reserved_seats_in_cart(self):
+        return CartItem.objects.filter(seminar=self).aggregate(total_reserved=models.Sum('quantity'))[
+            'total_reserved'] or 0
+
+    @property
     def remaining_seats(self):
-        return self.available_seats - self.reserved_seats
+        x = self.available_seats - (self.reserved_seats + self.booked)
+        return x
 
     def reserve_seats(self, quantity):
-        if self.remaining_seats >= quantity:
-            self.reserved_seats += quantity
-            self.save()
-            return True
-        return False
+        self.reserved_seats += quantity
+        self.save()
 
     def release_seats(self, quantity):
-        if self.reserved_seats >= quantity:
-            self.reserved_seats -= quantity
-            self.save()
-            return True
-        return False
+        self.reserved_seats -= quantity
+        self.save()
 
-    def confirm_seats(self, quantity):
-        if self.reserved_seats >= quantity:
-            self.available_seats -= quantity
-            self.reserved_seats -= quantity
-            self.save()
-            return True
-        return False
-
-
-class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'Cart for {self.User.username}'
 
 
 class DiscountCode(models.Model):
@@ -245,10 +233,17 @@ class DiscountCode(models.Model):
         return self.code
 
 
+class Cart(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Cart for {self.user.username}'
+
+
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=0)
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -299,21 +294,14 @@ def confirm_order(sender, instance, **kwargs):
         for seminar in instance.seminars.all():
             cart_item = CartItem.objects.filter(cart__user=instance.user, seminar=seminar).first()
             if cart_item:
-                seminar.confirm_seats(cart_item.quantity)
+                return True
 
 
 class PaymentProof(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     proof = models.ImageField(upload_to='payment_proofs/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    price_paid = models.IntegerField(blank=True)
 
     def __str__(self):
         return f"Proof for {self.order.id}"
-
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(blank=True)
-
-    def __str__(self):
-        return f'{self.user.username} Profile'

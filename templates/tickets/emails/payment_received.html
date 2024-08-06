@@ -3,11 +3,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order Confirmation</title>
+    <title>Order Confirmation for {{ user.username }}</title>
 </head>
 <body>
     <img src="{{ image_url }}" alt="Header Image" style="width: 100%; max-width: 600px;">
-    <h1>Thank you for your order, {{ user.username }}!</h1>
+    <h1>Thank you for your order, {{ user.first_name }} {{ request.user.last_name }}!</h1>
     <p>Your order has been received and is being processed. Here are the details:</p>
     <p>Order ID: {{ order.id }}</p>
     <p>Total: {{ total|idr_format }}</p>

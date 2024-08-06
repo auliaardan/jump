@@ -5,93 +5,98 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="container py-5 checkout px-4 view-fix pad-phone">
-    <div class="row">
-        <h1 class="bold px-2" style="font-size: larger ">Checkout</h1>
-    </div>
-    <div class="row">
-        <div class="col-lg px-2">
-            <h4 class="bold checkout-font-size">Order Summary</h4>
-            <ul>
-                {% for item in cart.cartitem_set.all %}
-                    <li>
-                        <h4 class="checkout-font-size no-margin-bt">{{ item.seminar.title }}</h4>
-                        <p class="checkout-font-size no-margin-bt">Quantity: {{ item.quantity }}</p>
-                        <p class="checkout-font-size">Price: {{ item.total_price|idr_format }}</p>
-                    </li>
-                {% endfor %}
-            </ul>
-            <div>
-                <div class="row">
-                    <p class="col-lg justify-content-left checkout-font-size">Subtotal:</p>
-                    <p class="col-lg justify-content-right checkout-font-size"><span
-                            id="subtotal">{{ total|idr_format }}</span></p>
-                    <div class="border-checkout"></div>
-                </div>
-                <form id="discount-form" method="post">
-                    {% csrf_token %}
-                    <label for="discount_code">Discount code:</label>
-                    <div class="d-flex mt-2">
-                        <input class="checkout-font-size" style="width: 65%" type="text" name="discount_code"
-                               id="discount_code">
-                        <button class="btn btn-secondary checkout-font-size mx-1" style="padding-left: 1em;padding-right: 1em" type="button" id="apply-discount">
-                            Apply
-                        </button>
+    <div class="container py-5 checkout px-4 view-fix pad-phone">
+        <div class="row">
+            <h1 class="bold px-2" style="font-size: larger ">Checkout</h1>
+        </div>
+        <div class="row">
+            <div class="col-lg px-2">
+                <h4 class="bold checkout-font-size">Order Summary</h4>
+                <ul>
+                    {% for item in cart.cartitem_set.all %}
+                        <li>
+                            <h4 class="checkout-font-size no-margin-bt">{{ item.seminar.title }}</h4>
+                            <p class="checkout-font-size no-margin-bt">Quantity: {{ item.quantity }}</p>
+                            <p class="checkout-font-size">Price: {{ item.total_price|idr_format }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div>
+                    <div class="row">
+                        <p class="col-lg justify-content-left checkout-font-size">Subtotal:</p>
+                        <p class="col-lg justify-content-right checkout-font-size"><span
+                                id="subtotal">{{ total|idr_format }}</span></p>
+                        <div class="border-checkout"></div>
                     </div>
-                </form>
-                <div class="border-checkout"></div>
-                <div class="row mt-4 ">
-                    <h4 class="col-lg checkout-font-size justify-content left"><span class="bold">Total:</span></h4>
-                    <h4 class="col-lg checkout-font-size justify-content-right"><span
-                            id="total">{{ total|idr_format }}</span></h4>
+                    <form id="discount-form" method="post">
+                        {% csrf_token %}
+                        <label for="discount_code">Discount code:</label>
+                        <div class="d-flex mt-2">
+                            <input class="checkout-font-size" style="width: 65%" type="text" name="discount_code"
+                                   id="discount_code">
+                            <button class="btn btn-secondary checkout-font-size mx-1"
+                                    style="padding-left: 1em;padding-right: 1em" type="button" id="apply-discount">
+                                Apply
+                            </button>
+                        </div>
+                    </form>
+                    <div class="border-checkout"></div>
+                    <div class="row mt-4 ">
+                        <h4 class="col-lg checkout-font-size justify-content left"><span class="bold">Total:</span></h4>
+                        <h4 class="col-lg checkout-font-size justify-content-right"><span
+                                id="total">{{ total|idr_format }}</span></h4>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg px-2 mt-r-3">
-            <div class="row">
-                <h4 class="bold checkout-font-size">Payment Method</h4>
-                <div class="border-instruction">
-                    {{ payment_method|linebreaks }}
+            <div class="col-lg px-2 mt-r-3">
+                <div class="row">
+                    <h4 class="bold checkout-font-size">Payment Method</h4>
+                    <div class="border-instruction">
+                        {{ payment_method|linebreaks }}
+                    </div>
                 </div>
-            </div>
-            <div class="row mt-3">
-                <h4 class="bold checkout-font-size">Upload Payment Proof</h4>
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <input type="hidden" name="final_total" id="final_total" value="{{ total }}">
-                    <button class="btn btn-success" type="submit">Submit</button>
-                </form>
-            </div>
+                <div class="row mt-3">
+                    <h4 class="bold checkout-font-size">Upload Payment Proof</h4>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <input type="hidden" name="final_total" id="final_total" value="{{ total }}">
+                        <input type="hidden" name="discount_code_form" id="discount_code_form" value="False">
+                        <input type="hidden" name="discount_code_name" id="discount_code_name" value="False">
+                        <button class="btn btn-success" type="submit">Submit</button>
+                    </form>
+                </div>
 
+            </div>
         </div>
     </div>
-</div>
-<script>
-    document.getElementById('apply-discount').addEventListener('click', function () {
-        const discountCode = document.getElementById('discount_code').value;
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        fetch("{% url 'apply_discount' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({'discount_code': discountCode}),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const newTotal = data.new_total.replace('Rp ', '').replace('.', '').replace(',', '.');
-                document.getElementById('total').innerText = data.new_total;
-                document.getElementById('final_total').value = newTotal; // Update hidden field with plain number
-                document.getElementById('discount_code').disabled = true;
-                document.getElementById('apply-discount').disabled = true;
-            } else {
-                alert(data.message);
-            }
+    <script>
+        document.getElementById('apply-discount').addEventListener('click', function () {
+            const discountCode = document.getElementById('discount_code').value;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch("{% url 'apply_discount' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({'discount_code': discountCode}),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const newTotal = data.new_total.replace('Rp ', '').replace('.', '').replace(',', '.');
+                        document.getElementById('total').innerText = data.new_total;
+                        document.getElementById('final_total').value = newTotal; // Update hidden field with plain number
+                        document.getElementById('discount_code').disabled = true;
+                        document.getElementById('discount_code_form').value = "True";
+                        document.getElementById('discount_code_name').value = discountCode;
+                        document.getElementById('apply-discount').disabled = true;
+                    } else {
+                        alert(data.message);
+                    }
+                });
         });
-    });
-</script>
+    </script>
 {% endblock content %}

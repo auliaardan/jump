@@ -18,8 +18,8 @@ from openpyxl.workbook import Workbook
 
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm, AddToCartForm
-from .models import paymentmethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode
+from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
+    workshops_page, DiscountCode, PaymentProof
 
 
 class WorkshopView(ListView):
@@ -147,7 +147,7 @@ class CheckoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         cart = get_object_or_404(Cart, user=request.user)
         total = sum(item.total_price() for item in cart.cartitem_set.all())
-        payment_method = paymentmethod.objects.last()
+        payment_method = PaymentMethod.objects.last()
         form = PaymentProofForm()
         return render(request, 'tickets/checkout.html',
                       {'cart': cart, 'total': total, 'form': form, 'payment_method': payment_method})
@@ -164,18 +164,15 @@ class CheckoutView(LoginRequiredMixin, View):
         if form.is_valid():
             proof = form.save(commit=False)
             proof.order = order
+            proof.price_paid = int(total)
             proof.save()
-
-            # URL of the hosted image
-            image_url = 'https://awsimages.detik.net.id/community/media/visual/2022/08/05/kop-surat-5.jpeg?w=685'
 
             email_subject = 'Your Order Confirmation'
             email_body = render_to_string('tickets/emails/payment_received.html', {
                 'user': request.user,
                 'order': order,
-                'total': total,
+                'total': int(total),
                 'cart': cart,
-                'image_url': image_url,
             })
             email = EmailMessage(
                 email_subject,
@@ -185,6 +182,18 @@ class CheckoutView(LoginRequiredMixin, View):
             )
             email.content_subtype = 'html'
             email.send()
+
+            if request.POST.get('discount_code_form') == "True":
+                code = request.POST.get('discount_code_name')
+                discount_code = get_object_or_404(DiscountCode, code=code)
+                if discount_code.is_valid():
+                    discount_code.used_count += 1
+                    discount_code.save()
+
+            for item in cart.cartitem_set.all():
+                seminar = item.seminar
+                seminar.booked += item.quantity
+                seminar.save()
 
             cart.cartitem_set.all().delete()
 
@@ -218,7 +227,6 @@ def admin_dashboard(request):
     orders = Order.objects.all().order_by('-created_at')
     seminars = Seminar.objects.all().order_by('date')
     return render(request, 'tickets/admin_dashboard.html', {'orders': orders, 'seminars': seminars})
-
 
 
 @login_required
@@ -270,23 +278,6 @@ class SeminarDetailView(DetailView):
         context['search_query'] = search_query
         return context
 
-    def post(self, request, *args, **kwargs):
-        seminar = self.get_object()
-        form = AddToCartForm(request.POST, seminar=seminar)
-        if form.is_valid():
-            quantity = form.cleaned_data['quantity']
-            cart, created = Cart.objects.get_or_create(user=request.user)
-            cart_item, created = CartItem.objects.get_or_create(cart=cart, seminar=seminar)
-            if created:
-                cart_item.quantity = quantity
-            else:
-                cart_item.quantity += quantity
-            if cart_item.quantity > seminar.available_seats:
-                cart_item.quantity = seminar.available_seats
-            cart_item.save()
-            return redirect('cart_detail')
-        return self.get(request, *args, **kwargs)
-
 
 @login_required
 def cart_item_count(request):
@@ -309,8 +300,11 @@ class RemoveFromCartView(LoginRequiredMixin, View):
         return redirect('cart_detail')
 
 
-class AddToCartView(LoginRequiredMixin, View):
+class AddToCartView(View):
     def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'not_authenticated'})
+
         seminar = get_object_or_404(Seminar, id=kwargs['seminar_id'])
         cart, created = Cart.objects.get_or_create(user=request.user)
         cart_item, created = CartItem.objects.get_or_create(cart=cart, seminar=seminar)
@@ -318,11 +312,11 @@ class AddToCartView(LoginRequiredMixin, View):
         quantity = int(request.POST.get('quantity', 1))
 
         if created:
-            cart_item.quantity = quantity  # Set initial quantity
+            cart_item.quantity = quantity
         else:
-            cart_item.quantity += quantity  # Increment quantity
+            cart_item.quantity += quantity
 
-        if seminar.remaining_seats < cart_item.quantity:
+        if seminar.remaining_seats < quantity:
             return JsonResponse({'success': False, 'message': 'Not enough remaining seats'})
 
         cart_item.save()
@@ -346,13 +340,6 @@ def confirm_order_view(request, order_id):
     order.transaction_id = request.POST.get('transaction_id')
     order.save()
 
-    # Confirm seats for each seminar in the order
-    for seminar in order.seminars.all():
-        cart_item = CartItem.objects.filter(cart__user=order.user, seminar=seminar).first()
-        if cart_item:
-            seminar.confirm_seats(cart_item.quantity)
-
-    # Send confirmation email
     email_subject = 'Order Confirmation'
     email_body = render_to_string('tickets/emails/order_confirmed.html', {'user': order.user})
     email = EmailMessage(
@@ -366,7 +353,6 @@ def confirm_order_view(request, order_id):
     try:
         email.send()
     except Exception as e:
-        # Handle email sending error
         print(f"Error sending email: {e}")
 
     return redirect('admin_dashboard')
@@ -380,7 +366,8 @@ def export_orders_view(request):
     ws.title = "Orders"
 
     # Write the header
-    headers = ['User', 'Order ID', 'Created At', 'Confirmed', 'Confirmation Date', 'Seminars', 'Total Price']
+    headers = ['User', 'Name', 'Phone Number', 'Order ID', 'Created At', 'Confirmed', 'Confirmation Date', 'Seminars',
+               'Total Price']
     ws.append(headers)
 
     # Write the data
@@ -394,27 +381,31 @@ def export_orders_view(request):
         seminar_titles = [seminar.title for seminar in order.seminars.all()]
         seminars_str = ", ".join(seminar_titles)
 
-        # Calculate total price considering any discounts
-        total_price = sum(cart_item.total_price() for cart_item in
-                          CartItem.objects.filter(cart__user=order.user, seminar__in=order.seminars.all()))
-        discount_code = order.user.profile.discount_code if hasattr(order.user.profile, 'discount_code') else None
-        if discount_code and discount_code.is_valid():
-            total_price = discount_code.apply_discount(total_price)
+        # Calculate total price from PaymentProof
+        payment_proof = PaymentProof.objects.filter(order=order).first()
+        price_paid = payment_proof.price_paid if payment_proof else 0
+
+        # Get user details
+        user = order.user
+        full_name = f"{user.first_name} {user.last_name}"
+        phone_number = user.phone_number
 
         # Write the row
         ws.append([
-            order.user.username,
+            user.username,
+            full_name,
+            phone_number,
             order.id,
             created_at_naive,
             'Yes' if order.is_confirmed else 'No',
             confirmation_date_naive,
             seminars_str,
-            total_price
+            price_paid
         ])
 
     # Create an HTTP response with the Excel file
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="orders.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="order_report.xlsx"'
     wb.save(response)
 
     return response

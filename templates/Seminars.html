@@ -9,9 +9,7 @@
             <h3>{{ seminars.text_section_one }}</h3>
         </div>
     </div>
-    <div>
-        {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
-    </div>
+    {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
     <div class="animate-on-scroll py-5 bg-light pxn-5">
         <div class="bg-light d-flex flex-column justify-content-center py-4">
             <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
@@ -23,13 +21,13 @@
             <div class="row">
                 <img src="{{ seminars.image_section_two_top_left.url }}" class="col-lg-5 img-about-us rounded mt-3 mx-3"
                      alt="A picture of past Seminars">
-                <img src="{{ seminars.image_section_two_top_right.url }}" class="col-lg img-about-us rounded"
+                <img src="{{ seminars.image_section_two_top_right.url }}" class="col-lg img-about-us rounded  mt-3"
                      alt="A picture of past Seminars">
             </div>
             <div class="row">
                 <img src="{{ seminars.image_section_two_bot_left.url }}" class="col-lg img-about-us rounded mt-3 mx-3"
                      alt="A picture of past Seminars">
-                <img src="{{ seminars.image_section_two_bot_right.url }}" class="col-lg-5 img-about-us rounded"
+                <img src="{{ seminars.image_section_two_bot_right.url }}" class="col-lg-5 img-about-us rounded  mt-3"
                      alt="A picture of past Seminars">
             </div>
         </div>

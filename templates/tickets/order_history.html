@@ -1,55 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order History</title>
-</head>
-<body>
-    <h1>Order History</h1>
-    {% if orders %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Date</th>
-                    <th>Seminars</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                    <tr>
-                        <td>{{ order.id }}</td>
-                        <td>{{ order.created_at }}</td>
-                        <td>
-                            <ul>
-                                {% for seminar in order.seminars.all %}
-                                    <li>{{ seminar.title }} ({{ seminar.date }})</li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                        <td>
-                            {% with total=0 %}
-                                {% for seminar in order.seminars.all %}
-                                    {% with total=total|add:seminar.price %}
-                                    {% endwith %}
-                                {% endfor %}
-                                {{ total }}
-                            {% endwith %}
-                        </td>
-                        <td>
-                            {% if order.is_confirmed %}
-                                Confirmed
-                            {% else %}
-                                Pending
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>You have no orders.</p>
-    {% endif %}
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Order History
+{% endblock title %}
+
+{% block content %}
+    <div class="view-fix py-5">
+        <div class="px-10em" id="MainDiv">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+                <h1 id="medicalrecord-header" class="h2">Order History</h1>
+            </div>
+
+            <div class="table-responsive small">
+                {% if orders %}
+                    <table id="myTable" class="table table-striped table-sm">
+                        <thead>
+                        <tr>
+                            <th scope="col" data-orderable="true">Order ID</th>
+                            <th scope="col" data-orderable="true">Date</th>
+                            <th scope="col" data-orderable="true">Seminars</th>
+                            <th scope="col" data-orderable="true">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        {% for order in orders %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.created_at }}</td>
+                                <td>
+                                    <ul>
+                                        {% for seminar in order.seminars.all %}
+                                            <li>{{ seminar.title }} ({{ seminar.date }})</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+
+                                <td>
+                                    {% if order.is_confirmed %}
+                                        <span style="color: green">Confirmed</span>
+                                    {% else %}
+                                        <span style="color: red">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>You have no orders.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock content %}

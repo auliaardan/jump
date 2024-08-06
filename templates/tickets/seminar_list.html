@@ -5,7 +5,7 @@
         visibility: hidden;
     }
 </style>
-<div class="animate-on-scroll container py-6 pad-phone" >
+<div class="animate-on-scroll container py-6 pad-phone">
     <div class="row mb-4">
         <div class="col-12">
             <input type="text" id="seminar-search" class="form-control" placeholder="Search seminars...">
@@ -24,7 +24,6 @@
                     </div>
                     <h4 style="font-weight: bold">{{ seminar.title }}</h4>
                     <p>{{ seminar.price|idr_format }}</p>
-
                 </a>
                 <button class="btn btn-secondary add-to-cart" data-seminar-id="{{ seminar.id }}"
                         {% if seminar.remaining_seats <= 0 %}disabled{% endif %}>
@@ -127,7 +126,10 @@
                             button.text('Sold Out');
                             button.prop('disabled', true);
                         }
+                    } else if (response.message === 'not_authenticated') {
+                        alert('You need to log in to add items to your cart.');
                     } else {
+                        alert(response.message);
                         button.text('Sold Out');
                         button.prop('disabled', true);
                     }

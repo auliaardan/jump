@@ -1,21 +1,9 @@
 import os
 
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from .models import Profile, landing_page, seminars_page, about_us, workshops_page
-
-
-@receiver(post_save, sender=User)
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
-    instance.profile.save()
+from .models import landing_page, seminars_page, about_us, workshops_page, PaymentProof, Seminar
 
 
 @receiver(post_delete, sender=landing_page)
@@ -65,12 +53,38 @@ def delete_media_files_about_us(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=workshops_page)
-def delete_media_files_seminars(sender, instance, **kwargs):
+def delete_media_files_workshop_page(sender, instance, **kwargs):
     image_fields = [
         instance.image_section_two_top_left,
         instance.image_section_two_top_right,
         instance.image_section_two_bot_left,
         instance.image_section_two_bot_right,
+    ]
+
+    for image_field in image_fields:
+        if image_field:
+            image_path = image_field.path
+            if os.path.isfile(image_path):
+                os.remove(image_path)
+
+
+@receiver(post_delete, sender=PaymentProof)
+def delete_media_files_paymentProof(sender, instance, **kwargs):
+    image_fields = [
+        instance.proof
+    ]
+
+    for image_field in image_fields:
+        if image_field:
+            image_path = image_field.path
+            if os.path.isfile(image_path):
+                os.remove(image_path)
+
+
+@receiver(post_delete, sender=Seminar)
+def delete_media_files_sem(sender, instance, **kwargs):
+    image_fields = [
+        instance.image
     ]
 
     for image_field in image_fields:
