@@ -15,7 +15,7 @@
                 <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ landing.header_section_one }}</h1>
                 <p class="lead">{{ landing.text_section_one }}</p>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    <a href="#" class="btn btn-primary btn-lg px-4 me-md-2" role="button">Reserve Now</a>
+                    <a href="#" id="scrollButton" class="btn btn-primary btn-lg px-4 me-md-2" role="button">Reserve Now</a>
                     <a href="{% url 'about_us' %}" class="btn btn-outline-secondary btn-lg px-4" role="button">Learn
                         More</a>
                 </div>
@@ -82,4 +82,15 @@
                  height="600px" loading="lazy" style="max-height: 400px">
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#scrollButton').click(function (event) {
+                event.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $('#scroll_here').offset().top
+                }, 'smooth');
+            });
+        });
+    </script>
 {% endblock content %}
