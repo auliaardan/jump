@@ -283,7 +283,7 @@ class SeminarDetailView(DetailView):
 def cart_item_count(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     item_count = cart.cartitem_set.count()
-    return JsonResponse({'item_count': item_count})
+    return JsonResponse({'item_count': item_count, 'user': request.user.username})
 
 
 class CartDetailView(LoginRequiredMixin, View):
