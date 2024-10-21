@@ -205,11 +205,14 @@ class Seminar(models.Model):
         return x
 
     def reserve_seats(self, quantity):
-        self.reserved_seats += quantity
-        self.save()
+        if self.reserved_seats + quantity <= self.available_seats - self.booked:
+            self.reserved_seats += quantity
+            self.save()
+        else:
+            raise ValueError("Cannot reserve more seats than available.")
 
     def release_seats(self, quantity):
-        self.reserved_seats -= quantity
+        self.reserved_seats = max(self.reserved_seats - quantity, 0)
         self.save()
 
 

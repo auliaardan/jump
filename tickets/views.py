@@ -194,11 +194,19 @@ class CheckoutView(LoginRequiredMixin, View):
             for item in cart.cartitem_set.all():
                 seminar = item.seminar
                 seminar.booked += item.quantity
+                seminar.reserved_seats -= item.quantity
                 seminar.save()
 
+            # Temporarily disconnect the 'release_seats_on_delete' signal
+            post_delete.disconnect(release_seats_on_delete, sender=CartItem)
+
+            # Delete cart items
             cart.cartitem_set.all().delete()
 
-            return redirect('order_confirmed')
+            # Reconnect the signal
+            post_delete.connect(release_seats_on_delete, sender=CartItem)
+
+        return redirect('order_confirmed')
 
         return render(request, 'tickets/checkout.html', {'cart': cart, 'total': total, 'form': form})
 
