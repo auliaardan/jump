@@ -15,6 +15,8 @@ from django.views import View
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
+from django.db.models.signals import post_delete
+from .models import release_seats_on_delete
 
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm, AddToCartForm
