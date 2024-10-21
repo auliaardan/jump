@@ -301,13 +301,13 @@ class CartDetailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         cart, created = Cart.objects.get_or_create(user=request.user)
         is_empty = not cart.cartitem_set.exists()
-        return render(request, 'tickets/cart_detail.html', {'cart': cart, 'is_empty': is_empty})
-
+        cart_items = cart.cartitem_set.all()
+        return render(request, 'tickets/cart_detail.html', {'cart': cart, 'is_empty': is_empty, 'cart_items': cart_items})
 
 class RemoveFromCartView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         cart_item = get_object_or_404(CartItem, id=kwargs['item_id'])
-        cart_item.delete()  # This will trigger the post_delete signal to release seats
+        cart_item.delete()
         return redirect('cart_detail')
 
 
