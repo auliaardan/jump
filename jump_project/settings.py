@@ -31,7 +31,8 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.165', ' jakartaurologymedicalupdate.com', 'jakartaurologymedicalupdate.id']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.165', ' jakartaurologymedicalupdate.com',
+                 'jakartaurologymedicalupdate.id']
 
 # Application definition
 
@@ -163,7 +164,7 @@ LOGOUT_REDIRECT_URL = "seminar_list"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = "admin@inapro.org"
+DEFAULT_FROM_EMAIL = "jakartau@jakartaurologymedicalupdate.id"
 EMAIL_HOST = env.str('EMAIL_HOST')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
@@ -174,10 +175,10 @@ EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 
-if env.bool("DEBUG", default=False):
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
+if env.bool("DEBUG", default=False) == False:
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_BROWSER_XSS_FILTER = False
     X_FRAME_OPTIONS = 'DENY'
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False

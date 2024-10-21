@@ -177,10 +177,11 @@ class CheckoutView(LoginRequiredMixin, View):
             email = EmailMessage(
                 email_subject,
                 email_body,
-                'admin@inapro.org',
+                'jakartau@jakartaurologymedicalupdate.id',
                 [request.user.email],
             )
             email.content_subtype = 'html'
+            print("Email Sent")
             email.send()
 
             if request.POST.get('discount_code_form') == "True":
@@ -345,13 +346,14 @@ def confirm_order_view(request, order_id):
     email = EmailMessage(
         email_subject,
         email_body,
-        'admin@inapro.org',
+        'jakartau@jakartaurologymedicalupdate.id',
         [order.user.email],
     )
     email.content_subtype = 'html'
 
     try:
         email.send()
+        print("Email Sent")
     except Exception as e:
         print(f"Error sending email: {e}")
 

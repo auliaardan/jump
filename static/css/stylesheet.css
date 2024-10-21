@@ -116,6 +116,10 @@ a {
     padding-top: 1em;
 }
 
+.media-icons {
+    justify-content: flex-end;
+}
+
 @media only screen and (max-width: 1200px) {
     .px-10em {
         padding-left: 2em;
@@ -159,5 +163,11 @@ a {
         width: 100%;
         padding-left: 1em;
         padding-right: 1em;
+    }
+
+    .media-icons {
+        justify-content: center;
+        align-content: center;
+        margin: 0 auto;
     }
 }
