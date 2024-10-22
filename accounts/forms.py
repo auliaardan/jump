@@ -4,25 +4,40 @@ from .models import CustomUser
 
 
 class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(
+        required=True,
+        help_text='Sesuai yang digunakan untuk plataran sehat',
+        widget=forms.EmailInput(attrs={'placeholder': 'Sesuai yang digunakan untuk plataran sehat'}),
+    )
+
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = (
             "username",
+            "email",
             "nama_lengkap",
             "nik",
             "institution",
-            "email",
             "Nomor_telpon",
         )
+        labels = {
+            'nik': 'NIK',
+        }
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',
-            'email': 'Sesuai yang digunakan untuk plataran sehat',
         }
         widgets = {
             'nama_lengkap': forms.TextInput(attrs={'placeholder': 'Nama lengkap sesuai KTP beserta gelar'}),
         }
 
+
 class CustomUserChangeForm(UserChangeForm):
+    email = forms.EmailField(
+        required=True,
+        help_text='Sesuai yang digunakan untuk plataran sehat',
+        widget=forms.EmailInput(attrs={'placeholder': 'Sesuai yang digunakan untuk plataran sehat'}),
+    )
+
     class Meta:
         model = CustomUser
         fields = (
@@ -33,9 +48,11 @@ class CustomUserChangeForm(UserChangeForm):
             "email",
             "Nomor_telpon",
         )
+        labels = {
+            'nik': 'NIK',
+        }
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',
-            'email': 'Sesuai yang digunakan untuk plataran sehat'
         }
         widgets = {
             'nama_lengkap': forms.TextInput(attrs={'placeholder': 'Nama lengkap sesuai KTP beserta gelar'}),
