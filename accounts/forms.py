@@ -22,6 +22,8 @@ class CustomUserCreationForm(UserCreationForm):
         )
         labels = {
             'nik': 'NIK',
+            'institution': 'Institusi',
+            'Nomor_telpon' : 'No. Telpon'
         }
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',
@@ -50,6 +52,8 @@ class CustomUserChangeForm(UserChangeForm):
         )
         labels = {
             'nik': 'NIK',
+            'institution': 'Institusi',
+            'Nomor_telpon': 'No. Telpon'
         }
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',

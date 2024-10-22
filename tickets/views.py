@@ -370,43 +370,38 @@ def confirm_order_view(request, order_id):
 
     return redirect('admin_dashboard')
 
-
 @staff_member_required
 def export_orders_view(request):
-    # Create a workbook and activate the worksheet
     wb = Workbook()
     ws = wb.active
     ws.title = "Orders"
 
-    # Write the header
-    headers = ['User', 'Name', 'Phone Number', 'Order ID', 'Created At', 'Confirmed', 'Confirmation Date', 'Seminars',
-               'Total Price']
+    headers = ['Username', 'Nama Lengkap', 'NIK', 'Institution', 'No. Telfon', 'Order ID', 'Created At', 'Confirmed', 'Confirmation Date', 'Seminars', 'Total Price']
     ws.append(headers)
 
-    # Write the data
     orders = Order.objects.all()
     for order in orders:
-        # Remove timezone info
         created_at_naive = order.created_at.replace(tzinfo=None) if order.created_at else None
         confirmation_date_naive = order.confirmation_date.replace(tzinfo=None) if order.confirmation_date else None
 
-        # Get seminars and total price
         seminar_titles = [seminar.title for seminar in order.seminars.all()]
         seminars_str = ", ".join(seminar_titles)
 
-        # Calculate total price from PaymentProof
         payment_proof = PaymentProof.objects.filter(order=order).first()
         price_paid = payment_proof.price_paid if payment_proof else 0
 
-        # Get user details
         user = order.user
-        full_name = f"{user.first_name} {user.last_name}"
+        full_name = user.nama_lengkap
         phone_number = user.phone_number
+        nik = user.nik
+        institution = user.institution
 
-        # Write the row
+        # Write the row including NIK and Institution
         ws.append([
             user.username,
             full_name,
+            nik,
+            institution,
             phone_number,
             order.id,
             created_at_naive,
@@ -416,7 +411,6 @@ def export_orders_view(request):
             price_paid
         ])
 
-    # Create an HTTP response with the Excel file
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="order_report.xlsx"'
     wb.save(response)
