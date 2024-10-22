@@ -16,6 +16,7 @@ class CustomUserCreationForm(UserCreationForm):
         )
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',
+            'email': 'Sesuai yang digunakan untuk plataran sehat',
         }
         widgets = {
             'nama_lengkap': forms.TextInput(attrs={'placeholder': 'Nama lengkap sesuai KTP beserta gelar'}),
