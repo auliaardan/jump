@@ -17,6 +17,7 @@ from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
 from django.db.models.signals import post_delete
 from .models import release_seats_on_delete
+from django.db.models import Sum
 
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm, AddToCartForm
@@ -293,7 +294,7 @@ class SeminarDetailView(DetailView):
 @login_required
 def cart_item_count(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
-    item_count = cart.cartitem_set.count()
+    item_count = cart.cartitem_set.aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
     return JsonResponse({'item_count': item_count})
 
 
