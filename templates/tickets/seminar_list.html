@@ -109,13 +109,16 @@
         $(document).on('click', '.add-to-cart', function () {
             var seminarId = $(this).data('seminar-id');
             var button = $(this);
-
+            const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             $.ajax({
                 url: "{% url 'add_to_cart' 0 %}".replace('0', seminarId),
                 type: 'POST',
                 data: {
                     'seminar_id': seminarId,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    'csrfmiddlewaretoken': csrftoken
+                },
+                xhrFields: {
+                    withCredentials: true
                 },
                 success: function (response) {
                     if (response.success) {
