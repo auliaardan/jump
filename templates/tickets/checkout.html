@@ -58,7 +58,7 @@
                 </div>
                 <div class="row mt-3">
                     <h4 class="bold checkout-font-size">Upload Payment Proof</h4>
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post" enctype="multipart/form-data" id="payment-form">
                         {% csrf_token %}
                         {{ form.as_p }}
                         <input type="hidden" name="final_total" id="final_total" value="{{ total }}">
