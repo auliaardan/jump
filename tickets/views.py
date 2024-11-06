@@ -157,8 +157,16 @@ class CheckoutView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         cart = get_object_or_404(Cart, user=request.user)
-        total_str = request.POST.get('final_total', sum(item.total_price() for item in cart.cartitem_set.all()))
-        total = float(total_str.replace(',', '.'))
+        total_str = request.POST.get('final_total', None)
+
+        if total_str is not None:
+            try:
+                total = float(total_str)
+            except ValueError:
+                # Handle the error or set a default value
+                total = sum(item.total_price() for item in cart.cartitem_set.all())
+        else:
+            total = sum(item.total_price() for item in cart.cartitem_set.all())
 
         order = Order.objects.create(user=request.user)
         order.seminars.set([item.seminar for item in cart.cartitem_set.all()])
@@ -225,8 +233,15 @@ def apply_discount(request):
             discount = DiscountCode.objects.get(code=discount_code)
             if discount.is_valid():
                 new_total = discount.apply_discount(total)
+
+                # Format the total for display
                 formatted_total = "Rp " + f"{int(new_total):,}".replace(",", ".")
-                return JsonResponse({'success': True, 'new_total': formatted_total})
+
+                return JsonResponse({
+                    'success': True,
+                    'new_total_formatted': formatted_total,
+                    'new_total_numeric': str(new_total)  # Ensure it's a string to maintain precision
+                })
             else:
                 return JsonResponse({'success': False, 'message': 'Invalid or expired discount code.'})
         except DiscountCode.DoesNotExist:
@@ -303,7 +318,9 @@ class CartDetailView(LoginRequiredMixin, View):
         cart, created = Cart.objects.get_or_create(user=request.user)
         is_empty = not cart.cartitem_set.exists()
         cart_items = cart.cartitem_set.all()
-        return render(request, 'tickets/cart_detail.html', {'cart': cart, 'is_empty': is_empty, 'cart_items': cart_items})
+        return render(request, 'tickets/cart_detail.html',
+                      {'cart': cart, 'is_empty': is_empty, 'cart_items': cart_items})
+
 
 class RemoveFromCartView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -370,13 +387,15 @@ def confirm_order_view(request, order_id):
 
     return redirect('admin_dashboard')
 
+
 @staff_member_required
 def export_orders_view(request):
     wb = Workbook()
     ws = wb.active
     ws.title = "Orders"
 
-    headers = ['Username', 'Nama Lengkap', 'NIK', 'Institution', 'No. Telfon', 'Order ID', 'Created At', 'Confirmed', 'Confirmation Date', 'Seminars', 'Total Price']
+    headers = ['Username', 'Nama Lengkap', 'NIK', 'Institution', 'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
+               'Confirmation Date', 'Seminars', 'Total Price']
     ws.append(headers)
 
     orders = Order.objects.all()

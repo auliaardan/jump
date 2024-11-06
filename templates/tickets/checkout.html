@@ -72,9 +72,15 @@
         </div>
     </div>
     <script>
+        document.getElementById('payment-form').addEventListener('submit', function () {
+            // Get the displayed total and parse it to a numeric value
+            const displayedTotal = document.getElementById('total').innerText.replace('Rp ', '').replace('.', '').replace(',', '.');
+            document.getElementById('final_total').value = parseFloat(displayedTotal);
+        });
+
         document.getElementById('apply-discount').addEventListener('click', function () {
             const discountCode = document.getElementById('discount_code').value;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             fetch("{% url 'apply_discount' %}", {
                 method: 'POST',
                 headers: {
@@ -86,9 +92,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const newTotal = data.new_total.replace('Rp ', '').replace('.', '').replace(',', '.');
-                        document.getElementById('total').innerText = data.new_total;
-                        document.getElementById('final_total').value = newTotal; // Update hidden field with plain number
+                        // Update the displayed total with formatted string
+                        document.getElementById('total').innerText = data.new_total_formatted;
+
+                        // Update the hidden input field with numeric value
+                        document.getElementById('final_total').value = data.new_total_numeric;
+
                         document.getElementById('discount_code').disabled = true;
                         document.getElementById('discount_code_form').value = "True";
                         document.getElementById('discount_code_name').value = discountCode;
