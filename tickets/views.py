@@ -411,7 +411,7 @@ def export_orders_view(request):
 
         user = order.user
         full_name = user.nama_lengkap
-        phone_number = user.phone_number
+        phone_number = user.Nomor_telpon
         nik = user.nik
         institution = user.institution
 
