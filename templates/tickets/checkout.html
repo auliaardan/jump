@@ -80,7 +80,7 @@
 
         document.getElementById('apply-discount').addEventListener('click', function () {
             const discountCode = document.getElementById('discount_code').value;
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             fetch("{% url 'apply_discount' %}", {
                 method: 'POST',
                 headers: {
