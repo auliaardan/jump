@@ -164,7 +164,7 @@ LOGOUT_REDIRECT_URL = "seminar_list"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = "jakartau@jakartaurologymedicalupdate.id"
+DEFAULT_FROM_EMAIL = "admin@jakartaurologymedicalupdate.id"
 EMAIL_HOST = env.str('EMAIL_HOST')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
