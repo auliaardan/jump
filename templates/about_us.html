@@ -64,7 +64,7 @@
                 </div>
                 {% endfor %}
 
-                {% for email_contact in about_us.email_contact.all
+                {% for email_contact in about_us.email_contact.all %}
                     <p>{{ email_contact.name }}</p>
                     <p>Telfon: <a href="tel:{{ email_contact.email }}">{{ email_contact.email }}</a></p>
                 {% endfor %}
