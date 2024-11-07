@@ -31,6 +31,7 @@
         <div class="d-flex flex-column justify-content-center margin-auto text-center">
             <h1>Contact Us</h1>
             {% for whatsapp in about_us.whatsapp_numbers.all %}
+                <svg></svg>
                 <p>Whatsapp: <a
                         href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">{{ whatsapp.number }}
                     | {{ whatsapp.name }}</a></p>
