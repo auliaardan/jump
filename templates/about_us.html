@@ -30,9 +30,10 @@
     <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll pad-phone">
         <div class="d-flex flex-column justify-content-center margin-auto text-center">
             <h1>Contact Us</h1>
-            {% for whatsapp in about_us.whatsapp_numbers.all %}
-                <div>
-                    <div>
+            <div>
+                {% for whatsapp in about_us.whatsapp_numbers.all %}
+                <div class="whatsapp-container">
+                    <div class="">
                         <svg fill="#000000" width="100%" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                              xmlns:xlink="http://www.w3.org/1999/xlink"
                              viewBox="0 0 308 308" xml:space="preserve">
@@ -61,11 +62,14 @@
                             href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">{{ whatsapp.number }}
                         | {{ whatsapp.name }}</a></p>
                 </div>
-            {% endfor %}
+                {% endfor %}
 
-            {% for phone in about_us.phone_numbers.all %}
-                <p>Telfon: <a href="tel:{{ phone.number }}">{{ phone.number }} | {{ phone.name }}</a></p>
-            {% endfor %}
+                {% for email_contact in about_us.email_contact.all
+                    <p>{{ email_contact.name }}</p>
+                    <p>Telfon: <a href="tel:{{ email_contact.email }}">{{ email_contact.email }}</a></p>
+                {% endfor %}
+            </div>
+
         </div>
     </div>
 {% endblock content %}

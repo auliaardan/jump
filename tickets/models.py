@@ -125,9 +125,9 @@ class WhatsAppNumber(models.Model):
         return f"{self.name}: {self.number}"
 
 
-class PhoneNumber(models.Model):
-    name = models.CharField(max_length=100, blank=False, default="Contact Name")
-    number = models.CharField(max_length=100, blank=False, default="+62812345678", help_text="+62812345678")
+class email_contact(models.Model):
+    name = models.CharField(max_length=100, blank=False, default="Email Name")
+    email = models.CharField(max_length=100, blank=False, default="admin@jakartaurologymedicalupdate.id", help_text="contoh@gmail.com")
 
     def __str__(self):
         return f"{self.name}: {self.number}"
@@ -142,7 +142,7 @@ class about_us(models.Model):
     text_section_two_right = models.TextField(blank=False, default="Sample Description")
     image_section_two = models.ImageField(upload_to='about_us_images/')
     whatsapp_numbers = models.ManyToManyField(WhatsAppNumber, blank=True)
-    phone_numbers = models.ManyToManyField(PhoneNumber, blank=True)
+    email_contact = models.ManyToManyField(email_contact, blank=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
