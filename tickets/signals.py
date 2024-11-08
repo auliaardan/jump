@@ -10,6 +10,8 @@ from .models import landing_page, seminars_page, about_us, workshops_page, Payme
 def delete_media_files(sender, instance, **kwargs):
     image_fields = [
         instance.image_section_one,
+        instance.chairman_image,
+        instance.headofdepartment_image,
         instance.image_section_two_left,
         instance.image_section_two_right,
         instance.image_section_three_left,
@@ -43,6 +45,7 @@ def delete_media_files_seminars(sender, instance, **kwargs):
 def delete_media_files_about_us(sender, instance, **kwargs):
     image_fields = [
         instance.image_section_two,
+
     ]
 
     for image_field in image_fields:

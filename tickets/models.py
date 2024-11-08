@@ -80,6 +80,12 @@ class landing_page(models.Model):
     header_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_one = models.TextField(blank=False, default="Sample Description")
     image_section_one = models.ImageField(upload_to='landingpage_images/', )
+    # Welcoming Message
+    chairman_image = models.ImageField(upload_to='about_us/', )
+    chairman_welcoming = models.TextField(blank=False, default="Sample Description")
+    headofdepartment_image = models.ImageField(upload_to='about_us/', )
+    headofdepartment_welcoming = models.TextField(blank=False, default="Sample Description")
+    # Section 2
     header_section_two = models.CharField(max_length=100, blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
     image_section_two_left = models.ImageField(upload_to='landingpage_images/', )
@@ -88,6 +94,7 @@ class landing_page(models.Model):
     image_section_two_right = models.ImageField(upload_to='landingpage_images/', )
     image_section_two_header_right = models.CharField(max_length=100, blank=False, default="Sample Description")
     image_section_two_text_right = models.CharField(max_length=100, blank=False, default="Sample Description")
+    # Section 3
     header_section_three = models.TextField(blank=False, default="Sample Description")
     text_section_three = models.TextField(blank=False, default="Sample Description")
     image_section_three_left = models.ImageField(upload_to='landingpage_images/', )
@@ -98,6 +105,8 @@ class landing_page(models.Model):
 
         image_fields = [
             self.image_section_one,
+            self.chairman_image,
+            self.headofdepartment_image,
             self.image_section_two_left,
             self.image_section_two_right,
             self.image_section_three_left,
@@ -127,7 +136,8 @@ class WhatsAppNumber(models.Model):
 
 class email_contact(models.Model):
     name = models.CharField(max_length=100, blank=False, default="Email Name")
-    email = models.CharField(max_length=100, blank=False, default="admin@jakartaurologymedicalupdate.id", help_text="contoh@gmail.com")
+    email = models.CharField(max_length=100, blank=False, default="admin@jakartaurologymedicalupdate.id",
+                             help_text="contoh@gmail.com")
 
     def __str__(self):
         return f"{self.name}: {self.email}"
@@ -214,7 +224,6 @@ class Seminar(models.Model):
     def release_seats(self, quantity):
         self.reserved_seats = max(self.reserved_seats - quantity, 0)
         self.save()
-
 
 
 class DiscountCode(models.Model):
