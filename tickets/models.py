@@ -130,7 +130,7 @@ class email_contact(models.Model):
     email = models.CharField(max_length=100, blank=False, default="admin@jakartaurologymedicalupdate.id", help_text="contoh@gmail.com")
 
     def __str__(self):
-        return f"{self.name}: {self.number}"
+        return f"{self.name}: {self.email}"
 
 
 class about_us(models.Model):

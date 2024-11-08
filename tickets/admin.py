@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
-    WhatsAppNumber, PhoneNumber, PaymentMethod, DiscountCode
+    WhatsAppNumber, email_contact, PaymentMethod, DiscountCode
 
 admin.site.register(Seminar)
 admin.site.register(Order)
@@ -17,7 +17,7 @@ class WhatsAppNumberInline(admin.TabularInline):
 
 
 class PhoneNumberInline(admin.TabularInline):
-    model = about_us.phone_numbers.through
+    model = about_us.email_contact.through
     extra = 1
 
 
@@ -31,9 +31,9 @@ class WhatsAppNumberAdmin(admin.ModelAdmin):
     list_display = ['name', 'number']
 
 
-@admin.register(PhoneNumber)
+@admin.register(email_contact)
 class PhoneNumberAdmin(admin.ModelAdmin):
-    list_display = ['name', 'number']
+    list_display = ['name', 'email']
 
 
 admin.site.register(seminars_page)
