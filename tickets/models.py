@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+import os
 
 from jump_project.settings import AUTH_USER_MODEL as User
 
@@ -76,15 +77,43 @@ class seminars_page(models.Model):
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
+class WelcomingSpeech(models.Model):
+    title = models.TextField(blank=False, default="Sample Description")
+    image = models.ImageField(upload_to='about_us/',)
+    name = models.TextField(blank=False, default="Sample Description")
+    speech = models.TextField(blank=False, default="Sample Description")
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.image:
+            self.compress_image(self.image)
+
+    def compress_image(self, image_field):
+        img = Image.open(image_field.path)
+
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        img.save(image_field.path, 'JPEG', quality=85, optimize=True)
+
+    def delete(self, *args, **kwargs):
+        # Delete the image file when the instance is deleted
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+        super().delete(*args, **kwargs)
+
+
 class landing_page(models.Model):
     header_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_one = models.TextField(blank=False, default="Sample Description")
     image_section_one = models.ImageField(upload_to='landingpage_images/', )
     # Welcoming Message
-    chairman_image = models.ImageField(upload_to='about_us/', )
-    chairman_welcoming = models.TextField(blank=False, default="Sample Description")
-    headofdepartment_image = models.ImageField(upload_to='about_us/', )
-    headofdepartment_welcoming = models.TextField(blank=False, default="Sample Description")
+    welcoming = models.ManyToManyField(WelcomingSpeech, blank=True)
     # Section 2
     header_section_two = models.CharField(max_length=100, blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
@@ -105,8 +134,6 @@ class landing_page(models.Model):
 
         image_fields = [
             self.image_section_one,
-            self.chairman_image,
-            self.headofdepartment_image,
             self.image_section_two_left,
             self.image_section_two_right,
             self.image_section_three_left,
@@ -124,6 +151,22 @@ class landing_page(models.Model):
             img = img.convert('RGB')
 
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
+
+    def delete(self, *args, **kwargs):
+        # Delete image files when the instance is deleted
+        image_fields = [
+            self.image_section_one,
+            self.image_section_two_left,
+            self.image_section_two_right,
+            self.image_section_three_left,
+            self.image_section_three_right
+        ]
+
+        for image_field in image_fields:
+            if image_field and os.path.isfile(image_field.path):
+                os.remove(image_field.path)
+
+        super().delete(*args, **kwargs)
 
 
 class WhatsAppNumber(models.Model):

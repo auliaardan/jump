@@ -3,26 +3,7 @@ import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from .models import landing_page, seminars_page, about_us, workshops_page, PaymentProof, Seminar
-
-
-@receiver(post_delete, sender=landing_page)
-def delete_media_files(sender, instance, **kwargs):
-    image_fields = [
-        instance.image_section_one,
-        instance.chairman_image,
-        instance.headofdepartment_image,
-        instance.image_section_two_left,
-        instance.image_section_two_right,
-        instance.image_section_three_left,
-        instance.image_section_three_right
-    ]
-
-    for image_field in image_fields:
-        if image_field:
-            image_path = image_field.path
-            if os.path.isfile(image_path):
-                os.remove(image_path)
+from .models import seminars_page, about_us, workshops_page, PaymentProof, Seminar
 
 
 @receiver(post_delete, sender=seminars_page)

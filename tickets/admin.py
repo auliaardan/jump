@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
-    WhatsAppNumber, email_contact, PaymentMethod, DiscountCode
+    WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech
 
 admin.site.register(Seminar)
 admin.site.register(Order)
@@ -21,9 +21,24 @@ class PhoneNumberInline(admin.TabularInline):
     extra = 1
 
 
+class WelcomingSpeechesInline(admin.TabularInline):
+    model = landing_page.welcoming.through
+    extra = 1
+
+
+@admin.register(WelcomingSpeech)
+class WelcomingSpeechesAdmin(admin.ModelAdmin):
+    list_display = ('name', 'title')
+
+
 @admin.register(about_us)
 class AboutUsAdmin(admin.ModelAdmin):
     inlines = [WhatsAppNumberInline, PhoneNumberInline]
+
+
+@admin.register(landing_page)
+class LandingPageAdmin(admin.ModelAdmin):
+    inlines = [WelcomingSpeechesInline]
 
 
 @admin.register(WhatsAppNumber)

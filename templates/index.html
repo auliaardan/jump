@@ -22,26 +22,33 @@
             </div>
         </div>
     </div>
-   <!-- Welcoming Speech Section -->
+    <!-- Welcoming Speech Section -->
     <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll">
         <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
             <h1 style="font-weight: bold">Welcoming Message</h1>
         </div>
         <div class="container text-center mt-5">
             <div class="row px-10em">
-                <div class="col-lg mx-2 mt-r-3">
-                    <h3>Chairman of JUMP 2025</h3>
-                    <div class="card-welcoming">
-                        <img src="{{ landing.image_section_two_left.url }}"
-                             class="img-fluid rounded-4 card-img-top"
-                             alt="Jakarta Urology Medical Update Seminar past events documentation"
-                             width="100%"
-                             height="600px" loading="lazy" style="max-height: 500px">
-                        <div class="box-caption card-body">
-                            <p class="card-text">{{ landing.image_section_two_text_left }}</p>
+                {% for speech in landing.welcoming.all %}
+                    <div class="col-lg mx-2 mt-r-3">
+                        <h3>{{ speech.title }}</h3>
+                        <div class="card-welcoming">
+                            {% if speech.image %}
+                                <img src="{{ speech.image.url }}"
+                                     class="img-fluid rounded-4 card-img-top"
+                                     alt="{{ speech.title }}"
+                                     width="100%"
+                                     height="600px" loading="lazy" style="max-height: 500px">
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                            <div class="box-caption card-body">
+                                <h4>{{ speech.name }}</h4>
+                                <p class="card-text">{{ speech.speech }}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
