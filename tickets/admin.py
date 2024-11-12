@@ -6,7 +6,6 @@ from .models import Seminar, Order, PaymentProof, landing_page, about_us, semina
 admin.site.register(Seminar)
 admin.site.register(Order)
 admin.site.register(PaymentProof)
-admin.site.register(landing_page)
 admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 

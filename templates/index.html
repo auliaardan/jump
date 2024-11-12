@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Jump {% now "Y" %}{% endblock title %}
+{% load static %}
+{% block title %}Jump 2025{% endblock title %}
 
 {% block content %}
     <div class="pxn-5 col-xxl-8 py-5 animate-on-scroll" style="width: 100%; background: rgba(144,173,198,0.33)">
@@ -27,29 +28,28 @@
         <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
             <h1 style="font-weight: bold">Welcoming Message</h1>
         </div>
-        <div class="container text-center mt-5">
-            <div class="row px-10em">
-                {% for speech in landing.welcoming.all %}
-                    <div class="col-lg mx-2 mt-r-3">
-                        <h3>{{ speech.title }}</h3>
-                        <div class="card-welcoming">
-                            {% if speech.image %}
-                                <img src="{{ speech.image.url }}"
-                                     class="img-fluid rounded-4 card-img-top"
-                                     alt="{{ speech.title }}"
-                                     width="100%"
-                                     height="600px" loading="lazy" style="max-height: 500px">
-                            {% else %}
-                                <p>No image available</p>
-                            {% endif %}
-                            <div class="box-caption card-body">
-                                <h4>{{ speech.name }}</h4>
-                                <p class="card-text">{{ speech.speech }}</p>
-                            </div>
+        <div class="d-flex flex-column mt-5 justify-content-center text-center pad-phone">
+            {% for speech in landing.welcoming.all %}
+                <div class="mt-5 welcome-container">
+                    <h3 class="text-center justify-content-center text-center fw-bold">{{ speech.title }}</h3>
+                    <div class="card-welcoming text-white rounded-4 p-5">
+                        {% if speech.image %}
+                            <img class="rounded-circle justify-content-center margin-auto"
+                                 src="{{ speech.image.url }}"
+                                 alt="A Picture of {{ speech.name }}"
+                                 width="300px"
+                                 height="300px" loading="lazy">
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
+                        <h4 class="justify-content-md-center text-center fw-bold mt-4">{{ speech.name }}</h4>
+                        <div class="text-start mt-4">
+                            <p class="card-text text-start"
+                               style="text-align: left !important;">{{ speech.speech|linebreaks }}</p>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
     <!-- End of Welcoming Speech Section -->

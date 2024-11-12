@@ -1,3 +1,13 @@
+@keyframes breathing {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.breathing {
+    animation: breathing 2s infinite;
+}
+
 .pxn-5 {
     padding-left: 5em;
     padding-right: 5em;
@@ -132,7 +142,7 @@ a {
     flex-direction: row;
     margin-left: 0.5em;
     margin-right: 0.5em;
-    background: rgba(162, 143, 143, 0.3);
+    background: rgba(220, 220, 220, 0.3);
     backdrop-filter: blur(7.5px);
     align-items: center;
     border-radius: 100px;
@@ -149,7 +159,7 @@ a {
     padding-bottom: 2px;
 }
 
-.contact-details p{
+.contact-details p {
     margin-bottom: 0;
 }
 
@@ -158,6 +168,14 @@ a {
     height: 3em;
     border-radius: 100px;
     padding: 0.5em;
+}
+
+.card-welcoming {
+    background-color: #002b36;
+}
+
+.welcome-container {
+    margin: 0 25em;
 }
 
 @media only screen and (max-width: 1200px) {
@@ -169,6 +187,10 @@ a {
     .checkout {
         width: 80%;
     }
+
+    .welcome-container {
+        margin: 0 15em;
+    }
 }
 
 
@@ -177,7 +199,9 @@ a {
         margin-top: 2em;
     }
 
-
+    .welcome-container {
+        margin: 0 15em;
+    }
 }
 
 @media only screen and (max-width: 600px) {
@@ -217,9 +241,13 @@ a {
         align-items: center;
     }
 
-    .aboutus-contact-container{
+    .aboutus-contact-container {
         width: fit-content;
         height: fit-content;
         margin-bottom: 1em;
+    }
+
+    .welcome-container {
+        margin: 0 0em;
     }
 }
