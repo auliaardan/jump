@@ -15,7 +15,7 @@
                 <ul>
                     {% for item in cart.cartitem_set.all %}
                         <li>
-                            <h4 class="checkout-font-size no-margin-bt">{{ item.seminar.title }}</h4>
+                            <h4 class="checkout-font-size no-margin-bt">{{ item.ticket_category.seminar.title }}</h4>
                             <p class="checkout-font-size no-margin-bt">Quantity: {{ item.quantity }}</p>
                             <p class="checkout-font-size">Price: {{ item.total_price|idr_format }}</p>
                         </li>
@@ -74,7 +74,7 @@
     <script>
         document.getElementById('payment-form').addEventListener('submit', function () {
             // Get the displayed total and parse it to a numeric value
-            const displayedTotal = document.getElementById('total').innerText.replace('Rp ', '').replace('.', '').replace(',', '.');
+            const displayedTotal = document.getElementById('total').innerText.replace('Rp ', '').replace(/\./g, '');
             document.getElementById('final_total').value = parseFloat(displayedTotal);
         });
 

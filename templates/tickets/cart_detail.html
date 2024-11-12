@@ -10,10 +10,11 @@
                 {% for item in cart_items %}
                     <li class="mt-3" style="list-style-type: none;">
                         <div class="row justify-content-center">
-                            <img src="{{ item.seminar.image.url }}" class="col-lg-2"
+                            <img src="{{ item.ticket_category.seminar.image.url }}" class="col-lg-2"
                                  alt="A picture of the seminar/workshop">
                             <div class="col-lg-6 border-cart py-3">
-                                <h4 class="bold">{{ item.seminar.title }}</h4>
+                                <h4 class="bold">{{ item.ticket_category.seminar.title }}</h4>
+                                <p>Category: {{ item.ticket_category.name }}</p>
                                 <p>Quantity: {{ item.quantity }}</p>
                                 <p>Price: {{ item.total_price|idr_format }}</p>
                                 <a class="btn btn-danger" role="button"
@@ -22,12 +23,13 @@
                         </div>
                     </li>
                 {% endfor %}
-            <a class="btn btn-success row justify-content-center mt-3"  style="width: fit-content" role="button" href="{% url 'checkout' %}">Proceed
+                <a class="btn btn-success row justify-content-center mt-3" style="width: fit-content" role="button"
+                   href="{% url 'checkout' %}">Proceed
                     to Checkout</a>
             </ul>
         </div>
     {% else %}
-         <div class="container position-relative text-center view-fix">
+        <div class="container position-relative text-center view-fix">
             <div class="position-absolute top-50 start-50 translate-middle">
                 <svg xmlns="http://www.w3.org/2000/svg" width="100%" zoomAndPan="magnify"
                      viewBox="0 0 525 525.000007" height="40%" style="width: fit-content"

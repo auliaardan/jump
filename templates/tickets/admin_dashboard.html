@@ -22,6 +22,7 @@
                         <th scope="col" data-orderable="true">User</th>
                         <th scope="col" data-orderable="false">Phone Number</th>
                         <th scope="col" data-orderable="true">Created At</th>
+                        <th scope="col" data-orderable="true">Orders</th>
                         <th scope="col" data-orderable="false">Total Due</th>
                         <th scope="col" data-orderable="false">Payment Proof</th>
                         <th scope="col" data-orderable="true">Status</th>
@@ -35,6 +36,19 @@
                             <td>{{ order.user.nama_lengkap }}</td>
                             <td>{{ order.user.Nomor_telpon }}</td>
                             <td>{{ order.created_at }}</td>
+                            <td>
+                                <ul>
+                                    {% for item in order.aggregated_items %}
+                                        <li>
+                                            <strong>{{ item.seminar.title }}</strong>
+                                            ({{ item.seminar.date|date:"Y-m-d" }})<br>
+                                            Category: {{ item.ticket_category.name }}<br>
+                                            Quantity: {{ item.quantity }}
+                                        </li>
+                                        <hr>
+                                    {% endfor %}
+                                </ul>
+                            </td>
                             <td>{{ order.paymentproof_set.first.price_paid|idr_format }}</td>
                             <td>
                                 {% if order.paymentproof_set.exists %}

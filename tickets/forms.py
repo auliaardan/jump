@@ -27,12 +27,3 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['username', 'email']
 
 
-class AddToCartForm(forms.ModelForm):
-    class Meta:
-        model = CartItem
-        fields = ['quantity']
-
-    def __init__(self, *args, **kwargs):
-        self.seminar = kwargs.pop('seminar', None)
-        super().__init__(*args, **kwargs)
-        self.fields['quantity'].widget.attrs.update({'max': self.seminar.remaining_seats})

@@ -228,10 +228,7 @@ class Seminar(models.Model):
     image = models.ImageField(upload_to='seminar_images/', blank=True, null=True)
     date = models.DateTimeField()
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SEMINAR)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
-    available_seats = models.IntegerField(blank=False, default=1)
-    reserved_seats = models.IntegerField(default=0)
-    booked = models.IntegerField(default=0)
+
 
     def __str__(self):
         return self.title
@@ -248,17 +245,27 @@ class Seminar(models.Model):
         img.save(self.image.path, 'JPEG', quality=85, optimize=True)
 
     @property
-    def reserved_seats_in_cart(self):
-        return CartItem.objects.filter(seminar=self).aggregate(total_reserved=models.Sum('quantity'))[
-            'total_reserved'] or 0
+    def total_remaining_seats(self):
+        return sum(category.remaining_seats for category in self.ticket_categories.all())
+
+
+class TicketCategory(models.Model):
+    seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE, related_name='ticket_categories')
+    name = models.CharField(max_length=100, default="umum")  # e.g., 'Student', 'Consultant', 'GP'
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    available_seats = models.IntegerField(default=1)
+    reserved_seats = models.IntegerField(default=0)
+    booked_seats = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.seminar.title} - {self.name}"
 
     @property
     def remaining_seats(self):
-        x = self.available_seats - (self.reserved_seats + self.booked)
-        return x
+        return self.available_seats - (self.reserved_seats + self.booked_seats)
 
     def reserve_seats(self, quantity):
-        if self.reserved_seats + quantity <= self.available_seats - self.booked:
+        if self.reserved_seats + quantity <= self.available_seats - self.booked_seats:
             self.reserved_seats += quantity
             self.save()
         else:
@@ -267,8 +274,6 @@ class Seminar(models.Model):
     def release_seats(self, quantity):
         self.reserved_seats = max(self.reserved_seats - quantity, 0)
         self.save()
-
-
 
 class DiscountCode(models.Model):
     code = models.CharField(max_length=50, unique=True)
@@ -298,16 +303,15 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=0)
+    ticket_category = models.ForeignKey(TicketCategory, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.quantity} of {self.seminar.title}'
+        return f'{self.quantity} of {self.ticket_category.seminar.title} ({self.ticket_category.name})'
 
     def total_price(self):
-        return self.quantity * self.seminar.price
-
+        return self.quantity * self.ticket_category.price
 
 @receiver(pre_save, sender=CartItem)
 def track_initial_quantity(sender, instance, **kwargs):
@@ -316,48 +320,53 @@ def track_initial_quantity(sender, instance, **kwargs):
     else:
         instance._initial_quantity = 0
 
-
 @receiver(post_save, sender=CartItem)
 def reserve_seats_on_save(sender, instance, created, **kwargs):
     initial_quantity = getattr(instance, '_initial_quantity', 0)
     quantity_difference = instance.quantity - initial_quantity
     if quantity_difference > 0:
-        instance.seminar.reserve_seats(quantity_difference)
+        instance.ticket_category.reserve_seats(quantity_difference)
     elif quantity_difference < 0:
-        instance.seminar.release_seats(-quantity_difference)
+        instance.ticket_category.release_seats(-quantity_difference)
 
 
 @receiver(post_delete, sender=CartItem)
 def release_seats_on_delete(sender, instance, **kwargs):
-    instance.seminar.release_seats(instance.quantity)
+    instance.ticket_category.release_seats(instance.quantity)
 
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    seminars = models.ManyToManyField(Seminar)
     created_at = models.DateTimeField(auto_now_add=True)
     is_confirmed = models.BooleanField(default=False)
     confirmation_date = models.DateTimeField(null=True, blank=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {', '.join([seminar.title for seminar in self.seminars.all()])}"
+        return f"Order #{self.id} by {self.user.username}"
 
+    @property
+    def seminars(self):
+        # Fetch seminars through OrderItems
+        seminar_ids = self.orderitem_set.values_list('ticket_category__seminar_id', flat=True)
+        return Seminar.objects.filter(id__in=seminar_ids).distinct()
 
-@receiver(post_save, sender=Order)
-def confirm_order(sender, instance, **kwargs):
-    if instance.is_confirmed:
-        for seminar in instance.seminars.all():
-            cart_item = CartItem.objects.filter(cart__user=instance.user, seminar=seminar).first()
-            if cart_item:
-                return True
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    ticket_category = models.ForeignKey(TicketCategory, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Store the price at the time of purchase
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.quantity} of {self.ticket_category.seminar.title} ({self.ticket_category.name})'
 
 
 class PaymentProof(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     proof = models.ImageField(upload_to='payment_proofs/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    price_paid = models.IntegerField(blank=True)
+    price_paid = models.DecimalField(max_digits=12, decimal_places=0, blank=True)
 
     def __str__(self):
         return f"Proof for {self.order.id}"

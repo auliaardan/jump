@@ -64,11 +64,13 @@
                        {% endif %}
                         <a class="rounded-circle link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
                            href="{% url 'cart_detail' %}">
-    <img id="cart-icon" src="{% static 'images/cart_icon.png' %}" alt="Cart" style="width: 24px; height: 24px;">
-</a> |
-                        <a class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
-                           href="{% url 'logout' %}">Sign Out</a>
-                        </span>
+                            <img id="cart-icon" src="{% static 'images/cart_icon.png' %}" alt="Cart" style="width: 24px; height: 24px;">
+                        </a>
+                    <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: inline; margin-left: 2px">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-danger" type="submit">Logout</button>
+                        </form>
+                    </span>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-outline-primary me-2" role="button">Login</a>
                     <a href="{% url 'signup' %}" class="btn btn-primary" role="button">Sign-up</a>

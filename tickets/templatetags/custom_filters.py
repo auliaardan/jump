@@ -11,7 +11,7 @@ def range_filter(value):
 @register.filter
 def idr_format(value):
     try:
-        value = int(value)
-        return f"Rp {value:,}".replace(",", ".")
+        value = float(value)
+        return "Rp {:,.0f}".format(value).replace(",", ".")
     except (ValueError, TypeError):
         return value

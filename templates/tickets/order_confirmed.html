@@ -174,4 +174,10 @@
             <p>Thank you for your order! You will be redirected to the homepage shortly.</p>
         </div>
     </div>
+
+     <script type="text/javascript">
+        setTimeout(function() {
+            window.location.href = "{% url 'seminar_list' %}";
+        }, 2000);
+    </script>
 {% endblock content %}

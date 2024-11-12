@@ -30,9 +30,17 @@
                                 <td>{{ order.created_at }}</td>
                                 <td>
                                     <ul>
-                                        {% for seminar in order.seminars.all %}
-                                            <li>{{ seminar.title }} ({{ seminar.date }})</li>
-                                        {% endfor %}
+                                        <ul>
+                                            {% for item in order.aggregated_items %}
+                                                <li>
+                                                    <strong>{{ item.seminar.title }}</strong>
+                                                    ({{ item.seminar.date|date:"Y-m-d" }})<br>
+                                                    Category: {{ item.ticket_category.name }}<br>
+                                                    Quantity: {{ item.quantity }}
+                                                </li>
+                                                <hr>
+                                            {% endfor %}
+                                        </ul>
                                     </ul>
                                 </td>
 
