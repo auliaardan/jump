@@ -92,16 +92,28 @@
                         <th scope="col" data-orderable="true">Category</th>
                         <th scope="col" data-orderable="false">Total Seats</th>
                         <th scope="col" data-orderable="true">Remaining Seats</th>
+                        <th scope="col" data-orderable="false">Ticket Categories</th>
                     </tr>
                     </thead>
                     <tbody id="table-body">
                     {% for seminar in seminars %}
                         <tr>
                             <td>{{ seminar.title }}</td>
-                            <td>{{ seminar.date }}</td>
+                            <td>{{ seminar.date|date:"d-m-Y H:i" }}</td>
                             <td>{{ seminar.get_category_display }}</td>
-                            <td>{{ seminar.available_seats }}</td>
-                            <td>{{ seminar.remaining_seats }}</td>
+                            <td>{{ seminar.total_available_seats }}</td>
+                            <td>{{ seminar.total_remaining_seats }}</td>
+                            <td>
+                                <ul>
+                                    {% for category in seminar.ticket_categories.all %}
+                                        <li>
+                                            <strong>{{ category.name }}</strong><br>
+                                            Booked Seats: {{ category.booked_seats }}<br>
+                                            Remaining Seats: {{ category.remaining_seats }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>

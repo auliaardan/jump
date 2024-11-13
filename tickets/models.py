@@ -79,7 +79,7 @@ class seminars_page(models.Model):
 
 class WelcomingSpeech(models.Model):
     title = models.TextField(blank=False, default="Sample Description")
-    image = models.ImageField(upload_to='about_us/',)
+    image = models.ImageField(upload_to='about_us/', )
     name = models.TextField(blank=False, default="Sample Description")
     speech = models.TextField(blank=False, default="Sample Description")
 
@@ -229,7 +229,6 @@ class Seminar(models.Model):
     date = models.DateTimeField()
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SEMINAR)
 
-
     def __str__(self):
         return self.title
 
@@ -243,6 +242,10 @@ class Seminar(models.Model):
         if img.mode != 'RGB':
             img = img.convert('RGB')
         img.save(self.image.path, 'JPEG', quality=85, optimize=True)
+
+    @property
+    def total_available_seats(self):
+        return sum(category.available_seats for category in self.ticket_categories.all())
 
     @property
     def total_remaining_seats(self):
@@ -274,6 +277,7 @@ class TicketCategory(models.Model):
     def release_seats(self, quantity):
         self.reserved_seats = max(self.reserved_seats - quantity, 0)
         self.save()
+
 
 class DiscountCode(models.Model):
     code = models.CharField(max_length=50, unique=True)
@@ -313,12 +317,14 @@ class CartItem(models.Model):
     def total_price(self):
         return self.quantity * self.ticket_category.price
 
+
 @receiver(pre_save, sender=CartItem)
 def track_initial_quantity(sender, instance, **kwargs):
     if instance.pk:
         instance._initial_quantity = CartItem.objects.get(pk=instance.pk).quantity
     else:
         instance._initial_quantity = 0
+
 
 @receiver(post_save, sender=CartItem)
 def reserve_seats_on_save(sender, instance, created, **kwargs):
@@ -350,6 +356,7 @@ class Order(models.Model):
         # Fetch seminars through OrderItems
         seminar_ids = self.orderitem_set.values_list('ticket_category__seminar_id', flat=True)
         return Seminar.objects.filter(id__in=seminar_ids).distinct()
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
