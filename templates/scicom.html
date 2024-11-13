@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Scientific Competition | Jump {% now "Y" %}{% endblock title %}
 
+
 {% block content %}
     <div class="bg-light py-6 animate-on-scroll">
-        <div class="container">
+        <div class="container-fluid"> <!-- Changed to container-fluid for full-width -->
             <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
+                <div class="col-lg-10 text-center"> <!-- Increased column width -->
                     <h1 class="bold mb-5">JUMP 2025 <br>Scientific Competition Rules</h1>
                     {% if scicom_rules %}
                         <div class="accordion mt-5" id="accordionPanelsStayOpenExample">
@@ -31,6 +32,13 @@
                                                     {% endif %}
                                                 {% endfor %}
                                             </ul>
+                                            {% if rule.pdf_file %}
+                                                <object data="{{ rule.pdf_file.url }}" type="application/pdf"
+                                                        width="100%" height="600px">
+                                                    <p>Your browser does not support viewing PDFs inline. <a
+                                                            href="{{ rule.pdf_file.url }}">Download the PDF</a>.</p>
+                                                </object>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -40,20 +48,20 @@
                         <p>No rules available.</p>
                     {% endif %}
                 </div>
-            </div>
-            <div class="row mt-5 justify-content-center">
-                {% if qrcode %}
-                    <div class="col-lg-8 text-center">
-                        <h4 class="bold mb-4">Join Now</h4>
-                        <a href="{{ qrcode.link }}" target="_blank">
-                            <img src="{{ qrcode.image.url }}" alt="QR Code Image"
-                                 class="img-fluid rounded shadow mx-auto d-block" style="max-width: 200px;">
-                        </a>
-                        <p class="mt-3">Click Image or Scan</p>
-                    </div>
-                {% else %}
-                    <p class="text-center">Qr code not available</p>
-                {% endif %}
+                <div class="row mt-5 justify-content-center">
+                    {% if qrcode %}
+                        <div class="col-lg-8 text-center">
+                            <h4 class="bold mb-4">Join Now</h4>
+                            <a href="{{ qrcode.link }}" target="_blank">
+                                <img src="{{ qrcode.image.url }}" alt="QR Code Image"
+                                     class="img-fluid rounded shadow mx-auto d-block" style="max-width: 200px;">
+                            </a>
+                            <p class="mt-3">Click Image or Scan</p>
+                        </div>
+                    {% else %}
+                        <p class="text-center">Qr code not available</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -67,15 +75,18 @@
         </div>
         <div class="container margin-auto animate-on-scroll">
             <div class="row">
-                <img src="{{ seminars.image_section_two_top_left.url }}" class="col-lg-5 img-about-us rounded mt-3 mx-3"
+                <img src="{{ seminars.image_section_two_top_left.url }}"
+                     class="col-lg-5 img-about-us rounded mt-3 mx-3"
                      alt="A picture of past Seminars">
                 <img src="{{ seminars.image_section_two_top_right.url }}" class="col-lg img-about-us rounded  mt-3"
                      alt="A picture of past Seminars">
             </div>
             <div class="row">
-                <img src="{{ seminars.image_section_two_bot_left.url }}" class="col-lg img-about-us rounded mt-3 mx-3"
+                <img src="{{ seminars.image_section_two_bot_left.url }}"
+                     class="col-lg img-about-us rounded mt-3 mx-3"
                      alt="A picture of past Seminars">
-                <img src="{{ seminars.image_section_two_bot_right.url }}" class="col-lg-5 img-about-us rounded  mt-3"
+                <img src="{{ seminars.image_section_two_bot_right.url }}"
+                     class="col-lg-5 img-about-us rounded  mt-3"
                      alt="A picture of past Seminars">
             </div>
         </div>

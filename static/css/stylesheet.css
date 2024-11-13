@@ -278,4 +278,8 @@ a {
     .welcome-container {
         margin: 0 0em;
     }
+
+    .accordion-body iframe {
+        height: 400px;
+    }
 }

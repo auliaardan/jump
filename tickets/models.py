@@ -12,6 +12,7 @@ from jump_project.settings import AUTH_USER_MODEL as User
 class scicom_rules(models.Model):
     rule_name = models.TextField(blank=False, default="Sample Description")
     rule_description = models.TextField(blank=False, default="Sample Description")
+    pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
 
     def get_description_lines(self):
         if self.rule_description:
@@ -19,6 +20,13 @@ class scicom_rules(models.Model):
         else:
             return []
 
+
+@receiver(post_delete, sender=scicom_rules)
+def delete_pdf_file(sender, instance, **kwargs):
+    if instance.pdf_file:
+        # Check if the file exists
+        if os.path.isfile(instance.pdf_file.path):
+            os.remove(instance.pdf_file.path)
 
 class qrcode(models.Model):
     link = models.URLField(blank=False,
@@ -125,13 +133,13 @@ class WelcomingSpeech(models.Model):
 
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
-    def delete(self, *args, **kwargs):
-        # Delete the image file when the instance is deleted
-        if self.image:
-            if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
-        super().delete(*args, **kwargs)
 
+@receiver(post_delete, sender=WelcomingSpeech)
+def delete_pdf_file(sender, instance, **kwargs):
+    if instance.image:
+        # Check if the file exists
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)
 
 class sponsors(models.Model):
     SILVER = 'Silver'
