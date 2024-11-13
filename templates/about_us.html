@@ -32,9 +32,11 @@
             <h1 style="font-weight: bold">Contact Us</h1>
             <div class="contact-group">
                 {% for whatsapp in about_us.whatsapp_numbers.all %}
-                    <a class="aboutus-contact-container" href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">
+                    <a class="aboutus-contact-container"
+                       href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">
                         <div class="icon-dec" style="background-color: #01ff01;">
-                            <svg fill="#000000" height="100%" width="100%" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                            <svg fill="#000000" height="100%" width="100%" version="1.1" id="Layer_1"
+                                 xmlns="http://www.w3.org/2000/svg"
                                  xmlns:xlink="http://www.w3.org/1999/xlink"
                                  viewBox="0 0 308 308" xml:space="preserve">
     <g id="XMLID_468_">
@@ -68,9 +70,12 @@
                 {% for email_contact in about_us.email_contact.all %}
                     <a class="aboutus-contact-container" href="mailto:{{ email_contact.email }}">
                         <div class="icon-dec" style="background-color: #ef4236;">
-                            <svg height="100%" width="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+                            <svg height="100%" width="100%" viewBox="0 0 24 24" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7"
+                                      stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2"
+                                      stroke-linecap="round"/>
                             </svg>
                         </div>
                         <div class="contact-details">

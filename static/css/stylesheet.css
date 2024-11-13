@@ -1,7 +1,13 @@
 @keyframes breathing {
-    0%   { opacity: 1; }
-    50%  { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .breathing {
@@ -186,6 +192,7 @@ a {
     font-size: 1rem;
     line-height: 1.6;
 }
+
 .welcome-container {
     margin: 0 25em;
 }
@@ -242,6 +249,21 @@ a {
     .welcome-container {
         margin: 0 15em;
     }
+}
+
+@media only screen and (max-width: 746px) {
+
+    .contact-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .aboutus-contact-container {
+        width: fit-content;
+        height: fit-content;
+        margin-bottom: 1em;
+    }
+
 }
 
 @media only screen and (max-width: 600px) {
