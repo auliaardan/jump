@@ -35,10 +35,10 @@
                     <div class="card-welcoming text-white rounded-4 p-5">
                         {% if speech.image %}
                             <img class="rounded-circle justify-content-center margin-auto"
+                                 style="width: 15em; height: 15em"
                                  src="{{ speech.image.url }}"
                                  alt="A Picture of {{ speech.name }}"
-                                 width="300px"
-                                 height="300px" loading="lazy">
+                                 loading="lazy">
                         {% else %}
                             <p>No image available</p>
                         {% endif %}

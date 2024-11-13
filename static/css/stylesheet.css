@@ -178,6 +178,34 @@ a {
     margin: 0 25em;
 }
 
+.accordion-item .accordion-body {
+    word-wrap: break-word;
+    text-align: left;
+}
+
+.accordion-body ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.qrcode-img {
+    max-width: 80%;
+    height: auto;
+}
+
+@media (min-width: 576px) {
+    .qrcode-img {
+        max-width: 300px;
+    }
+}
+
+@media (min-width: 992px) {
+    .qrcode-img {
+        max-width: 200px;
+    }
+}
+
+
 @media only screen and (max-width: 1200px) {
     .px-10em {
         padding-left: 2em;

@@ -30,7 +30,7 @@
     <script>
         var cartItemCountUrl = "{% url 'cart_item_count' %}";
     </script>
-    <script src="{% static 'js/cart.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}" defer></script>
     {% block head %}{% endblock head %}
 </head>
 <body>
@@ -51,6 +51,7 @@
                 <li><a href="{% url 'about_us' %}" class="nav-link px-2">About Us</a></li>
                 <li><a href="{% url 'seminar_page' %}" class="nav-link px-2">Seminar</a></li>
                 <li><a href="{% url 'workshop_page' %}" class="nav-link px-2">Workshops</a></li>
+                <li><a href="{% url 'scicom_page' %}" class="nav-link px-2">Scientific Competition</a></li>
             </ul>
             <div class="d-lg-flex col-xl-3 justify-content-lg-end align-items-center">
                 {% if user.is_authenticated %}
@@ -64,9 +65,11 @@
                        {% endif %}
                         <a class="rounded-circle link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
                            href="{% url 'cart_detail' %}">
-                            <img id="cart-icon" src="{% static 'images/cart_icon.png' %}" alt="Cart" style="width: 24px; height: 24px;">
+                            <img id="cart-icon" src="{% static 'images/cart_icon.png' %}" alt="Cart"
+                                 style="width: 24px; height: 24px;">
                         </a>
-                    <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: inline; margin-left: 2px">
+                    <form id="logout-form" action="{% url 'logout' %}" method="post"
+                          style="display: inline; margin-left: 2px">
                             {% csrf_token %}
                             <button class="btn btn-outline-danger" type="submit">Logout</button>
                         </form>

@@ -3,9 +3,34 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.core.validators import URLValidator
 import os
 
 from jump_project.settings import AUTH_USER_MODEL as User
+
+
+class scicom_rules(models.Model):
+    rule_name = models.TextField(blank=False, default="Sample Description")
+    rule_description = models.TextField(blank=False, default="Sample Description")
+
+    def get_description_lines(self):
+        if self.rule_description:
+            return self.rule_description.splitlines()
+        else:
+            return []
+
+
+class qrcode(models.Model):
+    link = models.URLField(blank=False,
+                           default="https://www.example.com",
+                           help_text="Enter a valid URL starting with http:// or https://")
+    image = models.ImageField(upload_to="qrcode/", blank=False, null=False)
+
+    def delete(self, *args, **kwargs):
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+        super().delete(*args, **kwargs)
 
 
 class PaymentMethod(models.Model):
@@ -108,6 +133,19 @@ class WelcomingSpeech(models.Model):
         super().delete(*args, **kwargs)
 
 
+class sponsors(models.Model):
+    SILVER = 'Silver'
+    PLATINUM = 'Platinum'
+    CATEGORY_CHOICES = [
+        (SILVER, 'Silver'),
+        (PLATINUM, 'Platinum'),
+    ]
+
+    sponsor_name = models.TextField(blank=False, default="Sample Description")
+    sponsor_image = models.ImageField(upload_to='sponsor_images/', )
+    sponsor_category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SILVER)
+
+
 class landing_page(models.Model):
     header_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_one = models.TextField(blank=False, default="Sample Description")
@@ -128,6 +166,8 @@ class landing_page(models.Model):
     text_section_three = models.TextField(blank=False, default="Sample Description")
     image_section_three_left = models.ImageField(upload_to='landingpage_images/', )
     image_section_three_right = models.ImageField(upload_to='landingpage_images/', )
+    # Sponsor Images
+    sponsors = models.ManyToManyField(sponsors, blank=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -215,6 +255,7 @@ class about_us(models.Model):
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
+# Ticket General
 class Seminar(models.Model):
     SEMINAR = 'Seminar'
     WORKSHOP = 'Workshop'

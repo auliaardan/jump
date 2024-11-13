@@ -22,8 +22,41 @@ from django.db.models import Sum
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode
 
+class ScicomView(ListView):
+    model = scicom_rules
+    template_name = 'scicom.html'
+    context_object_name = 'scicom_rules'
+
+    def get_queryset(self):
+        return scicom_rules.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_query = self.request.GET.get('search', '')
+
+        if search_query:
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('id')
+        else:
+            seminars = Seminar.objects.all().order_by('id')
+
+        paginator = Paginator(seminars, 4)  # Show 4 seminars per page
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+
+        # Calculate the number of placeholders needed to maintain the layout
+        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
+
+        qrcode_obj = qrcode.objects.last()
+
+        context['qrcode'] = qrcode_obj
+        context['seminar_list'] = page_obj
+        context['num_placeholders'] = num_placeholders
+        context['has_next'] = page_obj.has_next()
+        context['has_previous'] = page_obj.has_previous()
+        context['search_query'] = search_query
+        return context
 
 class WorkshopView(ListView):
     model = workshops_page
