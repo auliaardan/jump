@@ -171,9 +171,21 @@ a {
 }
 
 .card-welcoming {
-    background-color: #002b36;
+    background-color: #f8f9fa; /* Light gray background */
 }
 
+.card-welcoming .card-body {
+    padding: 2rem;
+}
+
+.card-welcoming img {
+    border: 5px solid #fff; /* White border around the image */
+}
+
+.card-text {
+    font-size: 1rem;
+    line-height: 1.6;
+}
 .welcome-container {
     margin: 0 25em;
 }
