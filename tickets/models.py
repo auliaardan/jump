@@ -14,6 +14,9 @@ class scicom_rules(models.Model):
     rule_description = models.TextField(blank=False, default="Sample Description")
     pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.rule_name}"
+
     def get_description_lines(self):
         if self.rule_description:
             return self.rule_description.splitlines()
@@ -27,6 +30,7 @@ def delete_pdf_file(sender, instance, **kwargs):
         # Check if the file exists
         if os.path.isfile(instance.pdf_file.path):
             os.remove(instance.pdf_file.path)
+
 
 class qrcode(models.Model):
     link = models.URLField(blank=False,
@@ -135,23 +139,49 @@ class WelcomingSpeech(models.Model):
 
 
 @receiver(post_delete, sender=WelcomingSpeech)
-def delete_pdf_file(sender, instance, **kwargs):
+def delete_welcoming_image(sender, instance, **kwargs):
     if instance.image:
-        # Check if the file exists
-        if os.path.isfile(instance.image.path):
-            os.remove(instance.image.path)
+        instance.image.delete(save=False)
 
-class sponsors(models.Model):
-    SILVER = 'Silver'
-    PLATINUM = 'Platinum'
+
+class Sponsor(models.Model):
+    LARGE = 'Large'
+    MEDIUM = 'Medium'
+    SMALL = 'Small'
     CATEGORY_CHOICES = [
-        (SILVER, 'Silver'),
-        (PLATINUM, 'Platinum'),
+        (LARGE, 'Large'),
+        (MEDIUM, 'Medium'),
+        (SMALL, 'Small'),
     ]
 
-    sponsor_name = models.TextField(blank=False, default="Sample Description")
-    sponsor_image = models.ImageField(upload_to='sponsor_images/', )
-    sponsor_category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SILVER)
+    name = models.TextField(blank=False, default="Sample Description")
+    image = models.ImageField(upload_to='sponsor_images/', )
+    category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SMALL)
+    youtube_video_id = models.CharField(max_length=20, blank=True, null=True,
+                                        help_text="YouTube video ID for the sponsor")
+    def __str__(self):
+        return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.image:
+            self.compress_image(self.image)
+
+    def compress_image(self, image_field):
+        try:
+            img = Image.open(image_field.path)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            img.save(image_field.path, 'JPEG', quality=85, optimize=True)
+        except IOError:
+            pass
+
+
+@receiver(post_delete, sender=Sponsor)
+def delete_sponsor_image(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)
 
 
 class landing_page(models.Model):
@@ -175,7 +205,7 @@ class landing_page(models.Model):
     image_section_three_left = models.ImageField(upload_to='landingpage_images/', )
     image_section_three_right = models.ImageField(upload_to='landingpage_images/', )
     # Sponsor Images
-    sponsors = models.ManyToManyField(sponsors, blank=True)
+    sponsor = models.ManyToManyField(Sponsor, blank=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

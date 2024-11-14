@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
-    WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech, TicketCategory, scicom_rules, qrcode
+    WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech, TicketCategory, scicom_rules, qrcode, \
+    Sponsor
 
 admin.site.register(TicketCategory)
 admin.site.register(scicom_rules)
@@ -11,13 +12,16 @@ admin.site.register(PaymentProof)
 admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 
+
 class TicketCategoryInline(admin.TabularInline):
     model = TicketCategory
     extra = 1
 
+
 @admin.register(Seminar)
 class SeminarAdmin(admin.ModelAdmin):
     inlines = [TicketCategoryInline]
+
 
 class WhatsAppNumberInline(admin.TabularInline):
     model = about_us.whatsapp_numbers.through
@@ -44,9 +48,17 @@ class AboutUsAdmin(admin.ModelAdmin):
     inlines = [WhatsAppNumberInline, PhoneNumberInline]
 
 
+class SponsorInline(admin.TabularInline):
+    model = landing_page.sponsor.through
+    extra = 1
+
+@admin.register(Sponsor)
+class SponsorAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
 @admin.register(landing_page)
 class LandingPageAdmin(admin.ModelAdmin):
-    inlines = [WelcomingSpeechesInline]
+    inlines = [WelcomingSpeechesInline, SponsorInline]
 
 
 @admin.register(WhatsAppNumber)

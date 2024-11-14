@@ -212,6 +212,33 @@ a {
     height: auto;
 }
 
+
+/* Remove the fixed flex properties */
+.silver-sponsor {
+    /* No need for flex properties here */
+}
+
+/* Sponsor card styling remains the same */
+.sponsor-card {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sponsor-logo {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Adjust sponsor video iframe */
+.sponsor-video iframe {
+    width: 100%;
+    height: auto;
+}
+/* Adjust margins and padding as needed */
+
 @media (min-width: 576px) {
     .qrcode-img {
         max-width: 300px;
