@@ -145,14 +145,20 @@ class baseView(ListView):
         # Calculate the number of placeholders needed to maintain the layout
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
 
+
         landing = landing_page.objects.last()
         sponsors = landing.sponsor.all()
+
         platinum_sponsors = sponsors.filter(category='Large')
         gold_sponsors = sponsors.filter(category='Medium')
-        silver_sponsors = sponsors.filter(category='Small')
+        silver_sponsors = sponsors.filter(category='Small'
+                                          )
+        # Filter platinum sponsors with banners
+        platinum_sponsors_with_banners = platinum_sponsors.filter(banner__isnull=False)
 
         context['sponsors'] = sponsors
         context['platinum_sponsors'] = platinum_sponsors
+        context['platinum_sponsors_with_banners'] = platinum_sponsors_with_banners
         context['gold_sponsors'] = gold_sponsors
         context['silver_sponsors'] = silver_sponsors
         context['seminar_list'] = page_obj

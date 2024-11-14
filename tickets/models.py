@@ -156,6 +156,7 @@ class Sponsor(models.Model):
 
     name = models.TextField(blank=False, default="Sample Description")
     image = models.ImageField(upload_to='sponsor_images/', )
+    banner = models.ImageField(upload_to='sponsor_banner_images/', blank=True, null=True)
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SMALL)
     youtube_video_id = models.CharField(max_length=20, blank=True, null=True,
                                         help_text="YouTube video ID for the sponsor")
@@ -164,9 +165,14 @@ class Sponsor(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        image_fields = [
+            self.image,
+            self.banner,
+        ]
 
-        if self.image:
-            self.compress_image(self.image)
+        for image_field in image_fields:
+            if image_field:
+                self.compress_image(image_field)
 
     def compress_image(self, image_field):
         try:

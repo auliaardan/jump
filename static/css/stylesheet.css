@@ -237,7 +237,20 @@ a {
     width: 100%;
     height: auto;
 }
-/* Adjust margins and padding as needed */
+
+/* Limit the height of the ads section images */
+#ads-section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    max-height: 300px;
+}
+
+/* Ensure the close button is above other elements */
+#ads-section .btn-close {
+    z-index: 10;
+}
+
 
 @media (min-width: 576px) {
     .qrcode-img {
