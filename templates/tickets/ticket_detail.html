@@ -8,7 +8,7 @@
     <div class="container py-5 margin-auto">
         <div class="row">
             <img src="{{ seminar.image.url }}" class="col-lg" alt="Picture for {{ seminar.title }}" width="100%">
-            <div class="col-lg mx-4">
+            <div class="col-lg px-4">
                 <h1 class="bold title-big">{{ seminar.title }}</h1>
                 <h2 class="mt-3">{{ seminar.date }}</h2>
                 <p class="mt-3">Harga: <span id="ticket-price">{{ ticket_categories.first.price|idr_format }}</span></p>

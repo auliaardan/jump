@@ -92,11 +92,15 @@
             <li class="col-lg mt-r-3" style="list-style-type: none;">
                 <a href="{% url 'seminar_detail' seminar.id %}" style="color: black">
                     <div class="zoom-effect-container">
-                        <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
-                             class="img-fluid rounded-4"
-                             alt="Jakarta Urology Medical Update Workshop past events documentations"
-                             width="100%"
-                             height="600px" loading="lazy" style="max-height: 500px">
+                        {% if seminar.image %}
+                            <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
+                                 class="img-fluid rounded-4"
+                                 alt="Jakarta Urology Medical Update Workshop past events documentations"
+                                 width="100%"
+                                 height="600px" loading="lazy" style="max-height: 500px">
+                        {% else %}
+                            <p>Image not Found</p>
+                        {% endif %}
                     </div>
                     <h4 style="font-weight: bold; text-align: center">{{ seminar.title }}</h4>
                 </a>

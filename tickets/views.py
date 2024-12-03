@@ -145,6 +145,17 @@ class baseView(ListView):
         # Calculate the number of placeholders needed to maintain the layout
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
 
+        # For the timeline
+        seminars_all = Seminar.objects.all().order_by('date')
+        context['seminars_all'] = seminars_all
+
+        # Next upcoming seminar
+        now = timezone.now()
+        next_seminar = Seminar.objects.filter(date__gte=now).order_by('date').first()
+        context['next_seminar'] = next_seminar
+
+        # Flag to check if all events have passed
+        context['all_events_over'] = not next_seminar
 
         landing = landing_page.objects.last()
         sponsors = landing.sponsor.all()
