@@ -120,6 +120,8 @@ class SeminarsView(ListView):
         context['search_query'] = search_query
         return context
 
+def coming_soon_view(request):
+    return render(request, 'coming_soon.html')
 
 class baseView(ListView):
     model = landing_page
