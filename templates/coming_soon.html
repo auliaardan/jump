@@ -5,6 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Coming Soon - Jakarta Urology Medical Update 2025</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+          content="Jakarta Urology Medical Update {% now "Y" %}, is a yearly seminar and workshop hosted by Department of Urologi RSCM-FKUI, to give the latest knowledge update on Urology field">
+    <meta name="author"
+          content="Aulia Rahman Ardan">
     <style>
         /* Styles for the floating text */
         .floating-text {
@@ -47,12 +52,6 @@
             z-index: 0;
         }
 
-        #music-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2;
-        }
     </style>
 </head>
 <body>
@@ -68,40 +67,9 @@
 
 <canvas id="fireworks-canvas"></canvas>
 
-<!-- Background Music -->
-<audio id="background-music" autoplay loop>
-    <source src="{% static 'audio/background-music.mp3.mp3' %}" type="audio/mpeg">
-    Your browser does not support the audio element.
-</audio>
-
-<!-- Music Controls -->
-<div id="music-controls">
-    <button id="music-toggle">Play Music</button>
-</div>
 
 <!-- Include the fireworks script -->
 <script>
-    // Music Control Script
-        const music = document.getElementById('background-music');
-        const musicToggle = document.getElementById('music-toggle');
-
-        musicToggle.addEventListener('click', function() {
-            if (music.paused) {
-                music.play();
-                musicToggle.textContent = 'Pause Music';
-            } else {
-                music.pause();
-                musicToggle.textContent = 'Play Music';
-            }
-        });
-
-        // Optional: Start music after user interaction
-        document.addEventListener('click', function() {
-            if (music.paused) {
-                music.play();
-                musicToggle.textContent = 'Pause Music';
-            }
-        }, { once: true });
 
     // Fireworks Animation Script
     // Source: https://codepen.io/anon/pen/rpEXaL
