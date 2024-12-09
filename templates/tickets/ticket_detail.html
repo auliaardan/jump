@@ -2,100 +2,136 @@
 {% load static %}
 {% load custom_filters %}
 {% load crispy_forms_tags %}
+
 {% block title %}{{ seminar.title }} | Jump {% now "Y" %}{% endblock title %}
 
 {% block content %}
-    <div class="container py-5 margin-auto">
-        <div class="row">
-            <img src="{{ seminar.image.url }}" class="col-lg" alt="Picture for {{ seminar.title }}" width="100%">
-            <div class="col-lg px-4">
-                <h1 class="bold title-big">{{ seminar.title }}</h1>
-                <h2 class="mt-3">{{ seminar.date }}</h2>
-                <p class="mt-3">Harga: <span id="ticket-price">{{ ticket_categories.first.price|idr_format }}</span></p>
-                <p>Jumlah Kursi: <span id="remaining-seats">{{ ticket_categories.first.remaining_seats }}</span></p>
-                <div class="form-group mb-3">
-                    <label for="ticket-category-select">Kategori:</label>
-                    <select id="ticket-category-select" name="ticket_category">
-                        {% for category in ticket_categories %}
-                            <option value="{{ category.id }}" data-price="{{ category.price }}"
-                                    data-remaining="{{ category.remaining_seats }}">
-                                {{ category.name }} - {{ category.price|idr_format }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <div class="form-group mt-2" id="quantity-div">
-                        <label for="id_quantity">Quantity:</label>
-                        <input type="number" name="quantity" id="id_quantity" class=""
-                               max="{{ ticket_categories.first.remaining_seats }}" min="1" value="1">
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <img src="{{ seminar.image.url }}" class="img-fluid rounded shadow"
+                     alt="Picture for {{ seminar.title }}">
+            </div>
+            <div class="col-lg-6">
+                <h1 class="fw-bold display-4 mb-3">{{ seminar.title }}</h1>
+                <h2 class="h4 text-muted mb-4">{{ seminar.date|date:"F j, Y - g:i A" }}</h2>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="h5 mb-3">Ticket Information</h3>
+                        <p class="mb-2">Price: <span id="ticket-price"
+                                                     class="fw-bold">{{ ticket_categories.first.price|idr_format }}</span>
+                        </p>
+                        <p class="mb-3">Available Seats: <span id="remaining-seats"
+                                                               class="fw-bold">{{ ticket_categories.first.remaining_seats }}</span>
+                        </p>
+
+                        <form id="add-to-cart-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="ticket-category-select" class="form-label">Category:</label>
+                                <select id="ticket-category-select" name="ticket_category" class="form-select">
+                                    {% for category in ticket_categories %}
+                                        <option value="{{ category.id }}" data-price="{{ category.price }}"
+                                                data-remaining="{{ category.remaining_seats }}">
+                                            {{ category.name }} - {{ category.price|idr_format }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3" id="quantity-div">
+                                <label for="id_quantity" class="form-label">Quantity:</label>
+                                <input type="number" name="quantity" id="id_quantity" class="form-control"
+                                       max="{{ ticket_categories.first.remaining_seats }}" min="1" value="1">
+                            </div>
+                            <button type="submit" id="submit-cart" class="btn btn-primary btn-lg w-100">Add to Cart
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <button type="submit" id="submit-cart" class="btn btn-dark btn-lg mt-2">Add to Cart</button>
 
-                <p class="mt-5">{{ seminar.description }}</p>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="h5 mb-3">Event Description</h3>
+                        <p class="card-text">{{ seminar.description }}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
+
     <script>
-        $(document).ready(function () {
-            // Update price and remaining seats when ticket category changes
-            $('#ticket-category-select').change(function () {
-                var selectedOption = $(this).find('option:selected');
-                var price = selectedOption.data('price');
-                var remainingSeats = selectedOption.data('remaining');
+        document.addEventListener('DOMContentLoaded', function () {
+            const ticketCategorySelect = document.getElementById('ticket-category-select');
+            const quantityInput = document.getElementById('id_quantity');
+            const submitCartButton = document.getElementById('submit-cart');
+            const ticketPriceElement = document.getElementById('ticket-price');
+            const remainingSeatsElement = document.getElementById('remaining-seats');
+            const quantityDiv = document.getElementById('quantity-div');
+            const addToCartForm = document.getElementById('add-to-cart-form');
 
-                $('#ticket-price').text(price.toLocaleString('id-ID', {style: 'currency', currency: 'IDR'}));
-                $('#remaining-seats').text(remainingSeats);
-                $('#id_quantity').attr('max', remainingSeats);
+            function updateTicketInfo() {
+                const selectedOption = ticketCategorySelect.options[ticketCategorySelect.selectedIndex];
+                const price = selectedOption.dataset.price;
+                const remainingSeats = selectedOption.dataset.remaining;
 
-                if (remainingSeats <= 0) {
-                    $('#quantity-div').hide();
-                    $('#submit-cart').prop('disabled', true);
-                    $('#submit-cart').text('Sold Out');
+                ticketPriceElement.textContent = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                }).format(price);
+                remainingSeatsElement.textContent = remainingSeats;
+                quantityInput.max = remainingSeats;
+
+                if (parseInt(remainingSeats) <= 0) {
+                    quantityDiv.style.display = 'none';
+                    submitCartButton.disabled = true;
+                    submitCartButton.textContent = 'Sold Out';
                 } else {
-                    $('#quantity-div').show();
-                    $('#submit-cart').prop('disabled', false);
-                    $('#submit-cart').text('Add to Cart');
+                    quantityDiv.style.display = 'block';
+                    submitCartButton.disabled = false;
+                    submitCartButton.textContent = 'Add to Cart';
                 }
-            });
+            }
 
-            // Trigger change event on page load to set initial values
-            $('#ticket-category-select').trigger('change');
+            ticketCategorySelect.addEventListener('change', updateTicketInfo);
+            updateTicketInfo(); // Set initial values
 
-            // Add to Cart AJAX
-            $(document).on('click', '#submit-cart', function (event) {
+            addToCartForm.addEventListener('submit', function (event) {
                 event.preventDefault();
-                var quantity = $('#id_quantity').val();
-                var ticketCategoryId = $('#ticket-category-select').val();
-                var csrfToken = '{{ csrf_token }}';
+                const quantity = quantityInput.value;
+                const ticketCategoryId = ticketCategorySelect.value;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-                $.ajax({
-                    url: "{% url 'add_to_cart' seminar.id %}",
-                    type: 'POST',
-                    data: {
-                        'ticket_category_id': ticketCategoryId,
-                        'quantity': quantity,
-                        'csrfmiddlewaretoken': csrfToken
+                fetch("{% url 'add_to_cart' seminar.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
                     },
-                    success: function (response) {
-                        if (response.success) {
+                    body: new URLSearchParams({
+                        'ticket_category_id': ticketCategoryId,
+                        'quantity': quantity
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
                             updateCartIcon();
                             alert('Added to cart successfully!');
-                            // Update remaining seats
-                            $('#ticket-category-select').find('option:selected').data('remaining', response.remaining_seats);
-                            $('#ticket-category-select').trigger('change');
-                        } else if (response.message === 'not_authenticated') {
+                            ticketCategorySelect.options[ticketCategorySelect.selectedIndex].dataset.remaining = data.remaining_seats;
+                            updateTicketInfo();
+                        } else if (data.message === 'not_authenticated') {
                             alert('You need to log in to add items to your cart.');
                         } else {
-                            alert(response.message);
+                            alert(data.message);
                         }
-                    },
-                    error: function (xhr, status, error) {
+                    })
+                    .catch(error => {
                         console.error('Error:', error);
-                    }
-                });
+                    });
             });
         });
     </script>
-    {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
 {% endblock content %}
