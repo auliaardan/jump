@@ -277,14 +277,26 @@ class about_us(models.Model):
     text_section_two_left = models.TextField(blank=False, default="Sample Description")
     subheader_section_two_right = models.CharField(max_length=100, blank=False, default="Sample Description")
     text_section_two_right = models.TextField(blank=False, default="Sample Description")
-    image_section_two = models.ImageField(upload_to='about_us_images/')
+
+    # Up to 5 images allowed
+    image_section_two_1 = models.ImageField(upload_to='about_us_images/', blank=True, null=True)
+    image_section_two_2 = models.ImageField(upload_to='about_us_images/', blank=True, null=True)
+    image_section_two_3 = models.ImageField(upload_to='about_us_images/', blank=True, null=True)
+    image_section_two_4 = models.ImageField(upload_to='about_us_images/', blank=True, null=True)
+    image_section_two_5 = models.ImageField(upload_to='about_us_images/', blank=True, null=True)
+
     whatsapp_numbers = models.ManyToManyField(WhatsAppNumber, blank=True)
     email_contact = models.ManyToManyField(email_contact, blank=True)
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        image_fields = [self.image_section_two]
+        image_fields = [
+            self.image_section_two_1,
+            self.image_section_two_2,
+            self.image_section_two_3,
+            self.image_section_two_4,
+            self.image_section_two_5,
+        ]
 
         for image_field in image_fields:
             if image_field:

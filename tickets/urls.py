@@ -4,10 +4,10 @@ from django.urls import path
 
 from . import views
 from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view, SeminarsView, \
-    WorkshopView, CheckoutView, apply_discount, cart_item_count, ScicomView, coming_soon_view
+    WorkshopView, CheckoutView, apply_discount, cart_item_count, ScicomView, coming_soon_view, baseView
 
 urlpatterns = [
-                  path('', coming_soon_view, name='seminar_list'),
+                  path('', baseView.as_view(), name='seminar_list'),
                   path('cart_item_count/', cart_item_count, name='cart_item_count'),
                   path('seminar/<int:pk>/', SeminarDetailView.as_view(), name='seminar_detail'),
                   path('seminars/', SeminarsView.as_view(), name='seminar_page'),

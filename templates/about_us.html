@@ -1,91 +1,145 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}About Us | JUMP 2025{% endblock title %}
 
 {% block content %}
-    <div class="d-flex flex-column justify-content-center py-6 animate-on-scroll">
-        <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
-            <h1 class="bold">About Us</h1>
-            <h3>{{ about_us.text_section_one }}</h3>
-        </div>
-    </div>
-    <div class="container animate-on-scroll py-6 pad-phone">
-        <div class="row pad-phone">
-            <h1 class="bold">{{ about_us.header_section_two }}</h1>
-        </div>
-        <div class="row mt-5 pad-phone">
-            <div class="col-lg">
-                <h4 class="bold">{{ about_us.subheader_section_two_left }}</h4>
-                <p class="mt-2">{{ about_us.text_section_two_left }}</p>
+    <div class="container-fluid px-0">
+        <!-- Hero Section -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-4 fw-bold mb-4">About Us</h1>
+                        <p class="lead mb-0">{{ about_us.text_section_one }}</p>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg">
-                <h4 class="bold">{{ about_us.subheader_section_two_right }}</h4>
-                <p class="mt-2">{{ about_us.text_section_two_right }}</p>
-            </div>
-        </div>
-        <div class="row pt-5">
-            <img src="{{ about_us.image_section_two.url }}" class="col-lg img-about-us rounded pad-phone"
-                 alt="A past picture of Jakarta Urology Medical Update seminar in a prestigious hotel">
-        </div>
-    </div>
-    <div class="bg-light d-flex flex-column justify-content-center py-6 animate-on-scroll pad-phone">
-        <div class="d-flex flex-column justify-content-center margin-auto text-center">
-            <h1 style="font-weight: bold">Contact Us</h1>
-            <div class="contact-group">
-                {% for whatsapp in about_us.whatsapp_numbers.all %}
-                    <a class="aboutus-contact-container"
-                       href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya">
-                        <div class="icon-dec" style="background-color: #01ff01;">
-                            <svg fill="#000000" height="100%" width="100%" version="1.1" id="Layer_1"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 xmlns:xlink="http://www.w3.org/1999/xlink"
-                                 viewBox="0 0 308 308" xml:space="preserve">
-    <g id="XMLID_468_">
-        <path id="XMLID_469_" d="M227.904,176.981c-0.6-0.288-23.054-11.345-27.044-12.781c-1.629-0.585-3.374-1.156-5.23-1.156
-            c-3.032,0-5.579,1.511-7.563,4.479c-2.243,3.334-9.033,11.271-11.131,13.642c-0.274,0.313-0.648,0.687-0.872,0.687
-            c-0.201,0-3.676-1.431-4.728-1.888c-24.087-10.463-42.37-35.624-44.877-39.867c-0.358-0.61-0.373-0.887-0.376-0.887
-            c0.088-0.323,0.898-1.135,1.316-1.554c1.223-1.21,2.548-2.805,3.83-4.348c0.607-0.731,1.215-1.463,1.812-2.153
-            c1.86-2.164,2.688-3.844,3.648-5.79l0.503-1.011c2.344-4.657,0.342-8.587-0.305-9.856c-0.531-1.062-10.012-23.944-11.02-26.348
-            c-2.424-5.801-5.627-8.502-10.078-8.502c-0.413,0,0,0-1.732,0.073c-2.109,0.089-13.594,1.601-18.672,4.802
-            c-5.385,3.395-14.495,14.217-14.495,33.249c0,17.129,10.87,33.302,15.537,39.453c0.116,0.155,0.329,0.47,0.638,0.922
-            c17.873,26.102,40.154,45.446,62.741,54.469c21.745,8.686,32.042,9.69,37.896,9.69c0.001,0,0.001,0,0.001,0
-            c2.46,0,4.429-0.193,6.166-0.364l1.102-0.105c7.512-0.666,24.02-9.22,27.775-19.655c2.958-8.219,3.738-17.199,1.77-20.458
-            C233.168,179.508,230.845,178.393,227.904,176.981z"/>
-        <path id="XMLID_470_" d="M156.734,0C73.318,0,5.454,67.354,5.454,150.143c0,26.777,7.166,52.988,20.741,75.928L0.212,302.716
-            c-0.484,1.429-0.124,3.009,0.933,4.085C1.908,307.58,2.943,308,4,308c0.405,0,0.813-0.061,1.211-0.188l79.92-25.396
-            c21.87,11.685,46.588,17.853,71.604,17.853C240.143,300.27,308,232.923,308,150.143C308,67.354,240.143,0,156.734,0z
-             M156.734,268.994c-23.539,0-46.338-6.797-65.936-19.657c-0.659-0.433-1.424-0.655-2.194-0.655c-0.407,0-0.815,0.062-1.212,0.188
-            l-40.035,12.726l12.924-38.129c0.418-1.234,0.209-2.595-0.561-3.647c-14.924-20.392-22.813-44.485-22.813-69.677
-            c0-65.543,53.754-118.867,119.826-118.867c66.064,0,119.812,53.324,119.812,118.867
-            C276.546,215.678,222.799,268.994,156.734,268.994z"/>
-    </g>
-    </svg>
-                        </div>
-                        <div class="contact-details">
-                            <p>{{ whatsapp.name }}</p>
-                            <p>{{ whatsapp.number }}</p>
-                        </div>
-                    </a>
-                {% endfor %}
+        </section>
 
-                {% for email_contact in about_us.email_contact.all %}
-                    <a class="aboutus-contact-container" href="mailto:{{ email_contact.email }}">
-                        <div class="icon-dec" style="background-color: #ef4236;">
-                            <svg height="100%" width="100%" viewBox="0 0 24 24" fill="none"
-                                 xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4 7.00005L10.2 11.65C11.2667 12.45 12.7333 12.45 13.8 11.65L20 7"
-                                      stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <rect x="3" y="5" width="18" height="14" rx="2" stroke="#000000" stroke-width="2"
-                                      stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="contact-details">
-                            <p>{{ email_contact.name }}</p>
-                            <p>{{ email_contact.email }}</p>
-                        </div>
-                    </a>
-                {% endfor %}
+        <!-- Main Content Section -->
+        <section class="py-5">
+            <div class="container">
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <h2 class="display-5 fw-bold mb-4">{{ about_us.header_section_two }}</h2>
+                    </div>
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <h3 class="h4 fw-bold">{{ about_us.subheader_section_two_left }}</h3>
+                        <p>{{ about_us.text_section_two_left }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h3 class="h4 fw-bold">{{ about_us.subheader_section_two_right }}</h3>
+                        <p>{{ about_us.text_section_two_right }}</p>
+                    </div>
+                </div>
             </div>
+        </section>
 
-        </div>
+        <!-- Image Banner Section -->
+        <section class="py-3 px-2">
+            <div class="container-fluid px-0">
+                <div class="image-banner">
+                    {% if about_us.image_section_two_1 %}
+                        <div class="image-item large">
+                            <img src="{{ about_us.image_section_two_1.url }}"
+                                 alt="Jakarta Urology Medical Update seminar">
+                        </div>
+                    {% else %}
+                        <!-- Fallback image if image_section_two_1 is not provided -->
+                        <div class="image-item large">
+                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Seminar Image">
+                        </div>
+                    {% endif %}
+
+                    {% if about_us.image_section_two_2 %}
+                        <div class="image-item medium">
+                            <img src="{{ about_us.image_section_two_2.url }}" alt="JUMP 2025 Workshop">
+                        </div>
+                    {% else %}
+                        <div class="image-item medium">
+                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Workshop Image">
+                        </div>
+                    {% endif %}
+
+                    {% if about_us.image_section_two_3 %}
+                        <div class="image-item small">
+                            <img src="{{ about_us.image_section_two_3.url }}" alt="Urology Conference">
+                        </div>
+                    {% else %}
+                        <div class="image-item small">
+                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Conference Image">
+                        </div>
+                    {% endif %}
+
+                    {% if about_us.image_section_two_4 %}
+                        <div class="image-item medium">
+                            <img src="{{ about_us.image_section_two_4.url }}" alt="Medical Professionals">
+                        </div>
+                    {% else %}
+                        <div class="image-item medium">
+                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Professional Image">
+                        </div>
+                    {% endif %}
+
+                    {% if about_us.image_section_two_5 %}
+                        <div class="image-item small">
+                            <img src="{{ about_us.image_section_two_5.url }}" alt="Seminar Audience">
+                        </div>
+                    {% else %}
+                        <div class="image-item small">
+                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Audience Image">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row justify-content-center text-center mb-5">
+                    <div class="col-lg-8">
+                        <h2 class="display-5 fw-bold mb-4">Contact Us</h2>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex flex-wrap justify-content-center gap-3">
+                            {% for whatsapp in about_us.whatsapp_numbers.all %}
+                                <a href="https://api.whatsapp.com/send?phone={{ whatsapp.number }}&text=Halo%20panitia%2C%20saya%20ingin%20bertanya"
+                                   class="text-decoration-none">
+                                    <div class="contact-pill whatsapp-pill">
+                                        <div class="contact-icon">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </div>
+                                        <div class="contact-info">
+                                            <strong>{{ whatsapp.name }}</strong>
+                                            <span>{{ whatsapp.number }}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+
+                            {% for email_contact in about_us.email_contact.all %}
+                                <a href="mailto:{{ email_contact.email }}" class="text-decoration-none">
+                                    <div class="contact-pill email-pill">
+                                        <div class="contact-icon">
+                                            <i class="bi bi-envelope"></i>
+                                        </div>
+                                        <div class="contact-info">
+                                            <strong>{{ email_contact.name }}</strong>
+                                            <span>{{ email_contact.email }}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 {% endblock content %}
