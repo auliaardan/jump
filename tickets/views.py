@@ -272,7 +272,7 @@ class CheckoutView(LoginRequiredMixin, View):
             email = EmailMessage(
                 email_subject,
                 email_body,
-                'admin@jakartaurologymedicalupdate.id',
+                'admin@jakartaurologymedicalupdate.com',
                 [request.user.email],
             )
             email.content_subtype = 'html'
@@ -483,7 +483,7 @@ def confirm_order_view(request, order_id):
     email = EmailMessage(
         email_subject,
         email_body,
-        'admin@jakartaurologymedicalupdate.id',
+        'admin@jakartaurologymedicalupdate.com',
         [order.user.email],
     )
     email.content_subtype = 'html'
