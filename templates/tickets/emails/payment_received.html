@@ -3,19 +3,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order Confirmation for {{ user.username }}</title>
+    <title>Konfirmasi Pesanan untuk {{ user.username }}</title>
 </head>
 <body>
-    <img src="{{ image_url }}" alt="Header Image" style="width: 100%; max-width: 600px;">
-    <h1>Thank you for your order, {{ user.first_name }} {{ request.user.last_name }}!</h1>
-    <p>Your order has been received and is being processed. Here are the details:</p>
-    <p>Order ID: {{ order.id }}</p>
-    <p>Total: {{ total|idr_format }}</p>
-    <h3>Order Summary</h3>
+    <img src="{{ image_url }}" alt="Gambar Header" style="width: 100%; max-width: 600px;">
+    <h1>Terima kasih atas pesanan Anda, {{ user.nama_lengkap }}!</h1>
+    <p>Pesanan Anda telah diterima dan sedang diproses. Berikut adalah detailnya:</p>
+    <p><strong>ID Pesanan:</strong> {{ order.id }}</p>
+    <p><strong>Total:</strong> {{ total|idr_format }}</p>
+    <h3>Ringkasan Pesanan</h3>
     <ul>
         {% for item in cart.cartitem_set.all %}
-        <li>{{ item.seminar.title }} - Quantity: {{ item.quantity }}</li>
+        <li>{{ item.ticket_category.seminar.title }} - {{ item.ticket_category.name }} - Jumlah: {{ item.quantity }}</li>
         {% endfor %}
     </ul>
+    <p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.</p>
+    <p>Salam hangat,</p>
+    <p>Panitia Jakarta Urology Medical Update</p>
 </body>
 </html>

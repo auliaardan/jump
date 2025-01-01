@@ -24,6 +24,7 @@ from .forms import UserRegisterForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode
 
+
 class ScicomView(ListView):
     model = scicom_rules
     template_name = 'scicom.html'
@@ -57,6 +58,7 @@ class ScicomView(ListView):
         context['has_previous'] = page_obj.has_previous()
         context['search_query'] = search_query
         return context
+
 
 class WorkshopView(ListView):
     model = workshops_page
@@ -120,8 +122,10 @@ class SeminarsView(ListView):
         context['search_query'] = search_query
         return context
 
+
 def coming_soon_view(request):
     return render(request, 'coming_soon.html')
+
 
 class baseView(ListView):
     model = landing_page
@@ -193,6 +197,7 @@ class about_us_view(ListView):
 
 def order_confirmed(request):
     return render(request, 'tickets/order_confirmed.html')
+
 
 def register(request):
     if request.method == 'POST':
@@ -267,6 +272,7 @@ class CheckoutView(LoginRequiredMixin, View):
             email_body = render_to_string('tickets/emails/payment_received.html', {
                 'user': request.user,
                 'order': order,
+                'image_url': True,
                 'total': int(total),
             })
             email = EmailMessage(
@@ -316,6 +322,7 @@ def apply_discount(request):
             return JsonResponse({'success': False, 'message': 'Invalid discount code.'})
     return JsonResponse({'success': False, 'message': 'Invalid request.'})
 
+
 @staff_member_required
 def admin_dashboard(request):
     orders = Order.objects.all().order_by('-created_at')
@@ -341,6 +348,7 @@ def admin_dashboard(request):
         order.aggregated_items = list(items_dict.values())
 
     return render(request, 'tickets/admin_dashboard.html', {'orders': orders, 'seminars': seminars})
+
 
 @login_required
 def profile_view(request):
@@ -377,6 +385,7 @@ def order_history(request):
         order.aggregated_items = list(items_dict.values())
 
     return render(request, 'tickets/order_history.html', {'orders': orders})
+
 
 class SeminarDetailView(DetailView):
     model = Seminar
@@ -478,8 +487,11 @@ def confirm_order_view(request, order_id):
     order.transaction_id = request.POST.get('transaction_id')
     order.save()
 
-    email_subject = 'Order Confirmation'
-    email_body = render_to_string('tickets/emails/order_confirmed.html', {'user': order.user})
+    email_subject = 'Konfirmasi Pesanan Anda'
+    email_body = render_to_string('tickets/emails/order_confirmed.html', {
+        'user': order.user,
+        'image_url': 'path/to/your/image.jpg',  # Ensure this is set correctly
+    })
     email = EmailMessage(
         email_subject,
         email_body,
@@ -490,10 +502,8 @@ def confirm_order_view(request, order_id):
 
     try:
         email.send()
-        print("Email Sent")
     except Exception as e:
-        print(f"Error sending email: {e}")
-
+        messages.error(request, f"Failed to send email: {e}")
     return redirect('admin_dashboard')
 
 
@@ -540,7 +550,6 @@ def export_orders_view(request):
 
         payment_proof = PaymentProof.objects.filter(order=order).first()
         price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
-
 
         user = order.user
         full_name = user.nama_lengkap

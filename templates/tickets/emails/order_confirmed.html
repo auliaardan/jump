@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order Confirmed</title>
+    <title>Konfirmasi Pesanan untuk {{ user.username }}</title>
 </head>
 <body>
-    <h1>Order Confirmed</h1>
-    <p>Dear {{ user.username }},</p>
-    <p>Your order has been confirmed. Thank you for your purchase!</p>
+    <img src="{{ image_url }}" alt="Gambar Header" style="width: 100%; max-width: 600px;">
+    <h1>Pesanan Anda Telah Dikonfirmasi, {{ user.first_name }} {{ user.last_name }}!</h1>
+    <p>Pesanan Anda telah dikonfirmasi. Terima kasih atas pembelian Anda!</p>
+    <p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.</p>
+    <p>Salam hangat,</p>
+    <p>Tim Jakarta Urology Medical Update</p>
 </body>
+</html>
 </html>
