@@ -1,11 +1,12 @@
 import json
-from collections import defaultdict
+
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
+from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
@@ -15,14 +16,12 @@ from django.views import View
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
-from django.db.models.signals import post_delete
-from .models import release_seats_on_delete, TicketCategory, OrderItem
-from django.db.models import Sum
 
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode
+from .models import TicketCategory, OrderItem
 
 
 class ScicomView(ListView):
@@ -164,20 +163,25 @@ class baseView(ListView):
         context['all_events_over'] = not next_seminar
 
         landing = landing_page.objects.last()
-        sponsors = landing.sponsor.all()
+        if landing:
+            sponsors = landing.sponsor.all()
+            platinum_sponsors = sponsors.filter(category='Large')
+            gold_sponsors = sponsors.filter(category='Medium')
+            silver_sponsors = sponsors.filter(category='Small')
+            platinum_sponsors_with_banners = platinum_sponsors.filter(banner__isnull=False)
 
-        platinum_sponsors = sponsors.filter(category='Large')
-        gold_sponsors = sponsors.filter(category='Medium')
-        silver_sponsors = sponsors.filter(category='Small'
-                                          )
-        # Filter platinum sponsors with banners
-        platinum_sponsors_with_banners = platinum_sponsors.filter(banner__isnull=False)
+            context['sponsors'] = sponsors
+            context['platinum_sponsors'] = platinum_sponsors
+            context['platinum_sponsors_with_banners'] = platinum_sponsors_with_banners
+            context['gold_sponsors'] = gold_sponsors
+            context['silver_sponsors'] = silver_sponsors
+        else:
+            context['sponsors'] = None
+            context['platinum_sponsors'] = None
+            context['platinum_sponsors_with_banners'] = None
+            context['gold_sponsors'] = None
+            context['silver_sponsors'] = None
 
-        context['sponsors'] = sponsors
-        context['platinum_sponsors'] = platinum_sponsors
-        context['platinum_sponsors_with_banners'] = platinum_sponsors_with_banners
-        context['gold_sponsors'] = gold_sponsors
-        context['silver_sponsors'] = silver_sponsors
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()
