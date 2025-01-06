@@ -31,7 +31,7 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.165', ' jakartaurologymedicalupdate.com',
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.124', 'jump2025.com','jakartaurologymedicalupdate.com',
                  'jakartaurologymedicalupdate.id']
 
 # Application definition
@@ -164,7 +164,7 @@ LOGOUT_REDIRECT_URL = "seminar_list"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = "admin@jakartaurologymedicalupdate.com"
+DEFAULT_FROM_EMAIL = "admin@jump2025"
 EMAIL_HOST = env.str('EMAIL_HOST')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
