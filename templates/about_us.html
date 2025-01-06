@@ -47,20 +47,11 @@
                             <img src="{{ about_us.image_section_two_1.url }}"
                                  alt="Jakarta Urology Medical Update seminar">
                         </div>
-                    {% else %}
-                        <!-- Fallback image if image_section_two_1 is not provided -->
-                        <div class="image-item large">
-                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Seminar Image">
-                        </div>
                     {% endif %}
 
                     {% if about_us.image_section_two_2 %}
                         <div class="image-item medium">
                             <img src="{{ about_us.image_section_two_2.url }}" alt="JUMP 2025 Workshop">
-                        </div>
-                    {% else %}
-                        <div class="image-item medium">
-                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Workshop Image">
                         </div>
                     {% endif %}
 
@@ -68,29 +59,17 @@
                         <div class="image-item small">
                             <img src="{{ about_us.image_section_two_3.url }}" alt="Urology Conference">
                         </div>
-                    {% else %}
-                        <div class="image-item small">
-                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Conference Image">
-                        </div>
                     {% endif %}
 
                     {% if about_us.image_section_two_4 %}
                         <div class="image-item medium">
                             <img src="{{ about_us.image_section_two_4.url }}" alt="Medical Professionals">
                         </div>
-                    {% else %}
-                        <div class="image-item medium">
-                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Professional Image">
-                        </div>
                     {% endif %}
 
                     {% if about_us.image_section_two_5 %}
                         <div class="image-item small">
                             <img src="{{ about_us.image_section_two_5.url }}" alt="Seminar Audience">
-                        </div>
-                    {% else %}
-                        <div class="image-item small">
-                            <img src="{% static 'images/default_image.jpg' %}" alt="Default Audience Image">
                         </div>
                     {% endif %}
                 </div>
