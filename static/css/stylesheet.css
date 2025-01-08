@@ -540,7 +540,7 @@ a {
 }
 
 /* Limit the height of the ads section images */
-#ads-section img {
+#partner-section img {
     width: 100%;
     height: auto;
     object-fit: cover;
@@ -548,7 +548,7 @@ a {
 }
 
 /* Ensure the close button is above other elements */
-#ads-section .btn-close {
+#partner-section .btn-close {
     z-index: 10;
 }
 

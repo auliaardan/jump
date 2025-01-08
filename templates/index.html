@@ -3,10 +3,10 @@
 {% block title %}Jump 2025{% endblock title %}
 
 {% block content %}
-    <!-- Ads Section -->
+    <!-- Partner Section -->
     {% if platinum_sponsors_with_banners %}
-        <div id="ads-section" class="position-relative">
-            <div id="ads-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div id="partner-section" class="position-relative">
+            <div id="partner-carousel" class="carousel slide" data-bs-ride="carousel">
                 <!-- Close Button -->
                 <button type="button"
                         class="btn-close bg-body rounded position-absolute top-0 end-0 translate-middle-x m-2"
@@ -25,12 +25,12 @@
                 </div>
                 {% if platinum_sponsors_with_banners|length > 1 %}
                     <!-- Controls only if more than one banner -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#ads-carousel"
+                    <button class="carousel-control-prev" type="button" data-bs-target="#partner-carousel"
                             data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#ads-carousel"
+                    <button class="carousel-control-next" type="button" data-bs-target="#partner-carousel"
                             data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
@@ -39,7 +39,7 @@
             </div>
         </div>
     {% endif %}
-    <!-- End of Ads Section -->
+    <!-- End of Partner Section -->
     <!-- Hero Section -->
     <div class="hero-section">
         <div class="container">
@@ -380,7 +380,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const adsSection = document.getElementById('ads-section');
+            const adsSection = document.getElementById('partner-section');
             const closeButton = adsSection.querySelector('.btn-close');
 
             closeButton.addEventListener('click', function () {
