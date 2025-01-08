@@ -217,7 +217,6 @@ class landing_page(models.Model):
         super().save(*args, **kwargs)
 
         image_fields = [
-            self.image_section_one,
             self.image_section_two_left,
             self.image_section_two_right,
             self.image_section_three_left,
