@@ -31,7 +31,8 @@ SECRET_KEY = env.str("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.124', 'jump2025.com', 'jakartaurologymedicalupdate.com',
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.124', 'wwww.jump2025.com', 'jump2025.com',
+                 'jakartaurologymedicalupdate.com',
                  'jakartaurologymedicalupdate.id']
 
 # Application definition
