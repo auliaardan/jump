@@ -20,7 +20,7 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage
 from .models import TicketCategory, OrderItem
 
 
@@ -28,6 +28,7 @@ class ScicomView(ListView):
     model = scicom_rules
     template_name = 'scicom.html'
     context_object_name = 'scicom_rules'
+
 
     def get_queryset(self):
         return scicom_rules.objects.all()
@@ -49,7 +50,9 @@ class ScicomView(ListView):
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
 
         qrcode_obj = qrcode.objects.last()
+        images = ImageForPage.objects.filter(category=ImageForPage.SCICOM)
 
+        context['images'] = images
         context['qrcode'] = qrcode_obj
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
@@ -81,7 +84,9 @@ class WorkshopView(ListView):
         page_obj = paginator.get_page(page_number)
 
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
+        images = ImageForPage.objects.filter(category=ImageForPage.WORKSHOP)
 
+        context['images'] = images
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()
@@ -113,7 +118,9 @@ class SeminarsView(ListView):
 
         # Calculate the number of placeholders needed to maintain the layout
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
+        images = ImageForPage.objects.filter(category=ImageForPage.SEMINAR)
 
+        context['images'] = images
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()

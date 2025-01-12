@@ -21,30 +21,12 @@
             <div class="row">
                 <div id="carouselExampleRide" class="carousel slide" data-bs-ride="true">
                     <div class="carousel-inner">
-                        {% if workshops.image_section_two_top_left %}
-                            <div class="carousel-item active">
-                                <img src="{{ workshops.image_section_two_top_left.url }}" class="d-block carousel-custom-width"
-                                     alt="A picture of past Workshop">
+                        {% for image in images %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" class="d-block carousel-custom-width"
+                                     alt="A picture of past Workshops">
                             </div>
-                        {% endif %}
-                        {% if workshops.image_section_two_top_right %}
-                            <div class="carousel-item">
-                                <img src="{{ workshops.image_section_two_top_right.url }}" class="d-block carousel-custom-width"
-                                     alt="A picture of past Workshop">
-                            </div>
-                        {% endif %}
-                        {% if workshops.image_section_two_bot_left %}
-                            <div class="carousel-item">
-                                <img src="{{ workshops.image_section_two_bot_left.url }}" class="d-block carousel-custom-width"
-                                     alt="A picture of past Workshop">
-                            </div>
-                        {% endif %}
-                        {% if workshops.image_section_two_bot_right %}
-                            <div class="carousel-item">
-                                <img src="{{ workshops.image_section_two_bot_right.url }}" class="d-block carousel-custom-width"
-                                     alt="A picture of past Workshop">
-                            </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleRide"
                             data-bs-slide="prev">

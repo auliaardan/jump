@@ -8,33 +8,26 @@ import os
 
 from jump_project.settings import AUTH_USER_MODEL as User
 
-
-class scicom_rules(models.Model):
-    rule_name = models.TextField(blank=False, default="Sample Description")
-    rule_description = models.TextField(blank=False, default="Sample Description")
-    pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
-    image_section_two_top_left = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
-    image_section_two_top_right = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
-    image_section_two_bot_left = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
-    image_section_two_bot_right = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
+class ImageForPage(models.Model):
+    WORKSHOP = 'Workshop'
+    SEMINAR = 'Seminar'
+    SCICOM = 'Scicom'
+    CATEGORY_CHOICES = [
+        (WORKSHOP, 'Workshop'),
+        (SEMINAR, 'Seminar'),
+        (SCICOM, 'Scicom'),
+    ]
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, default=SEMINAR)
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
 
     def __str__(self):
-        return f"{self.rule_name}"
-
-    def get_description_lines(self):
-        if self.rule_description:
-            return self.rule_description.splitlines()
-        else:
-            return []
+        return f"{self.image}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
         image_fields = [
-            self.image_section_two_top_left,
-            self.image_section_two_top_right,
-            self.image_section_two_bot_left,
-            self.image_section_two_bot_right,
+            self.image,
         ]
 
         for image_field in image_fields:
@@ -48,6 +41,21 @@ class scicom_rules(models.Model):
             img = img.convert('RGB')
 
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
+
+class scicom_rules(models.Model):
+    rule_name = models.TextField(blank=False, default="Sample Description")
+    rule_description = models.TextField(blank=False, default="Sample Description")
+    pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
+
+
+    def __str__(self):
+        return f"{self.rule_name}"
+
+    def get_description_lines(self):
+        if self.rule_description:
+            return self.rule_description.splitlines()
+        else:
+            return []
 
 
 @receiver(post_delete, sender=scicom_rules)
@@ -81,63 +89,11 @@ class PaymentMethod(models.Model):
 class workshops_page(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
-    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        image_fields = [
-            self.image_section_two_top_left,
-            self.image_section_two_top_right,
-            self.image_section_two_bot_left,
-            self.image_section_two_bot_right,
-        ]
-
-        for image_field in image_fields:
-            if image_field:
-                self.compress_image(image_field)
-
-    def compress_image(self, image_field):
-        img = Image.open(image_field.path)
-
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-
-        img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
 class seminars_page(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
-    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        image_fields = [
-            self.image_section_two_top_left,
-            self.image_section_two_top_right,
-            self.image_section_two_bot_left,
-            self.image_section_two_bot_right,
-        ]
-
-        for image_field in image_fields:
-            if image_field:
-                self.compress_image(image_field)
-
-    def compress_image(self, image_field):
-        img = Image.open(image_field.path)
-
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-
-        img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
 class WelcomingSpeech(models.Model):
