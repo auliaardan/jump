@@ -594,6 +594,10 @@ a {
     .welcome-container {
         margin: 0 15em;
     }
+
+    .carousel-custom-width {
+        max-width: 70%; /* Adjust as needed */
+    }
 }
 
 
@@ -605,6 +609,7 @@ a {
     .welcome-container {
         margin: 0 15em;
     }
+
 }
 
 @media only screen and (max-width: 746px) {
@@ -623,6 +628,10 @@ a {
 }
 
 @media only screen and (max-width: 600px) {
+    .carousel-custom-width {
+        max-width: 100%; /* Adjust as needed */
+    }
+
     .pxn-5 {
         padding-left: 2em;
         padding-right: 2em;
