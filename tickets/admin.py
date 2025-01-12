@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
     WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech, TicketCategory, scicom_rules, qrcode, \
-    Sponsor
+    Sponsor, ImageForPage
 
 admin.site.register(TicketCategory)
 admin.site.register(scicom_rules)
@@ -11,6 +11,7 @@ admin.site.register(qrcode)
 admin.site.register(PaymentProof)
 admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
+admin.site.register(ImageForPage)
 
 
 class TicketCategoryInline(admin.TabularInline):
