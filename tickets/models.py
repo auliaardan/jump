@@ -13,6 +13,10 @@ class scicom_rules(models.Model):
     rule_name = models.TextField(blank=False, default="Sample Description")
     rule_description = models.TextField(blank=False, default="Sample Description")
     pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
+    image_section_two_top_left = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
+    image_section_two_top_right = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
+    image_section_two_bot_left = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
+    image_section_two_bot_right = models.ImageField(upload_to='scicom_page_images/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.rule_name}"
@@ -22,6 +26,28 @@ class scicom_rules(models.Model):
             return self.rule_description.splitlines()
         else:
             return []
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        image_fields = [
+            self.image_section_two_top_left,
+            self.image_section_two_top_right,
+            self.image_section_two_bot_left,
+            self.image_section_two_bot_right,
+        ]
+
+        for image_field in image_fields:
+            if image_field:
+                self.compress_image(image_field)
+
+    def compress_image(self, image_field):
+        img = Image.open(image_field.path)
+
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
 
 @receiver(post_delete, sender=scicom_rules)

@@ -75,19 +75,44 @@
         </div>
         <div class="container margin-auto animate-on-scroll">
             <div class="row">
-                <img src="{{ seminars.image_section_two_top_left.url }}"
-                     class="col-lg-5 img-about-us rounded mt-3 mx-3"
-                     alt="A picture of past Seminars">
-                <img src="{{ seminars.image_section_two_top_right.url }}" class="col-lg img-about-us rounded  mt-3"
-                     alt="A picture of past Seminars">
-            </div>
-            <div class="row">
-                <img src="{{ seminars.image_section_two_bot_left.url }}"
-                     class="col-lg img-about-us rounded mt-3 mx-3"
-                     alt="A picture of past Seminars">
-                <img src="{{ seminars.image_section_two_bot_right.url }}"
-                     class="col-lg-5 img-about-us rounded  mt-3"
-                     alt="A picture of past Seminars">
+                <div id="carouselExampleRide" class="carousel slide" data-bs-ride="true">
+                    <div class="carousel-inner">
+                        {% if scicom_rules.image_section_two_top_left %}
+                            <div class="carousel-item active">
+                                <img src="{{ scicom_rules.image_section_two_top_left.url }}" class="d-block w-100"
+                                     alt="A picture of past Scientific Competitions">
+                            </div>
+                        {% endif %}
+                        {% if scicom_rules.image_section_two_top_right %}
+                            <div class="carousel-item">
+                                <img src="{{ scicom_rules.image_section_two_top_right.url }}" class="d-block w-100"
+                                     alt="A picture of past Scientific Competitions">
+                            </div>
+                        {% endif %}
+                        {% if scicom_rules.image_section_two_bot_left %}
+                            <div class="carousel-item">
+                                <img src="{{ scicom_rules.image_section_two_bot_left.url }}" class="d-block w-100"
+                                     alt="A picture of past Scientific Competitions">
+                            </div>
+                        {% endif %}
+                        {% if scicom_rules.image_section_two_bot_right %}
+                            <div class="carousel-item">
+                                <img src="{{ scicom_rules.image_section_two_bot_right.url }}" class="d-block w-100"
+                                     alt="A picture of past Scientific Competitions">
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleRide"
+                            data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleRide"
+                            data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
