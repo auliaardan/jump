@@ -81,10 +81,10 @@ class PaymentMethod(models.Model):
 class workshops_page(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
-    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', )
+    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -112,10 +112,10 @@ class workshops_page(models.Model):
 class seminars_page(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
-    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', )
-    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', )
+    image_section_two_top_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_top_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_bot_left = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
+    image_section_two_bot_right = models.ImageField(upload_to='seminars_page_images/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
