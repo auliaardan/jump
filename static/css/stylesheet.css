@@ -1,8 +1,14 @@
 /* Carousel for images of seminar/workshops/scicom */
 .carousel-custom-width {
     width: auto; /* Maintain aspect ratio */
-    max-width: 50%; /* Adjust as needed */
+    max-width: 60%; /* Adjust as needed */
     margin: 0 auto; /* Center the image horizontally */
+}
+
+#carouselExampleRide .carousel-control-prev-icon,
+#carouselExampleRide .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
 }
 
 /* Welcoming Speech Carousel Styles */
@@ -122,6 +128,9 @@
 }
 
 /*THIS IS RANDOM */
+.footer-gradient{
+    background: linear-gradient(135deg, #040001, #360f3c);
+}
 
 .hero-section {
     background: linear-gradient(135deg, #040001, #360f3c);
