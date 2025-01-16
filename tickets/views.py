@@ -282,8 +282,8 @@ class CheckoutView(LoginRequiredMixin, View):
             email_subject = 'Your Order Confirmation'
             email_body = render_to_string('tickets/emails/payment_received.html', {
                 'user': request.user,
+                'cart': cart,
                 'order': order,
-                'image_url': True,
                 'total': int(total),
             })
             email = EmailMessage(
@@ -501,7 +501,6 @@ def confirm_order_view(request, order_id):
     email_subject = 'Konfirmasi Pesanan Anda'
     email_body = render_to_string('tickets/emails/order_confirmed.html', {
         'user': order.user,
-        'image_url': 'path/to/your/image.jpg',  # Ensure this is set correctly
     })
     email = EmailMessage(
         email_subject,
