@@ -3,43 +3,6 @@
 {% block title %}Jump 2025{% endblock title %}
 
 {% block content %}
-    <!-- Partner Section -->
-    {% if platinum_sponsors_with_banners %}
-        <div id="partner-section" class="position-relative">
-            <div id="partner-carousel" class="carousel slide" data-bs-ride="carousel">
-                <!-- Close Button -->
-                <button type="button"
-                        class="btn-close bg-body rounded position-absolute top-0 end-0 translate-middle-x m-2"
-                        aria-label="Close" style="z-index: 10;"></button>
-                <div class="carousel-inner">
-                    {% for sponsor in platinum_sponsors_with_banners %}
-                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            {% if sponsor.banner %}
-                                <img src="{{ sponsor.banner.url }}" class="d-block w-100" alt="{{ sponsor.name }}"
-                                     style="max-height: 300px; object-fit: cover;">
-                            {% else %}
-                                <p>Image not Found</p>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-                {% if platinum_sponsors_with_banners|length > 1 %}
-                    <!-- Controls only if more than one banner -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#partner-carousel"
-                            data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#partner-carousel"
-                            data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-    {% endif %}
-    <!-- End of Partner Section -->
     <!-- Hero Section -->
     <div class="hero-section">
         <div class="container">
@@ -97,7 +60,7 @@
                     {% for speech in landing.welcoming.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             <div class="row justify-content-center">
-                                <div class="col-md-8">
+                                <div class="col-lg-9">
                                     <h3 class="text-center fw-bold">{{ speech.title }}</h3>
                                     <div class="card bg-white shadow rounded-4 mt-4">
                                         <div class="card-body p-5">
@@ -202,136 +165,103 @@
     <!-- End of Section Seminar and WS Card -->
     {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
     <!-- Start of Timeline Section -->
-    <div class="container py-6" id="timeline-section">
-        <h2 class="text-center mb-5">Event Timeline</h2>
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <div class="timeline-container">
-                    {% for seminar in seminars_all %}
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-primary">
-                                <i class="bi {% if 'Workshop' in seminar.title %}bi-tools{% else %}bi-mic-fill{% endif %} text-white"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h3>{{ seminar.title }}</h3>
-                                <p class="text-muted">
-                                    <i class="bi bi-calendar-event me-2"></i>{{ seminar.date|date:"d-m-Y" }}
-                                    <i class="bi bi-clock ms-3 me-2"></i>{{ seminar.date|date:"H:i" }}
-                                </p>
-                                <p><i class="bi bi-geo-alt-fill me-2"></i>{{ seminar.location }}</p>
-                                <a href="{% url 'seminar_detail' seminar.id %}" class="btn btn-outline-primary btn-sm">Learn
-                                    More</a>
-                            </div>
-                        </div>
-                    {% endfor %}
+    <!-- Outer section with gradient background -->
+<div class="container py-6" id="timeline-section">
+  <h2 class="text-center mb-5">Event Timeline</h2>
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+
+      <!-- OUTER BOX (gradient background),
+           no max-height limit, can grow as tall as needed -->
+      <div
+        class="timeline-container"
+      >
+
+        <!-- INNER BOX (optionally scrollable). If you don't want vertical
+             scrolling at all, remove 'height: 600px;' and 'overflow-y: auto'. -->
+        <div
+          style="
+            height: 600px; /* remove this if you want unlimited height */
+            overflow-y: auto; /* remove if no scrolling is desired */
+          "
+        >
+          {% for seminar in seminars_all %}
+            <!-- Single Event Card -->
+            <div class="card mb-4 border-0 shadow-sm">
+              <div class="row g-0 align-items-center">
+
+                <!-- LEFT: Icon & Title (8/12 on md+) -->
+                <div class="col-12 col-md-8 p-3 d-flex align-items-center">
+                  <!-- Icon Circle -->
+                  <div
+                    class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style="width: 60px; height: 60px;"
+                  >
+                    <i class="bi
+                       {% if 'Workshop' in seminar.title %}
+                           bi-tools
+                       {% else %}
+                           bi-mic-fill
+                       {% endif %}
+                       fs-3 text-white"
+                    ></i>
+                  </div>
+                  <!-- Title & Subtitle -->
+                  <div>
+                    <h5 class="mb-1 text-wrap">
+                      {{ seminar.title }}
+                    </h5>
+                    {% if seminar.for_specialty %}
+                      <p class="mb-0 text-muted">
+                        for {{ seminar.for_specialty }}
+                      </p>
+                    {% endif %}
+                  </div>
                 </div>
-            </div>
-        </div>
+
+                <!-- MIDDLE: Vertical Divider (on md+ screens only) -->
+                <div class="col-md-1 d-none d-md-flex justify-content-center">
+                  <div style="
+                    width: 1px;
+                    background: #ddd;
+                    height: 60px;
+                    margin: auto;
+                  "></div>
+                </div>
+
+                <!-- RIGHT: Location, date/time, button (3/12 on md+) -->
+                <div class="col-12 col-md-3 p-3">
+                  <p class="mb-2">
+                    <i class="bi bi-geo-alt-fill me-2"></i>
+                    {{ seminar.location }}
+                  </p>
+                  <p class="mb-2">
+                    <i class="bi bi-calendar-event me-2"></i>
+                    {{ seminar.date|date:"l, d F Y" }}
+                  </p>
+                  <p class="mb-3">
+                    <i class="bi bi-clock me-2"></i>
+                    {{ seminar.date|date:"H:i" }}
+                  </p>
+                  <a
+                    href="{% url 'seminar_detail' seminar.id %}"
+                    class="btn btn-outline-primary btn-sm"
+                  >
+                    Learn More
+                  </a>
+                </div>
+              </div> <!-- row -->
+            </div> <!-- card -->
+          {% endfor %}
+
+        </div> <!-- INNER BOX -->
+      </div> <!-- OUTER GRADIENT BOX -->
+
     </div>
+  </div>
+</div>
     <!-- End of Timeline Section -->
-    <div id="sponsor-section" class="bg-light py-6 animate-on-scroll sponsors-section">
-        <div class="container" style="max-width: 75%;">
-            <h2 class="text-center mb-5 fw-bold">Our Sponsors</h2>
 
-            <!-- Video Section -->
-            {% if sponsors %}
-                <div class="container">
-                    <div class="row justify-content-center">
-                        {% for sponsor in sponsors %}
-                            {% if sponsor.youtube_video_id %}
-                                <div class="col-12 col-md-8 mb-5">
-                                    <h4 class="sponsor-name text-center mt-3">{{ sponsor.name }}</h4>
-                                    <div class="ratio ratio-16x9">
-                                        <iframe src="https://www.youtube.com/embed/{{ sponsor.youtube_video_id }}"
-                                                title="YouTube video"
-                                                allowfullscreen>
-                                        </iframe>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <!-- Platinum Sponsors -->
-            {% if platinum_sponsors %}
-                <h3 class="text-center fw-bold">Platinum</h3>
-                <div class="row justify-content-center">
-                    {% for sponsor in platinum_sponsors %}
-                        <div class="col-12 col-md-6 col-lg-4 mb-4 text-center platinum-sponsor">
-                            <div class="sponsor-card p-3 shadow bg-white rounded">
-                                <img src="{{ sponsor.image.url }}" alt="{{ sponsor.name }}"
-                                     class="img-fluid sponsor-logo">
-                                <h4 class="sponsor-name mt-3">{{ sponsor.name }}</h4>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <!-- Gold Sponsors -->
-            {% if gold_sponsors %}
-                <h3 class="text-center mt-5 fw-bold">Gold</h3>
-                <div class="row justify-content-center">
-                    {% for sponsor in gold_sponsors %}
-                        <div class="col-12 col-md-4 col-lg-3 mb-4 text-center gold-sponsor">
-                            <div class="sponsor-card p-3 shadow bg-white rounded">
-                                <img src="{{ sponsor.image.url }}" alt="{{ sponsor.name }}"
-                                     class="img-fluid sponsor-logo">
-                                <!-- Sponsor Name
-                                <h4 class="sponsor-name mt-2">{{ sponsor.name }}</h4>
-                                -->
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <!-- Silver Sponsors -->
-            {% if silver_sponsors %}
-                <h3 class="text-center mt-5 fw-bold">Silver</h3>
-                <div class="row justify-content-center">
-                    {% for sponsor in silver_sponsors %}
-                        <div class="col-6 col-md-4 col-lg-2 mb-4 text-center silver-sponsor">
-                            <div class="sponsor-card p-2 shadow bg-white rounded">
-                                <img src="{{ sponsor.image.url }}" alt="{{ sponsor.name }}"
-                                     class="img-fluid sponsor-logo">
-                                <!-- Uncomment the line below if you want to display the sponsor's name -->
-                                <!-- <h4 class="sponsor-name mt-2">{{ sponsor.name }}</h4> -->
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    <!-- End of Sponsor Section -->
-    <div class="animate-on-scroll py-6 pxn-5 bg-secondary text-white">
-        <div class="row">
-            <div class="col-lg">
-                <h1 style="font-weight: bold">{{ landing.header_section_three }}</h1>
-                <p class="lead mb-4">{{ landing.text_section_three }}</p>
-                <a href="{% url 'about_us' %}" class="btn btn-primary btn-lg px-4 me-md-2" role="button">About Us</a>
-            </div>
-            {% if landing.image_section_three_left %}
-                <img src="{{ landing.image_section_three_left.url }}"
-                     class="img-fluid rounded-4 col-lg mt-r-3"
-                     alt="Jakarta Urology Medical Update Workshop past events documentations"
-                     height="600px" loading="lazy" style="max-height: 400px">
-            {% else %}
-                <p>Image not Found</p>
-            {% endif %}
-            {% if landing.image_section_three_right %}
-                <img src="{{ landing.image_section_three_right.url }}"
-                     class="img-fluid rounded-4 col-lg mt-r-3"
-                     alt="Jakarta Urology Medical Update Workshop past events documentations"
-                     height="600px" loading="lazy" style="max-height: 400px">
-            {% else %}
-                <p>Image not Found</p>
-            {% endif %}
-        </div>
-    </div>
 
     {% if next_seminar %}
         <script>

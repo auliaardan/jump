@@ -20,9 +20,26 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm
 from .forms import UserRegisterForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor
 from .models import TicketCategory, OrderItem
 
+class SponsorsView(ListView):
+    model = Sponsor
+    template_name = 'Sponsors.html'
+    context_object_name = 'sponsors'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sponsors = Sponsor.objects.all()
+        platinum_sponsors = sponsors.filter(category='Large')
+        gold_sponsors = sponsors.filter(category='Medium')
+        silver_sponsors = sponsors.filter(category='Small')
+
+        context['sponsors'] = sponsors
+        context['platinum_sponsors'] = platinum_sponsors
+        context['gold_sponsors'] = gold_sponsors
+        context['silver_sponsors'] = silver_sponsors
+        return context
 
 class ScicomView(ListView):
     model = scicom_rules
@@ -170,24 +187,6 @@ class baseView(ListView):
         context['all_events_over'] = not next_seminar
 
         landing = landing_page.objects.last()
-        if landing:
-            sponsors = landing.sponsor.all()
-            platinum_sponsors = sponsors.filter(category='Large')
-            gold_sponsors = sponsors.filter(category='Medium')
-            silver_sponsors = sponsors.filter(category='Small')
-            platinum_sponsors_with_banners = platinum_sponsors.filter(banner__isnull=False)
-
-            context['sponsors'] = sponsors
-            context['platinum_sponsors'] = platinum_sponsors
-            context['platinum_sponsors_with_banners'] = platinum_sponsors_with_banners
-            context['gold_sponsors'] = gold_sponsors
-            context['silver_sponsors'] = silver_sponsors
-        else:
-            context['sponsors'] = None
-            context['platinum_sponsors'] = None
-            context['platinum_sponsors_with_banners'] = None
-            context['gold_sponsors'] = None
-            context['silver_sponsors'] = None
 
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders

@@ -1,3 +1,8 @@
+nav .navbar-nav li a,
+nav .navbar-text a {
+    color: white !important;
+}
+
 /* Carousel for images of seminar/workshops/scicom */
 .carousel-custom-width {
     width: auto; /* Maintain aspect ratio */
@@ -47,8 +52,6 @@
 }
 
 #welcomeCarousel .card-body {
-    overflow-y: auto;
-    max-height: 500px;
 }
 
 /* End of Speech*/
@@ -63,77 +66,23 @@
 }
 
 .timeline-container {
-    position: relative;
-    padding: 20px 0;
+    background: linear-gradient(135deg, #040001, #360f3c);
+    border-radius: 10px;
+    padding: 3.5rem;
 }
 
-.timeline-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 2px;
-    height: 100%;
-    background: #007bff;
-}
-
-.timeline-item {
-    margin-bottom: 50px;
-    position: relative;
-}
-
-.timeline-icon {
-    position: absolute;
-    left: 50%;
-    width: 40px;
-    height: 40px;
-    margin-left: -20px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 40px;
-    font-size: 18px;
-}
-
-.timeline-content {
-    margin-left: 55%;
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-item:nth-child(even) .timeline-content {
-    margin-left: 0;
-    margin-right: 55%;
-}
-
-@media (max-width: 768px) {
-    .timeline-container::before {
-        left: 40px;
-    }
-
-    .timeline-icon {
-        left: 40px;
-    }
-
-    .timeline-content {
-        margin-left: 70px;
-        margin-right: 0;
-    }
-
-    .timeline-item:nth-child(even) .timeline-content {
-        margin-left: 70px;
-        margin-right: 0;
-    }
-}
 
 /*THIS IS RANDOM */
-.footer-gradient{
+
+.header-gradient{
+        background: linear-gradient(0deg, #040001, #360f3c);
+}
+.footer-gradient {
     background: linear-gradient(135deg, #040001, #360f3c);
 }
 
 .hero-section {
-    background: linear-gradient(135deg, #040001, #360f3c);
+    background: linear-gradient(180deg, #040001, #360f3c);
     color: white;
     padding: 80px 0;
 }
@@ -208,13 +157,13 @@
 
 @keyframes breathing {
     0% {
-        opacity: 1;
+        filter: invert(0%);
     }
     50% {
-        opacity: 0.5;
+        filter: invert(100%);
     }
     100% {
-        opacity: 1;
+        filter: invert(0%);
     }
 }
 
@@ -517,6 +466,21 @@ a {
     margin: 0 25em;
 }
 
+/* Accordion Styles */
+
+.custom-accordion .accordion-button::after {
+    /*
+      By default, Bootstrap uses an SVG background-image.
+      We override it with the same SVG but a white fill (or choose another color).
+      fill='%23fff' = #fff in hex, URL-encoded.
+    */
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    /* Optionally adjust the position/size if desired */
+    background-size: 1rem;
+    background-repeat: no-repeat;
+    margin-left: auto; /* Keeps the arrow on the right side */
+}
+
 .accordion-item .accordion-body {
     word-wrap: break-word;
     text-align: left;
@@ -690,4 +654,14 @@ a {
     .accordion-body iframe {
         height: 400px;
     }
+
+    .timeline-container {
+        padding: 1.5rem;
+    }
+
+
+    #timeline-section .position-relative {
+        height: 180px;
+    }
+
 }

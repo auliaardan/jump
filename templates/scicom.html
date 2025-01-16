@@ -7,13 +7,13 @@
         <div class="container-fluid"> <!-- Changed to container-fluid for full-width -->
             <div class="row justify-content-center">
                 <div class="col-lg-7 text-center"> <!-- Increased column width -->
-                    <h1 class="bold mb-5">JUMP 2025 <br>Scientific Competition Rules</h1>
+                    <h1 class="bold">JUMP 2025 <br>Scientific Competition Rules</h1>
                     {% if scicom_rules %}
-                        <div class="accordion mt-5" id="accordionPanelsStayOpenExample">
+                        <div class="accordion custom-accordion mt-5" id="accordionPanelsStayOpenExample">
                             {% for rule in scicom_rules %}
-                                <div class="accordion-item">
+                                <div class="accordion-item mb-4">
                                     <h2 class="accordion-header" id="panelsStayOpen-heading{{ forloop.counter }}">
-                                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                                        <button class="accordion-button text-white {% if not forloop.first %}collapsed{% endif %} footer-gradient"
                                                 type="button" data-bs-toggle="collapse"
                                                 data-bs-target="#panelsStayOpen-collapse{{ forloop.counter }}"
                                                 aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
@@ -33,11 +33,8 @@
                                                 {% endfor %}
                                             </ul>
                                             {% if rule.pdf_file %}
-                                                <object data="{{ rule.pdf_file.url }}" type="application/pdf"
-                                                        width="100%" height="600px">
-                                                    <p>Your browser does not support viewing PDFs inline. <a
-                                                            href="{{ rule.pdf_file.url }}">Download the PDF</a>.</p>
-                                                </object>
+                                                <a class="btn btn-primary mt-3"
+                                                        href="{{ rule.pdf_file.url }}">Download the guideline as PDF</a>
                                             {% endif %}
                                         </div>
                                     </div>

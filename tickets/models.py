@@ -44,7 +44,7 @@ class ImageForPage(models.Model):
 
 class scicom_rules(models.Model):
     rule_name = models.TextField(blank=False, default="Sample Description")
-    rule_description = models.TextField(blank=False, default="Sample Description")
+    rule_description = models.TextField(blank=True, null=True, default="Sample Description")
     pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
 
 

@@ -45,10 +45,11 @@
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg bg-light sticky-sm-top pxn-5 navbar-shadow sticky-top" style="">
+<nav class="navbar navbar-expand-lg header-gradient sticky-sm-top pxn-5 sticky-top">
     <div class="container-fluid">
         <a href="/" class="navbar-brand d-inline-flex link-body-emphasis text-decoration-none col-lg-3 me-0">
-            <span class="fs-4" style="font-weight: bold">JUMP 2025</span>
+            <!--<span class="fs-4" style="font-weight: bold; color: white !important;">JUMP 2025</span>-->
+            <img src="{% static 'images/logo_bulat_transparan.PNG' %}" alt="Logo" style="height: 40px;"/>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample06"
                 aria-controls="navbarsExample06" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +60,7 @@
 
             <ul class="navbar-nav col-xl-9 justify-content-lg-center">
                 <li><a href="{% url 'seminar_list' %}" class="nav-link px-2">Home</a></li>
-                <li><a href="{% url 'seminar_list' %}#sponsor-section" class="nav-link px-2">Sponsors</a></li>
+                <li><a href="{% url 'sponsors' %}" class="nav-link px-2">Sponsors</a></li>
                 <li><a href="{% url 'about_us' %}" class="nav-link px-2">About Us</a></li>
                 <li><a href="{% url 'seminar_page' %}" class="nav-link px-2">Seminar</a></li>
                 <li><a href="{% url 'workshop_page' %}" class="nav-link px-2">Workshops</a></li>
@@ -67,7 +68,7 @@
             </ul>
             <div class="d-lg-flex col-xl-3 justify-content-lg-end align-items-center">
                 {% if user.is_authenticated %}
-                    <span class="navbar-text">
+                    <span class="navbar-text" >
                        {% if user.is_staff %}
                            <a class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
                               href="{% url 'admin_dashboard' %}">{{ user.username }}</a>
@@ -75,11 +76,23 @@
                            <a class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
                               href="{% url 'order_history' %}">{{ user.username }}</a>
                        {% endif %}
-                        <a class="rounded-circle link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
-                           href="{% url 'cart_detail' %}">
-                            <img id="cart-icon" src="{% static 'images/cart_icon.png' %}" alt="Cart"
-                                 style="width: 24px; height: 24px;">
-                        </a>
+                        <a class="rounded-circle link-dark"
+                       href="{% url 'cart_detail' %}">
+                        <svg id="cart-icon"
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round"
+                             class="feather feather-shopping-cart text-white">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a1 1 0 0
+                                     0 .92.61h9.72a1 1 0 0 0
+                                     .97-.76l1.38-5.52H6.5">
+                            </path>
+                        </svg>
+                    </a>
                     <form id="logout-form" action="{% url 'logout' %}" method="post"
                           style="display: inline; margin-left: 2px">
                             {% csrf_token %}
@@ -87,8 +100,8 @@
                         </form>
                     </span>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2" role="button">Login</a>
-                    <a href="{% url 'signup' %}" class="btn btn-primary" role="button">Sign-up</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-light me-2" role="button">Login</a>
+                    <a href="{% url 'signup' %}" class="btn btn-light" role="button">Sign-up</a>
                 {% endif %}
             </div>
         </div>
