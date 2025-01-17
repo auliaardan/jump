@@ -33,7 +33,7 @@ class CustomUserCreationForm(UserCreationForm):
         }
 
 
-class CustomUserChangeForm(UserChangeForm):
+class CustomUserChangeForm(forms.ModelForm):
     email = forms.EmailField(
         required=True,
         help_text='Sesuai yang digunakan untuk plataran sehat',

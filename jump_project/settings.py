@@ -45,10 +45,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # required by allauth
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     # 3rd Party
     "crispy_forms",
     "crispy_bootstrap5",
     "axes",
+
     # local
     "accounts.apps.AccountsConfig",
     'tickets.apps.TicketsConfig',
@@ -64,7 +71,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
-
+    'allauth.account.middleware.AccountMiddleware',
+    "accounts.middleware.RequireProfileCompleteMiddleware",
 ]
 
 ROOT_URLCONF = 'jump_project.urls'
@@ -124,7 +132,24 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = ['axes.backends.AxesStandaloneBackend',
                            'django.contrib.auth.backends.ModelBackend',
+                           'allauth.account.auth_backends.AuthenticationBackend',
                            ]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE' : [
+            'profile',
+            'email'
+        ],
+        'APP': {
+            'client_id': env.str('CLIENT_ID'),
+            'secret': env.str('CLIENT_SECRET'),
+        },
+        'AUTH_PARAMS': {
+            'access_type':'online',
+        }
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -175,6 +200,8 @@ EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
 
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
+
+SITE_ID = 1
 
 if env.bool("DEBUG", default=False) == False:
     SECURE_CONTENT_TYPE_NOSNIFF = True

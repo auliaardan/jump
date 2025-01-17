@@ -2,6 +2,7 @@
 {% load static %}
 {% block title %}Sign-in{% endblock title %}
 {% load form_filters %}
+{% load socialaccount %}
 
 {% block content %}
     <!-- Banner / Hero Section with background image -->
@@ -88,6 +89,13 @@
                                 style="background-color: #6c757d;"  <!-- a grey color -->
                         >
                         Create account
+                        </a>
+                        <a
+                                href="{% provider_login_url 'google' %}"
+                                class="btn w-100 text-white"
+                                style="background-color: #6c757d;"  <!-- a grey color -->
+                        >
+                        Login with Google
                         </a>
                     </div>
                 </form>
