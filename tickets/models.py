@@ -486,9 +486,25 @@ class SciComSubmission(models.Model):
         (SYSTEMATIC_REVIEW, 'Systematic Review'),
         (META_ANALYSIS, 'Meta Analysis'),
     ]
+    UROLOGIST = 'Urologist'
+    RESIDENT = 'Resident'
+    GENERAL_PRACTITIONER = 'General Practitioner'
+    MEDICAL_STUDENT = 'Medical Student'
+    OCCUPATION_CHOICES = [
+        (UROLOGIST, 'Urologist'),
+        (RESIDENT, 'Resident'),
+        (GENERAL_PRACTITIONER, 'General Practitioner'),
+        (MEDICAL_STUDENT, 'Medical Student'),
+    ]
 
     # We still store "address" if you want that separate from CustomUser
     address = models.TextField(blank=False, null=False, default="Jakarta, Indonesia")
+
+    occupation = models.CharField(
+        max_length=20,
+        choices=OCCUPATION_CHOICES,
+        default=UROLOGIST
+    )
 
     # Link to your CustomUser
     user = models.ForeignKey(
@@ -503,6 +519,8 @@ class SciComSubmission(models.Model):
         choices=SUBMISSION_TYPE_CHOICES,
         default=ABSTRACT
     )
+
+
 
     # For Abstract
     abstract_title = models.CharField(max_length=250, blank=True, null=True)

@@ -13,6 +13,7 @@ class SciComSubmissionForm(forms.ModelForm):
         fields = [
             'submission_type',
             'address',
+            'occupation',
             'abstract_title',
             'paper_type',
             'abstract_authors',

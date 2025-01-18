@@ -24,6 +24,7 @@
                         <th scope="col">ID</th>
                         <th scope="col">Name</th>
                         <th scope="col">Affiliation</th>
+                        <th scope="col">Pekerjaan</th>
                         <th scope="col">Email</th>
                         <th scope="col">Phone</th>
                         <th scope="col">Submission Type</th>
@@ -39,6 +40,7 @@
                             <td>{{ sub.id }}</td>
                             <td>{{ sub.user.nama_lengkap }}</td>
                             <td>{{ sub.affiliation }}</td>
+                            <td>{{ sub.occupation }}</td>
                             <td>{{ sub.email }}</td>
                             <td>{{ sub.phone }}</td>
                             <td>{{ sub.get_submission_type_display }}</td>
