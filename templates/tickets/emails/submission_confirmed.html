@@ -1,0 +1,19 @@
+<!-- payment_received.html -->
+{% load custom_filters %}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Submission Confirmation</title>
+</head>
+<body>
+<img src="https://jump2025.com/Letterhead.png" alt="Gambar Header" style="width: 100%; max-width: 600px;">
+<h1 style="border-bottom: 1.5em">Dear {{ name }},</h1>
+<p>Thank you for your submission to our Scientific Competition.</p>
+<p>Submission type: {{ type }}</p>
+<p>We have successfully received your submission.</p>
+<p style="border-bottom: 1.5em">We will review it and contact you with further information.</p>
+<p>Best regards,</p>
+<p>The SciCom Committee</p>
+</body>
+</html>

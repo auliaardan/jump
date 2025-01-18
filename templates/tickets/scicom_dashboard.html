@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    SciCom Dashboard
+{% endblock title %}
+
+{% block content %}
+    <div class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+                <h1 id="medicalrecord-header" class="h2">Scientific Competition</h1>
+                <div class="justify-content-end">
+                    <a href="{% url 'export_orders' %}" class="btn btn-primary">Export
+                        Orders</a>
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-success">Tickets</a>
+                </div>
+            </div>
+
+            <div class="table-responsive small">
+                <table id="myTable" class="table table-striped table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Affiliation</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Submission Type</th>
+                        <th scope="col">Created At</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Details</th>
+                        <th scope="col">Already Registered?</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for sub in scicom %}
+                        <tr>
+                            <td>{{ sub.id }}</td>
+                            <td>{{ sub.user.nama_lengkap }}</td>
+                            <td>{{ sub.affiliation }}</td>
+                            <td>{{ sub.email }}</td>
+                            <td>{{ sub.phone }}</td>
+                            <td>{{ sub.get_submission_type_display }}</td>
+                            <td>{{ sub.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ sub.address }}</td>
+                            <td>
+                                {% if sub.submission_type == "abstract" %}
+                                    <strong>Title:</strong> {{ sub.abstract_title }}<br>
+                                    <strong>Paper Type:</strong> {{ sub.paper_type }}<br>
+                                    <strong>Authors:</strong> {{ sub.abstract_authors }}<br>
+                                    <strong>Abstract Text:</strong> {{ sub.abstract_text }}<br>
+                                    <strong>Link:</strong>
+                                    {% if sub.link_abstract %}
+                                        <a href="{{ sub.link_abstract }}" target="_blank">{{ sub.link_abstract }}</a>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% elif sub.submission_type == "video" %}
+                                    <strong>Video Title:</strong> {{ sub.video_title }}<br>
+                                    <strong>Authors:</strong> {{ sub.video_authors }}<br>
+                                    <strong>Link:</strong>
+                                    {% if sub.link_video %}
+                                        <a href="{{ sub.link_video }}" target="_blank">{{ sub.link_video }}</a>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% elif sub.submission_type == "flyer" %}
+                                    <strong>Flyer Title:</strong> {{ sub.flyer_title }}<br>
+                                    <strong>Authors:</strong> {{ sub.flyer_authors }}<br>
+                                    <strong>Link:</strong>
+                                    {% if sub.link_flyer %}
+                                        <a href="{{ sub.link_flyer }}" target="_blank">{{ sub.link_flyer }}</a>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sub.already_registered %}
+                                    <span class="text-success">Yes</span>
+                                {% else %}
+                                    <span class="text-danger">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock content %}

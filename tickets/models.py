@@ -4,9 +4,11 @@ from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 import os
 
 from jump_project.settings import AUTH_USER_MODEL as User
+
 
 class ImageForPage(models.Model):
     WORKSHOP = 'Workshop'
@@ -42,11 +44,11 @@ class ImageForPage(models.Model):
 
         img.save(image_field.path, 'JPEG', quality=85, optimize=True)
 
+
 class scicom_rules(models.Model):
     rule_name = models.TextField(blank=False, default="Sample Description")
     rule_description = models.TextField(blank=True, null=True, default="Sample Description")
     pdf_file = models.FileField(upload_to='scicom_pdfs/', blank=True, null=True)
-
 
     def __str__(self):
         return f"{self.rule_name}"
@@ -142,6 +144,7 @@ class Sponsor(models.Model):
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SMALL)
     youtube_video_id = models.CharField(max_length=20, blank=True, null=True,
                                         help_text="YouTube video ID for the sponsor")
+
     def __str__(self):
         return f"{self.name}"
 
@@ -268,6 +271,7 @@ class about_us(models.Model):
 
     whatsapp_numbers = models.ManyToManyField(WhatsAppNumber, blank=True)
     email_contact = models.ManyToManyField(email_contact, blank=True)
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
@@ -456,3 +460,163 @@ class PaymentProof(models.Model):
 
     def __str__(self):
         return f"Proof for {self.order.id}"
+
+
+class SciComSubmission(models.Model):
+    # Submission Types
+    ABSTRACT = 'abstract'
+    VIDEO = 'video'
+    FLYER = 'flyer'
+    SUBMISSION_TYPE_CHOICES = [
+        (ABSTRACT, 'Paper Abstract'),
+        (VIDEO, 'Educative Video'),
+        (FLYER, 'Educative Flyer'),
+    ]
+
+    # Paper Types (only used if submission_type = ABSTRACT)
+    CASE_REPORT = 'Case Report'
+    PRIMARY_STUDY = 'Primary Study'
+    SECONDARY_STUDY = 'Secondary Study'
+    SYSTEMATIC_REVIEW = 'Systematic Review'
+    META_ANALYSIS = 'Meta Analysis'
+    PAPER_TYPE_CHOICES = [
+        (CASE_REPORT, 'Case Report'),
+        (PRIMARY_STUDY, 'Primary Study'),
+        (SECONDARY_STUDY, 'Secondary Study'),
+        (SYSTEMATIC_REVIEW, 'Systematic Review'),
+        (META_ANALYSIS, 'Meta Analysis'),
+    ]
+
+    # We still store "address" if you want that separate from CustomUser
+    address = models.TextField(blank=False, null=False, default="Jakarta, Indonesia")
+
+    # Link to your CustomUser
+    user = models.ForeignKey(
+        User,  # "yourapp.CustomUser" also works
+        on_delete=models.CASCADE,
+        related_name='submissions'
+    )
+
+    # The "type" of this submission (Abstract, Video, or Flyer)
+    submission_type = models.CharField(
+        max_length=10,
+        choices=SUBMISSION_TYPE_CHOICES,
+        default=ABSTRACT
+    )
+
+    # For Abstract
+    abstract_title = models.CharField(max_length=250, blank=True, null=True)
+    paper_type = models.CharField(
+        max_length=50,
+        choices=PAPER_TYPE_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Only valid for Abstract submission"
+    )
+    abstract_authors = models.TextField(
+        blank=True,
+        null=True,
+        help_text="List authors separated by commas",
+
+    )
+    abstract_text = models.TextField(blank=True, null=True)
+    link_abstract = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Link to the full abstract or PDF (Google Drive, etc.)"
+    )
+
+    # For Educative Video
+    video_title = models.CharField(max_length=250, blank=True, null=True)
+    video_authors = models.TextField(
+        blank=True,
+        null=True,
+        help_text="List authors separated by commas"
+    )
+    link_video = models.URLField(blank=True, null=True)
+
+    # For Educative Flyer
+    flyer_title = models.CharField(max_length=250, blank=True, null=True)
+    flyer_authors = models.TextField(
+        blank=True,
+        null=True,
+        help_text="List authors separated by commas"
+    )
+    link_flyer = models.URLField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # --------------------------------
+    # PROPERTIES to pull from user
+    # --------------------------------
+    @property
+    def name(self):
+        """Full name from the CustomUser (nama_lengkap)."""
+        return self.user.nama_lengkap
+
+    @property
+    def affiliation(self):
+        """Institution from the CustomUser."""
+        return self.user.institution
+
+    @property
+    def email(self):
+        """Email from the CustomUser (AbstractUser email field)."""
+        return self.user.email
+
+    @property
+    def phone(self):
+        """Phone from the CustomUser (Nomor_telpon)."""
+        return self.user.Nomor_telpon
+
+    # If you need to check if user "already registered" for a "Seminar"
+    # We'll assume you have an Order model referencing TicketCategory -> Seminar
+    @property
+    def already_registered(self):
+        """
+        Checks if this user has a confirmed order (is_confirmed=True)
+        for a Seminar (category='Seminar').
+        """
+        return Order.objects.filter(
+            user=self.user,
+            is_confirmed=True,
+            orderitem__ticket_category__seminar__category='Seminar'
+        ).exists()
+
+    def __str__(self):
+        # e.g. "abstract by John Doe" or "flyer by Jane"
+        return f"{self.submission_type} by {self.name}"
+
+    def clean(self):
+        """Optional: Validation logic for required fields based on submission_type."""
+        if self.submission_type == self.ABSTRACT:
+            # Enforce required abstract fields
+            required_fields = ['abstract_title', 'paper_type', 'abstract_authors', 'abstract_text']
+            for field_name in required_fields:
+                value = getattr(self, field_name)
+                if not value:
+                    raise ValidationError(f"{field_name.replace('_', ' ').title()} is required for Abstract submissions.")
+
+            # Check only the allowed paper types
+            valid_paper_types = [choice[0] for choice in self.PAPER_TYPE_CHOICES]
+            if self.paper_type and self.paper_type not in valid_paper_types:
+                raise ValidationError("Invalid paper_type provided for Abstract submission.")
+
+        elif self.submission_type == self.VIDEO:
+            required_fields = ['video_title', 'video_authors', 'link_video']
+            for field_name in required_fields:
+                value = getattr(self, field_name)
+                if not value:
+                    raise ValidationError(f"{field_name.replace('_', ' ').title()} is required for Video submissions.")
+
+        elif self.submission_type == self.FLYER:
+            required_fields = ['flyer_title', 'flyer_authors', 'link_flyer']
+            for field_name in required_fields:
+                value = getattr(self, field_name)
+                if not value:
+                    raise ValidationError(f"{field_name.replace('_', ' ').title()} is required for Flyer submissions.")
+
+    def save(self, *args, **kwargs):
+        # run model validation
+        self.clean()
+        super().save(*args, **kwargs)

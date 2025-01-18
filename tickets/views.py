@@ -17,11 +17,40 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
 
-from .forms import PaymentProofForm
-from .forms import UserRegisterForm
+from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission
 from .models import TicketCategory, OrderItem
+
+
+@login_required
+def create_submission(request):
+    if request.method == 'POST':
+        form = SciComSubmissionForm(request.POST)
+        if form.is_valid():
+            new_submission = form.save(commit=False)
+            # Link the user from request
+            new_submission.user = request.user
+            new_submission.save()
+            email_subject = 'Your Submission Confirmation'
+            email_body = render_to_string('tickets/emails/submission_confirmed.html', {
+                'name': new_submission.user.nama_lengkap,
+                'type': new_submission.get_submission_type_display(),
+            })
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                'admin@jump2025.com',
+                [new_submission.user.email],
+            )
+            email.content_subtype = 'html'
+            email.send()
+            return redirect('seminar_list')
+    else:
+        # Suppose we want to default to "abstract"
+        form = SciComSubmissionForm(initial={'submission_type': 'abstract'})
+
+    return render(request, 'tickets/create_submission.html', {'form': form})
 
 
 class SponsorsView(ListView):
@@ -361,16 +390,19 @@ def admin_dashboard(request):
     return render(request, 'tickets/admin_dashboard.html', {'orders': orders, 'seminars': seminars})
 
 
+@staff_member_required
+def scicom_dashboard(request):
+    scicom = SciComSubmission.objects.all()
+    context = {
+        'scicom': scicom
+    }
+    return render(request, 'tickets/scicom_dashboard.html', context)
+
+
 @login_required
 def profile_view(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'profile.html', {'orders': orders})
-
-
-@staff_member_required
-def admin_dashboard_view(request):
-    orders = Order.objects.all().order_by('-created_at')
-    return render(request, 'admin_dashboard.html', {'orders': orders})
 
 
 @login_required
