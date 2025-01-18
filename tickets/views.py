@@ -23,6 +23,7 @@ from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem,
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor
 from .models import TicketCategory, OrderItem
 
+
 class SponsorsView(ListView):
     model = Sponsor
     template_name = 'Sponsors.html'
@@ -41,11 +42,11 @@ class SponsorsView(ListView):
         context['silver_sponsors'] = silver_sponsors
         return context
 
+
 class ScicomView(ListView):
     model = scicom_rules
     template_name = 'scicom.html'
     context_object_name = 'scicom_rules'
-
 
     def get_queryset(self):
         return scicom_rules.objects.all()
@@ -522,18 +523,26 @@ def export_orders_view(request):
     ws = wb.active
     ws.title = "Orders"
 
+    # 1) Add "Email" to your headers:
     headers = [
-        'Username', 'Nama Lengkap', 'NIK', 'Institution', 'No. Telfon',
-        'Order ID', 'Created At', 'Confirmed', 'Confirmation Date',
-        'Seminars', 'Total Price'
+        'Username', 'Email', 'Nama Lengkap', 'NIK', 'Institution',
+        'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
+        'Confirmation Date', 'Seminars', 'Total Price'
     ]
     ws.append(headers)
 
-    for order in Order.objects.all():
-        created_at_naive = order.created_at.replace(tzinfo=None) if order.created_at else None
-        confirmation_date_naive = order.confirmation_date.replace(tzinfo=None) if order.confirmation_date else None
+    # 2) Iterate over *all* orders:
+    all_orders = Order.objects.all()
 
-        # Aggregate order items by seminar and ticket category
+    for order in all_orders:
+        created_at_naive = order.created_at.replace(tzinfo=None) if order.created_at else None
+        confirmation_date_naive = (
+            order.confirmation_date.replace(tzinfo=None)
+            if order.confirmation_date
+            else None
+        )
+
+        # -- Aggregate seminars & tickets, same as before --
         items_dict = {}
         for order_item in order.orderitem_set.all():
             seminar = order_item.ticket_category.seminar
@@ -549,11 +558,13 @@ def export_orders_view(request):
                     'quantity': order_item.quantity,
                 }
 
-        # Create a string representation
+        # Create a single string describing all seminars & categories
         seminars_list = []
         for item in items_dict.values():
             seminars_list.append(
-                f"{item['seminar_title']} ({item['seminar_date']}) - {item['ticket_category_name']} - Quantity: {item['quantity']}"
+                f"{item['seminar_title']} ({item['seminar_date']}) - "
+                f"{item['ticket_category_name']} - "
+                f"Quantity: {item['quantity']}"
             )
         seminars_str = "; ".join(seminars_list)
 
@@ -565,10 +576,12 @@ def export_orders_view(request):
         phone_number = user.Nomor_telpon
         nik = user.nik
         institution = user.institution
+        email = user.email  # <--- retrieve from user model
 
-        # Write the row including the seminars string with quantities
+        # 3) Append data including "Email" to the row:
         ws.append([
             user.username,
+            email,
             full_name,
             nik,
             institution,
@@ -578,14 +591,111 @@ def export_orders_view(request):
             'Yes' if order.is_confirmed else 'No',
             confirmation_date_naive,
             seminars_str,
-            price_paid
+            price_paid,
         ])
-    for row in ws.iter_rows(min_row=2, min_col=11, max_col=11):  # Column 'K' is the 11th column
+
+    # Optional number formatting for the price (the 12th column now)
+    for row in ws.iter_rows(min_row=2, min_col=12, max_col=12):  # 12 = 'L' column if starting at 'A' = 1
         for cell in row:
             cell.number_format = '#,##0'
 
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     response['Content-Disposition'] = 'attachment; filename="order_report.xlsx"'
+    wb.save(response)
+
+    return response
+
+
+@staff_member_required
+def export_orders_for_seminar_view(request, seminar_id):
+    from django.shortcuts import get_object_or_404
+    seminar = get_object_or_404(Seminar, pk=seminar_id)
+
+    # 1) Filter all Orders that have any OrderItem referencing this seminar
+    orders_for_seminar = (
+        Order.objects
+        .filter(orderitem__ticket_category__seminar=seminar)
+        .distinct()
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Orders for {seminar.title}"
+
+    # 2) Same headers (including "Email"):
+    headers = [
+        'Username', 'Email', 'Nama Lengkap', 'NIK', 'Institution',
+        'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
+        'Confirmation Date', 'Seminars', 'Total Price'
+    ]
+    ws.append(headers)
+
+    for order in orders_for_seminar:
+        created_at_naive = (
+            order.created_at.replace(tzinfo=None) if order.created_at else None
+        )
+        confirmation_date_naive = (
+            order.confirmation_date.replace(tzinfo=None)
+            if order.confirmation_date
+            else None
+        )
+
+        # --- same item aggregation logic as before ---
+        items_dict = {}
+        for order_item in order.orderitem_set.all():
+            seminar_item = order_item.ticket_category.seminar
+            ticket_category = order_item.ticket_category
+            key = (seminar_item.id, ticket_category.id)
+            if key in items_dict:
+                items_dict[key]['quantity'] += order_item.quantity
+            else:
+                items_dict[key] = {
+                    'seminar_title': seminar_item.title,
+                    'seminar_date': seminar_item.date.strftime('%Y-%m-%d'),
+                    'ticket_category_name': ticket_category.name,
+                    'quantity': order_item.quantity,
+                }
+
+        seminars_list = []
+        for item in items_dict.values():
+            seminars_list.append(
+                f"{item['seminar_title']} ({item['seminar_date']}) "
+                f"- {item['ticket_category_name']} "
+                f"- Quantity: {item['quantity']}"
+            )
+        seminars_str = "; ".join(seminars_list)
+
+        payment_proof = PaymentProof.objects.filter(order=order).first()
+        price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
+
+        user = order.user
+        ws.append([
+            user.username,
+            user.email,
+            user.nama_lengkap,
+            user.nik,
+            user.institution,
+            user.Nomor_telpon,
+            order.id,
+            created_at_naive,
+            'Yes' if order.is_confirmed else 'No',
+            confirmation_date_naive,
+            seminars_str,
+            price_paid,
+        ])
+
+    # Optional: format the total price column
+    for row in ws.iter_rows(min_row=2, min_col=12, max_col=12):
+        for cell in row:
+            cell.number_format = '#,##0'
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"orders_for_{seminar.title.replace(' ', '_')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
 
     return response

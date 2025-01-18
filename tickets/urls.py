@@ -24,6 +24,8 @@ urlpatterns = [
                   path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
                   path('confirm_order/<int:order_id>/', views.confirm_order_view, name='confirm_order'),
                   path('export_orders/', views.export_orders_view, name='export_orders'),
+                  path('export-orders/seminar/<int:seminar_id>/', views.export_orders_for_seminar_view,
+                       name='export_orders_for_seminar'),
                   path('profile/', views.profile_view, name='profile'),
                   path('order_history/', views.order_history, name='order_history'),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
