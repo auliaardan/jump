@@ -62,7 +62,8 @@
                             <div class="row justify-content-center">
                                 <div class="col-lg-9">
                                     <h3 class="text-center fw-bold">{{ speech.title }}</h3>
-                                    <div class="card bg-white shadow rounded-4 mt-4">
+                                    <div class="card bg-white rounded-4 mt-4"
+                                         style="box-shadow: 0 1em 1em rgb(251, 0, 0) !important">
                                         <div class="card-body p-5">
                                             {% if speech.image %}
                                                 <img class="rounded-circle mx-auto d-block"
@@ -166,100 +167,107 @@
     {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
     <!-- Start of Timeline Section -->
     <!-- Outer section with gradient background -->
-<div class="container py-6" id="timeline-section">
-  <h2 class="text-center mb-5">Event Timeline</h2>
-  <div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
+    <div class="container py-6" id="timeline-section">
+        <h2 class="text-center mb-5">Event Timeline</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
 
-      <!-- OUTER BOX (gradient background),
-           no max-height limit, can grow as tall as needed -->
-      <div
-        class="timeline-container"
-      >
+                <!-- OUTER BOX (gradient background),
+                     no max-height limit, can grow as tall as needed -->
+                <div
+                        class="timeline-container"
+                >
 
-        <!-- INNER BOX (optionally scrollable). If you don't want vertical
-             scrolling at all, remove 'height: 600px;' and 'overflow-y: auto'. -->
-        <div
-          style="
+                    <!-- INNER BOX (optionally scrollable). If you don't want vertical
+                         scrolling at all, remove 'height: 600px;' and 'overflow-y: auto'. -->
+                    <div
+                            style="
             height: 600px; /* remove this if you want unlimited height */
             overflow-y: auto; /* remove if no scrolling is desired */
           "
-        >
-          {% for seminar in seminars_all %}
-            <!-- Single Event Card -->
-            <div class="card mb-4 border-0 shadow-sm">
-              <div class="row g-0 align-items-center">
+                    >
+                        {% for seminar in seminars_all %}
+                            <!-- Single Event Card -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="row g-0 align-items-center">
 
-                <!-- LEFT: Icon & Title (8/12 on md+) -->
-                <div class="col-12 col-md-8 p-3 d-flex align-items-center">
-                  <!-- Icon Circle -->
-                  <div
-                    class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3"
-                    style="width: 60px; height: 60px;"
-                  >
-                    <i class="bi
-                       {% if 'Workshop' in seminar.title %}
-                           bi-tools
-                       {% else %}
-                           bi-mic-fill
-                       {% endif %}
-                       fs-3 text-white"
-                    ></i>
-                  </div>
-                  <!-- Title & Subtitle -->
-                  <div>
-                    <h5 class="mb-1 text-wrap">
-                      {{ seminar.title }}
-                    </h5>
-                    {% if seminar.for_specialty %}
-                      <p class="mb-0 text-muted">
-                        for {{ seminar.for_specialty }}
-                      </p>
-                    {% endif %}
-                  </div>
-                </div>
+                                    <!-- LEFT: Logo & Title (8/12 on md+) -->
+                                    <div class="col-12 col-md-8 p-3 d-flex align-items-center">
 
-                <!-- MIDDLE: Vertical Divider (on md+ screens only) -->
-                <div class="col-md-1 d-none d-md-flex justify-content-center">
-                  <div style="
-                    width: 1px;
-                    background: #ddd;
-                    height: 60px;
-                    margin: auto;
-                  "></div>
-                </div>
+                                        <!-- Logo Circle -->
+                                        <div
+                                                class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                style="
+          width: 60px;
+          height: 60px;
+          overflow: hidden;
+        "
+                                        >
+                                            <!-- Replace the icon with your logo image -->
+                                            <img
+                                                    src="{% static 'images/logo_bulat_transparan.PNG' %}"
+                                                    alt="Logo"
+                                                    style="
+            max-width: 100%;
+            height: auto;
+            object-fit: contain; /* or 'cover' if you want it fully filling the circle */
+          "
+                                            />
+                                        </div>
 
-                <!-- RIGHT: Location, date/time, button (3/12 on md+) -->
-                <div class="col-12 col-md-3 p-3">
-                  <p class="mb-2">
-                    <i class="bi bi-geo-alt-fill me-2"></i>
-                    {{ seminar.location }}
-                  </p>
-                  <p class="mb-2">
-                    <i class="bi bi-calendar-event me-2"></i>
-                    {{ seminar.date|date:"l, d F Y" }}
-                  </p>
-                  <p class="mb-3">
-                    <i class="bi bi-clock me-2"></i>
-                    {{ seminar.date|date:"H:i" }}
-                  </p>
-                  <a
-                    href="{% url 'seminar_detail' seminar.id %}"
-                    class="btn btn-outline-primary btn-sm"
-                  >
-                    Learn More
-                  </a>
-                </div>
-              </div> <!-- row -->
-            </div> <!-- card -->
-          {% endfor %}
+                                        <!-- Title & Subtitle -->
+                                        <div>
+                                            <h5 class="mb-1 text-wrap">
+                                                {{ seminar.title }}
+                                            </h5>
+                                            {% if seminar.for_specialty %}
+                                                <p class="mb-0 text-muted">
+                                                    for {{ seminar.for_specialty }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
 
-        </div> <!-- INNER BOX -->
-      </div> <!-- OUTER GRADIENT BOX -->
+                                    <!-- MIDDLE: Vertical Divider (on md+ screens only) -->
+                                    <div class="col-md-1 d-none d-md-flex justify-content-center">
+                                        <div style="
+        width: 1px;
+        background: #ddd;
+        height: 60px;
+        margin: auto;
+      "></div>
+                                    </div>
 
+                                    <!-- RIGHT: Location, date/time, button (3/12 on md+) -->
+                                    <div class="col-12 col-md-3 p-3">
+                                        <p class="mb-2">
+                                            <i class="bi bi-geo-alt-fill me-2"></i>
+                                            {{ seminar.location }}
+                                        </p>
+                                        <p class="mb-2">
+                                            <i class="bi bi-calendar-event me-2"></i>
+                                            {{ seminar.date|date:"l, d F Y" }}
+                                        </p>
+                                        <p class="mb-3">
+                                            <i class="bi bi-clock me-2"></i>
+                                            {{ seminar.date|date:"H:i" }}
+                                        </p>
+                                        <a href="{% url 'seminar_detail' seminar.id %}"
+                                           class="btn btn-outline-primary btn-sm">
+                                            Learn More
+                                        </a>
+                                    </div>
+                                </div> <!-- row -->
+                            </div> <!-- card -->
+
+                        {% endfor %}
+
+                    </div> <!-- INNER BOX -->
+                </div> <!-- OUTER GRADIENT BOX -->
+
+            </div>
+        </div>
     </div>
-  </div>
-</div>
     <!-- End of Timeline Section -->
 
 
