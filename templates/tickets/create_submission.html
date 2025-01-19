@@ -100,4 +100,16 @@
             }
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('scicomForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function () {
+                // Disable the button to prevent multiple clicks
+                submitBtn.disabled = true;
+            });
+        });
+    </script>
 {% endblock content %}
