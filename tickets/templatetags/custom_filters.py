@@ -25,3 +25,9 @@ def add_class(field, css):
         new_classes = css
     field.field.widget.attrs['class'] = new_classes
     return field
+
+@register.filter
+def endswith(value, suffix):
+    if not value:  # handle None or empty
+        return False
+    return str(value).endswith(suffix)
