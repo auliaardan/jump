@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Sign in{% endblock title %}
+
+{% block content %}
+    <!-- Banner / Hero Section with background image -->
+    <div
+            class="position-relative"
+            style="
+                    /*background: url('http://jump2025.com/Letterhead.png') no-repeat center center/cover;*/
+    background: linear-gradient(180deg, #040001, #360f3c);
+                    height: 400px;
+                    width: 100%;
+                    "
+    >
+    </div>
+
+    <!-- Main Container -->
+    <div class="container py-4" style="margin-top: -80px;">
+        <!-- Card that appears over the banner -->
+        <div
+                class="card mx-auto border-0 shadow"
+                style="max-width: 800px; border-radius: 8px;"
+        >
+            <div class="card-body p-4">
+
+                <h2 class="mb-1">Sign In Via Google</h2>
+                <p class="text-muted mb-4">You are about to sign in using a third-party account from Google.</p>
+
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Continue</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+

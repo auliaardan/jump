@@ -1,102 +1,118 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
+{% load socialaccount %}  {# For 'provider_login_url' #}
+{% load custom_filters %}
 {% block title %}Sign-in{% endblock title %}
-{% load form_filters %}
-{% load socialaccount %}
 
 {% block content %}
-    <!-- Banner / Hero Section with background image -->
-    <div
-            class="position-relative"
-            style="
-                    /*background: url('http://jump2025.com/Letterhead.png') no-repeat center center/cover;*/
-    background: linear-gradient(180deg, #040001, #360f3c);
-                    height: 400px;
-                    width: 100%;
-                    "
-    >
-    </div>
+<!-- Banner / Hero -->
+<div
+    class="position-relative"
+    style="
+        background: linear-gradient(180deg, #040001, #360f3c);
+        height: 400px;
+        width: 100%;
+    "
+>
+</div>
 
-    <!-- Main Container -->
-    <div class="container py-4" style="margin-top: -80px;">
-        <!-- Card that appears over the banner -->
-        <div
-                class="card mx-auto border-0 shadow"
-                style="max-width: 800px; border-radius: 8px;"
-        >
-            <div class="card-body p-4">
+<!-- Main Container -->
+<div class="container py-4" style="margin-top: -80px;">
+  <!-- Card -->
+  <div
+    class="card mx-auto border-0 shadow"
+    style="max-width: 800px; border-radius: 8px;"
+  >
+    <div class="card-body p-4">
+      <h2 class="mb-1">Login</h2>
+      <p class="text-muted mb-4">
+        Please enter your username and password to log in.
+      </p>
 
-                <h2 class="mb-1">Login</h2>
-                <p class="text-muted mb-4">Please enter your username and password to log in.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
 
-                <form method="post" novalidate>
-                    {% csrf_token %}
+        <!-- Non-field errors (e.g., "Invalid login") -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
 
-                    <!-- Non-field errors (e.g., "Invalid login") -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-
-                    <!-- USERNAME -->
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username|add_class:"form-control" }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.username.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- PASSWORD -->
-                    <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password|add_class:"form-control" }}
-                        {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.password.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- LOGIN BUTTON -->
-                    <button
-                            type="submit"
-                            class="btn text-white w-100 py-2 mb-2"
-                            style="background-color: #9f2d45;"  <!-- your maroon-ish color -->
-                    >
-                    Login
-                    </button>
-
-                    <!-- Forgot password / Forgot username -->
-                    <div class="d-flex justify-content-between mb-3">
-                        <a href="{% url 'password_reset' %}" class="text-decoration-none" style="color: #9f2d45;">
-                            Forgot password
-                        </a>
-                    </div>
-
-                    <!-- CREATE ACCOUNT -->
-                    <div class="text-center mt-3">
-                        <p class="mb-2">Or create a new account</p>
-                        <a
-                                href="{% url 'signup' %}"
-                                class="btn w-100 text-white"
-                                style="background-color: #6c757d;"  <!-- a grey color -->
-                        >
-                        Create account
-                        </a>
-                        <a
-                                href="{% provider_login_url 'google' %}"
-                                class="btn w-100 text-white"
-                                style="background-color: #6c757d;"  <!-- a grey color -->
-                        >
-                        Login with Google
-                        </a>
-                    </div>
-                </form>
+        <!-- USERNAME -->
+        <div class="mb-3">
+          <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+          {{ form.username|add_class:"form-control" }}
+          {% if form.username.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.username.errors }}
             </div>
+          {% endif %}
         </div>
+
+        <!-- PASSWORD -->
+        <div class="mb-3">
+          <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+          {{ form.password|add_class:"form-control" }}
+          {% if form.password.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.password.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- LOGIN BUTTON -->
+        <button
+          type="submit"
+          class="btn text-white w-100 py-2 mb-2"
+          style="background-color: #9f2d45;"
+        >
+          Login
+        </button>
+
+        <!-- Forgot Password Link -->
+        <div class="d-flex justify-content-between mb-3">
+          <a href="{% url 'password_reset' %}" class="text-decoration-none" style="color: #9f2d45;">
+            Forgot password
+          </a>
+        </div>
+
+        <!-- CREATE ACCOUNT & GOOGLE LOGIN -->
+        <div class="text-center mt-3">
+
+          <p class="mb-2">Or create a new account</p>
+
+          <!-- Create Account Button -->
+          <a
+            href="{% url 'signup' %}"
+            class="btn w-100 text-white mb-2"
+            style="background-color: #6c757d;"
+          >
+            Create account
+          </a>
+
+          <!-- Login with Google Button -->
+          <a
+            href="{% provider_login_url 'google' %}"
+            class="btn w-100 d-flex align-items-center justify-content-center"
+            style="
+              background-color: #fff;
+              border: 1px solid #ddd;
+              color: #000;
+            "
+          >
+            <img
+              src="{% static 'images/google_logo.svg' %}"
+              alt="Google Icon"
+              style="height: 20px; margin-right: 8px;"
+            />
+            <span>Sign in with Google</span>
+          </a>
+        </div>
+
+      </form>
     </div>
+  </div>
+</div>
 {% endblock content %}

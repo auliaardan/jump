@@ -1,5 +1,5 @@
 import json
-
+import datetime
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -730,4 +730,171 @@ def export_orders_for_seminar_view(request, seminar_id):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
 
+    return response
+
+
+def export_scicom_submissions_excel(request):
+    # Create a new workbook
+    workbook = Workbook()
+
+    # We will create three querysets:
+    abstracts = SciComSubmission.objects.filter(submission_type=SciComSubmission.ABSTRACT).select_related('user')
+    videos   = SciComSubmission.objects.filter(submission_type=SciComSubmission.VIDEO).select_related('user')
+    flyers   = SciComSubmission.objects.filter(submission_type=SciComSubmission.FLYER).select_related('user')
+
+    # ---------------------------------------------------
+    # 1) ABSTRACT Submissions (first sheet)
+    # ---------------------------------------------------
+    abstract_ws = workbook.active  # The first sheet is active by default
+    abstract_ws.title = "Abstract Submissions"
+
+    # Columns we want for abstracts
+    abstract_columns = [
+        "ID",
+        "Name",
+        "Occupation",
+        "Email",
+        "Phone",
+        "Affiliation",
+        "Address",
+        "Already Registered?",
+        "Created At",
+        "Abstract Title",
+        "Paper Type",
+        "Abstract Authors",
+        "Abstract Text",
+        "Link Abstract",
+    ]
+
+    # Write the header row
+    row_num = 1
+    for col_num, column_title in enumerate(abstract_columns, start=1):
+        cell = abstract_ws.cell(row=row_num, column=col_num, value=column_title)
+
+    # Populate data rows for abstracts
+    for submission in abstracts:
+        row_num += 1
+        # Convert booleans or other fields to readable strings
+        registered_str = "Yes" if submission.already_registered else "No"
+        occupation_str = submission.get_occupation_display()
+
+        abstract_ws.cell(row=row_num, column=1,  value=submission.id)
+        abstract_ws.cell(row=row_num, column=2,  value=submission.name)
+        abstract_ws.cell(row=row_num, column=3,  value=occupation_str)
+        abstract_ws.cell(row=row_num, column=4,  value=submission.email)
+        abstract_ws.cell(row=row_num, column=5,  value=submission.phone)
+        abstract_ws.cell(row=row_num, column=6,  value=submission.affiliation)
+        abstract_ws.cell(row=row_num, column=7,  value=submission.address)
+        abstract_ws.cell(row=row_num, column=8,  value=registered_str)
+        # format created_at
+        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        abstract_ws.cell(row=row_num, column=9,  value=created_str)
+
+        abstract_ws.cell(row=row_num, column=10, value=submission.abstract_title)
+        abstract_ws.cell(row=row_num, column=11, value=submission.paper_type)
+        abstract_ws.cell(row=row_num, column=12, value=submission.abstract_authors)
+        abstract_ws.cell(row=row_num, column=13, value=submission.abstract_text)
+        abstract_ws.cell(row=row_num, column=14, value=submission.link_abstract)
+
+    # ---------------------------------------------------
+    # 2) VIDEO Submissions (second sheet)
+    # ---------------------------------------------------
+    video_ws = workbook.create_sheet("Video Submissions")
+
+    # Columns for video
+    video_columns = [
+        "ID",
+        "Name",
+        "Occupation",
+        "Email",
+        "Phone",
+        "Affiliation",
+        "Address",
+        "Already Registered?",
+        "Created At",
+        "Video Title",
+        "Video Authors",
+        "Link Video",
+    ]
+
+    # Header
+    row_num = 1
+    for col_num, column_title in enumerate(video_columns, start=1):
+        cell = video_ws.cell(row=row_num, column=col_num, value=column_title)
+
+    # Populate data for videos
+    for submission in videos:
+        row_num += 1
+        registered_str = "Yes" if submission.already_registered else "No"
+        occupation_str = submission.get_occupation_display()
+        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
+        video_ws.cell(row=row_num, column=1,  value=submission.id)
+        video_ws.cell(row=row_num, column=2,  value=submission.name)
+        video_ws.cell(row=row_num, column=3,  value=occupation_str)
+        video_ws.cell(row=row_num, column=4,  value=submission.email)
+        video_ws.cell(row=row_num, column=5,  value=submission.phone)
+        video_ws.cell(row=row_num, column=6,  value=submission.affiliation)
+        video_ws.cell(row=row_num, column=7,  value=submission.address)
+        video_ws.cell(row=row_num, column=8,  value=registered_str)
+        video_ws.cell(row=row_num, column=9,  value=created_str)
+
+        video_ws.cell(row=row_num, column=10, value=submission.video_title)
+        video_ws.cell(row=row_num, column=11, value=submission.video_authors)
+        video_ws.cell(row=row_num, column=12, value=submission.link_video)
+
+    # ---------------------------------------------------
+    # 3) FLYER Submissions (third sheet)
+    # ---------------------------------------------------
+    flyer_ws = workbook.create_sheet("Flyer Submissions")
+
+    flyer_columns = [
+        "ID",
+        "Name",
+        "Occupation",
+        "Email",
+        "Phone",
+        "Affiliation",
+        "Address",
+        "Already Registered?",
+        "Created At",
+        "Flyer Title",
+        "Flyer Authors",
+        "Link Flyer",
+    ]
+
+    row_num = 1
+    for col_num, column_title in enumerate(flyer_columns, start=1):
+        cell = flyer_ws.cell(row=row_num, column=col_num, value=column_title)
+
+    for submission in flyers:
+        row_num += 1
+        registered_str = "Yes" if submission.already_registered else "No"
+        occupation_str = submission.get_occupation_display()
+        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
+        flyer_ws.cell(row=row_num, column=1,  value=submission.id)
+        flyer_ws.cell(row=row_num, column=2,  value=submission.name)
+        flyer_ws.cell(row=row_num, column=3,  value=occupation_str)
+        flyer_ws.cell(row=row_num, column=4,  value=submission.email)
+        flyer_ws.cell(row=row_num, column=5,  value=submission.phone)
+        flyer_ws.cell(row=row_num, column=6,  value=submission.affiliation)
+        flyer_ws.cell(row=row_num, column=7,  value=submission.address)
+        flyer_ws.cell(row=row_num, column=8,  value=registered_str)
+        flyer_ws.cell(row=row_num, column=9,  value=created_str)
+
+        flyer_ws.cell(row=row_num, column=10, value=submission.flyer_title)
+        flyer_ws.cell(row=row_num, column=11, value=submission.flyer_authors)
+        flyer_ws.cell(row=row_num, column=12, value=submission.link_flyer)
+
+    # ---------------------------------------------------
+    # Generate Response
+    # ---------------------------------------------------
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = "scicom_submissions_multi_" + datetime.datetime.now().strftime("%Y%m%d") + ".xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    workbook.save(response)
     return response

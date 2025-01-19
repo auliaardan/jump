@@ -5,7 +5,7 @@ from django.urls import path
 from . import views
 from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view, SeminarsView, \
     WorkshopView, CheckoutView, apply_discount, cart_item_count, ScicomView, baseView, SponsorsView, create_submission, \
-    scicom_dashboard
+    scicom_dashboard, export_scicom_submissions_excel
 
 urlpatterns = [
                   path('', baseView.as_view(), name='seminar_list'),
@@ -29,6 +29,7 @@ urlpatterns = [
                   path('export_orders/', views.export_orders_view, name='export_orders'),
                   path('export-orders/seminar/<int:seminar_id>/', views.export_orders_for_seminar_view,
                        name='export_orders_for_seminar'),
+                  path('scicom/export/excel/', export_scicom_submissions_excel, name='export_scicom_excel'),
                   path('profile/', views.profile_view, name='profile'),
                   path('order_history/', views.order_history, name='order_history'),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
