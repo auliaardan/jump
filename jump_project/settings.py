@@ -117,16 +117,10 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'OPTIONS': {
+            'min_length': 6,
+        }
     },
 ]
 
@@ -137,7 +131,7 @@ AUTHENTICATION_BACKENDS = ['axes.backends.AxesStandaloneBackend',
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE' : [
+        'SCOPE': [
             'profile',
             'email'
         ],
@@ -146,7 +140,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': env.str('CLIENT_SECRET'),
         },
         'AUTH_PARAMS': {
-            'access_type':'online',
+            'access_type': 'online',
         }
     }
 }

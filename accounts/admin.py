@@ -16,11 +16,12 @@ class CustomUserAdmin(UserAdmin):
         "username",
         "nama_lengkap",
         "nik",
+        "npwp",
         "Nomor_telpon",
         "institution",
         "is_staff",
     ]
-    fieldsets = UserAdmin.fieldsets + ((None, {"fields": ("institution", "Nomor_telpon", "nama_lengkap", "nik",)}),)
-    add_fieldsets = UserAdmin.add_fieldsets + ((None, {"fields": ("institution", "Nomor_telpon", "nama_lengkap", "nik",)}),)
+    fieldsets = UserAdmin.fieldsets + ((None, {"fields": ("institution", "Nomor_telpon", "nama_lengkap", "nik", "npwp")}),)
+    add_fieldsets = UserAdmin.add_fieldsets + ((None, {"fields": ("institution", "Nomor_telpon", "nama_lengkap", "nik", "npwp")}),)
 
 admin.site.register(CustomUser, CustomUserAdmin)

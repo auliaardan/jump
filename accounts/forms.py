@@ -3,7 +3,6 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
 
 
-
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
@@ -18,13 +17,14 @@ class CustomUserCreationForm(UserCreationForm):
             "email",
             "nama_lengkap",
             "nik",
+            "npwp",
             "institution",
             "Nomor_telpon",
         )
         labels = {
             'nik': 'NIK',
             'institution': 'Institusi',
-            'Nomor_telpon' : 'No. Telpon'
+            'Nomor_telpon': 'No. Telpon'
         }
         help_texts = {
             'nama_lengkap': 'Sesuai KTP beserta gelar lengkap',
@@ -50,6 +50,7 @@ class CustomUserChangeForm(forms.ModelForm):
             "institution",
             "email",
             "Nomor_telpon",
+            "npwp"
         )
         labels = {
             'nik': 'NIK',

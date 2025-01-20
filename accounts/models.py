@@ -7,4 +7,5 @@ class CustomUser(AbstractUser):
     Nomor_telpon = models.CharField(max_length=50, null=True, blank=False)
     nama_lengkap = models.CharField(max_length=500, null=True, blank=False)
     nik = models.CharField(max_length=50, null=True, blank=False)
+    npwp = models.CharField(max_length=50, null=True, blank=True)
 
