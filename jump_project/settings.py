@@ -33,7 +33,7 @@ DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '103.163.138.124', 'www.jump2025.com', 'jump2025.com',
                  'jakartaurologymedicalupdate.com',
-                 'jakartaurologymedicalupdate.id']
+                 'jakartaurologymedicalupdate.id', 'mail.jump2025.com']
 
 # Application definition
 
@@ -174,6 +174,8 @@ else:
     MEDIA_ROOT = '/home/jumpcom/public_html/media'
 
 AUTH_USER_MODEL = "accounts.CustomUser"
+
+CSRF_TRUSTED_ORIGINS = ["https://jump2025.com", "https://www.jump2025.com"]
 
 LOGIN_REDIRECT_URL = "seminar_list"
 LOGOUT_REDIRECT_URL = "seminar_list"

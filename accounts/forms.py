@@ -47,10 +47,11 @@ class CustomUserChangeForm(forms.ModelForm):
             "username",
             "nama_lengkap",
             "nik",
+            "npwp",
             "institution",
             "email",
             "Nomor_telpon",
-            "npwp"
+
         )
         labels = {
             'nik': 'NIK',
