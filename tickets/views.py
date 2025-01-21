@@ -707,12 +707,14 @@ def export_orders_for_seminar_view(request, seminar_id):
 
         payment_proof = PaymentProof.objects.filter(order=order).first()
         price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
+
+        user = order.user
+
         if user.npwp == '':
             npwp = '-'
         else:
             npwp = user.npwp
 
-        user = order.user
         ws.append([
             user.username,
             user.email,
