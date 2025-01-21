@@ -610,12 +610,18 @@ def export_orders_view(request):
         institution = user.institution
         email = user.email  # <--- retrieve from user model
 
+        if user.npwp == '':
+            npwp = '-'
+        else:
+            npwp = user.npwp
+
         # 3) Append data including "Email" to the row:
         ws.append([
             user.username,
             email,
             full_name,
             nik,
+            npwp,
             institution,
             phone_number,
             order.id,
@@ -658,7 +664,7 @@ def export_orders_for_seminar_view(request, seminar_id):
 
     # 2) Same headers (including "Email"):
     headers = [
-        'Username', 'Email', 'Nama Lengkap', 'NIK', 'Institution',
+        'Username', 'Email', 'Nama Lengkap', 'NIK', 'NPWP', 'Institution',
         'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
         'Confirmation Date', 'Seminars', 'Total Price'
     ]
@@ -701,6 +707,10 @@ def export_orders_for_seminar_view(request, seminar_id):
 
         payment_proof = PaymentProof.objects.filter(order=order).first()
         price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
+        if user.npwp == '':
+            npwp = '-'
+        else:
+            npwp = user.npwp
 
         user = order.user
         ws.append([
@@ -708,6 +718,7 @@ def export_orders_for_seminar_view(request, seminar_id):
             user.email,
             user.nama_lengkap,
             user.nik,
+            npwp,
             user.institution,
             user.Nomor_telpon,
             order.id,
