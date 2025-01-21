@@ -1,5 +1,7 @@
 import json
 import datetime
+import re
+
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -557,7 +559,7 @@ def export_orders_view(request):
 
     # 1) Add "Email" to your headers:
     headers = [
-        'Username', 'Email', 'Nama Lengkap', 'NIK', 'Institution',
+        'Username', 'Email', 'Nama Lengkap', 'NIK', 'NPWP', 'Institution',
         'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
         'Confirmation Date', 'Seminars', 'Total Price'
     ]
@@ -610,10 +612,6 @@ def export_orders_view(request):
         institution = user.institution
         email = user.email  # <--- retrieve from user model
 
-        if user.npwp == '':
-            npwp = '-'
-        else:
-            npwp = user.npwp
 
         # 3) Append data including "Email" to the row:
         ws.append([
@@ -621,7 +619,7 @@ def export_orders_view(request):
             email,
             full_name,
             nik,
-            npwp,
+            user.npwp,
             institution,
             phone_number,
             order.id,
@@ -660,7 +658,8 @@ def export_orders_for_seminar_view(request, seminar_id):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"Orders for {seminar.title}"
+    sanitized_title = re.sub(r'[\/:*?"<>|]', '', f"Orders for {seminar.title}")
+    ws.title = sanitized_title
 
     # 2) Same headers (including "Email"):
     headers = [
@@ -710,17 +709,12 @@ def export_orders_for_seminar_view(request, seminar_id):
 
         user = order.user
 
-        if user.npwp == '':
-            npwp = '-'
-        else:
-            npwp = user.npwp
-
         ws.append([
             user.username,
             user.email,
             user.nama_lengkap,
             user.nik,
-            npwp,
+            user.npwp,
             user.institution,
             user.Nomor_telpon,
             order.id,
