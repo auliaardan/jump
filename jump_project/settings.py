@@ -55,11 +55,12 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "axes",
-    "django_celery_beat",
 
     # local
     "accounts.apps.AccountsConfig",
     'tickets.apps.TicketsConfig',
+
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
