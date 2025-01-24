@@ -16,7 +16,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Auto-discover tasks from installed apps
 app.autodiscover_tasks()
 
-if os.getenv('DJANGO_SETTINGS_MODULE'):  # Ensure Django is set up
+if os.getenv('DJANGO_SETTINGS_MODULE'):
     from tickets.tasks import remove_expired_cartitems
 
 @app.task(bind=True)
