@@ -1,7 +1,4 @@
 from celery import shared_task
-from datetime import timedelta
-from django.utils.timezone import now
-from .models import CartItem
 
 @shared_task
 def remove_expired_cartitems():
