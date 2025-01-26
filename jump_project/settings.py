@@ -59,8 +59,7 @@ INSTALLED_APPS = [
     # local
     "accounts.apps.AccountsConfig",
     'tickets.apps.TicketsConfig',
-
-    "django_celery_beat",
+    'tasks',
 ]
 
 MIDDLEWARE = [
