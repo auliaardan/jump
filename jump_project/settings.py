@@ -200,10 +200,6 @@ AXES_COOLOFF_TIME = 1
 
 SITE_ID = 1
 
-CELERY_BROKER_URL = "redis+socket:///home/jumpcom/tmp/redis.sock"
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-
 
 if env.bool("DEBUG", default=False) == False:
     SECURE_CONTENT_TYPE_NOSNIFF = True
