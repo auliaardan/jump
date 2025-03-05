@@ -51,6 +51,7 @@ def create_submission(request):
     else:
         # Suppose we want to default to "abstract"
         form = SciComSubmissionForm(initial={'submission_type': 'abstract'})
+        form.instance.user = request.user
 
     return render(request, 'tickets/create_submission.html', {'form': form})
 
