@@ -76,6 +76,10 @@
             // Get the displayed total and parse it to a numeric value
             const displayedTotal = document.getElementById('total').innerText.replace('Rp ', '').replace(/\./g, '');
             document.getElementById('final_total').value = parseFloat(displayedTotal);
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
         });
 
         document.getElementById('apply-discount').addEventListener('click', function () {
