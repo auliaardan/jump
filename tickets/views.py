@@ -10,8 +10,7 @@ from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views import View
@@ -20,36 +19,101 @@ from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
 
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm
-from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission
-from .models import TicketCategory, OrderItem
+from .models import (
+    PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page,
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor,
+    SciComSubmission, TicketCategory, OrderItem
+)
 
+
+# Helper functions and mixins
+
+def aggregate_order_items(order):
+    """Aggregate order items by seminar and ticket category."""
+    items = {}
+    for item in order.orderitem_set.all():
+        seminar = item.ticket_category.seminar
+        ticket_category = item.ticket_category
+        key = (seminar.id, ticket_category.id)
+        if key in items:
+            items[key]['quantity'] += item.quantity
+        else:
+            items[key] = {
+                'seminar': seminar,
+                'ticket_category': ticket_category,
+                'quantity': item.quantity,
+            }
+    return list(items.values())
+
+
+def aggregate_order_items_str(order):
+    """Return a string describing aggregated order items."""
+    items = {}
+    for item in order.orderitem_set.all():
+        seminar = item.ticket_category.seminar
+        ticket_category = item.ticket_category
+        key = (seminar.id, ticket_category.id)
+        if key in items:
+            items[key]['quantity'] += item.quantity
+        else:
+            items[key] = {
+                'seminar_title': seminar.title,
+                'seminar_date': seminar.date.strftime('%Y-%m-%d'),
+                'ticket_category_name': ticket_category.name,
+                'quantity': item.quantity,
+            }
+    return "; ".join(
+        f"{v['seminar_title']} ({v['seminar_date']}) - {v['ticket_category_name']} - Quantity: {v['quantity']}"
+        for v in items.values()
+    )
+
+
+def send_html_email(subject, template, context, recipient):
+    """Helper function to send an HTML email."""
+    body = render_to_string(template, context)
+    email = EmailMessage(subject, body, 'admin@jump2025.com', [recipient])
+    email.content_subtype = 'html'
+    email.send()
+
+
+class SeminarPaginationMixin:
+    paginate_by = 4
+
+    def paginate_seminars(self, seminars):
+        paginator = Paginator(seminars, self.paginate_by)
+        page_number = self.request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        num_placeholders = self.paginate_by - len(page_obj) if len(page_obj) < self.paginate_by else 0
+        return {
+            'seminar_list': page_obj,
+            'num_placeholders': num_placeholders,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'search_query': self.request.GET.get('search', '')
+        }
+
+
+# Views
 
 @login_required
 def create_submission(request):
     if request.method == 'POST':
         form = SciComSubmissionForm(request.POST)
         if form.is_valid():
-            new_submission = form.save(commit=False)
-            # Link the user from request
-            new_submission.user = request.user
-            new_submission.save()
-            email_subject = 'Your Submission Confirmation'
-            email_body = render_to_string('tickets/emails/submission_confirmed.html', {
-                'name': new_submission.user.nama_lengkap,
-                'type': new_submission.get_submission_type_display(),
-            })
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jump2025.com',
-                [new_submission.user.email],
+            submission = form.save(commit=False)
+            submission.user = request.user
+            submission.save()
+            send_html_email(
+                'Your Submission Confirmation',
+                'tickets/emails/submission_confirmed.html',
+                {
+                    'name': submission.user.nama_lengkap,
+                    'type': submission.get_submission_type_display(),
+                },
+                submission.user.email
             )
-            email.content_subtype = 'html'
-            email.send()
             return redirect('seminar_list')
     else:
-        # Suppose we want to default to "abstract"
         form = SciComSubmissionForm(initial={'submission_type': 'abstract'})
         form.instance.user = request.user
 
@@ -64,18 +128,15 @@ class SponsorsView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         sponsors = Sponsor.objects.all()
-        platinum_sponsors = sponsors.filter(category='Large')
-        gold_sponsors = sponsors.filter(category='Medium')
-        silver_sponsors = sponsors.filter(category='Small')
-
-        context['sponsors'] = sponsors
-        context['platinum_sponsors'] = platinum_sponsors
-        context['gold_sponsors'] = gold_sponsors
-        context['silver_sponsors'] = silver_sponsors
+        context.update({
+            'platinum_sponsors': sponsors.filter(category='Large'),
+            'gold_sponsors': sponsors.filter(category='Medium'),
+            'silver_sponsors': sponsors.filter(category='Small'),
+        })
         return context
 
 
-class ScicomView(ListView):
+class ScicomView(SeminarPaginationMixin, ListView):
     model = scicom_rules
     template_name = 'scicom.html'
     context_object_name = 'scicom_rules'
@@ -85,34 +146,16 @@ class ScicomView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date')
-        else:
-            seminars = Seminar.objects.all().order_by('date')
-
-        paginator = Paginator(seminars, 4)  # Show 4 seminars per page
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        # Calculate the number of placeholders needed to maintain the layout
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-
-        qrcode_obj = qrcode.objects.last()
-        images = ImageForPage.objects.filter(category=ImageForPage.SCICOM)
-
-        context['images'] = images
-        context['qrcode'] = qrcode_obj
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
+        search = self.request.GET.get('search', '')
+        seminars = Seminar.objects.filter(title__icontains=search).order_by('date') if search \
+            else Seminar.objects.all().order_by('date')
+        context.update(self.paginate_seminars(seminars))
+        context['qrcode'] = qrcode.objects.last()
+        context['images'] = ImageForPage.objects.filter(category=ImageForPage.SCICOM)
         return context
 
 
-class WorkshopView(ListView):
+class WorkshopView(SeminarPaginationMixin, ListView):
     model = workshops_page
     template_name = 'Workshops.html'
     context_object_name = 'workshops'
@@ -122,30 +165,15 @@ class WorkshopView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date')
-        else:
-            seminars = Seminar.objects.filter(category=Seminar.WORKSHOP).order_by('date')
-
-        paginator = Paginator(seminars, 4)
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-        images = ImageForPage.objects.filter(category=ImageForPage.WORKSHOP)
-
-        context['images'] = images
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
+        search = self.request.GET.get('search', '')
+        seminars = Seminar.objects.filter(title__icontains=search).order_by('date') if search \
+            else Seminar.objects.filter(category=Seminar.WORKSHOP).order_by('date')
+        context.update(self.paginate_seminars(seminars))
+        context['images'] = ImageForPage.objects.filter(category=ImageForPage.WORKSHOP)
         return context
 
 
-class SeminarsView(ListView):
+class SeminarsView(SeminarPaginationMixin, ListView):
     model = seminars_page
     template_name = 'Seminars.html'
     context_object_name = 'seminars'
@@ -155,27 +183,11 @@ class SeminarsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date')
-        else:
-            seminars = Seminar.objects.filter(category=Seminar.SEMINAR).order_by('date')
-
-        paginator = Paginator(seminars, 4)
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        # Calculate the number of placeholders needed to maintain the layout
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-        images = ImageForPage.objects.filter(category=ImageForPage.SEMINAR)
-
-        context['images'] = images
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
+        search = self.request.GET.get('search', '')
+        seminars = Seminar.objects.filter(title__icontains=search).order_by('date') if search \
+            else Seminar.objects.filter(category=Seminar.SEMINAR).order_by('date')
+        context.update(self.paginate_seminars(seminars))
+        context['images'] = ImageForPage.objects.filter(category=ImageForPage.SEMINAR)
         return context
 
 
@@ -183,7 +195,7 @@ def coming_soon_view(request):
     return render(request, 'coming_soon.html')
 
 
-class baseView(ListView):
+class BaseView(SeminarPaginationMixin, ListView):
     model = landing_page
     template_name = 'index.html'
     context_object_name = "landing"
@@ -193,43 +205,19 @@ class baseView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date')
-        else:
-            seminars = Seminar.objects.all().order_by('date')
-
-        paginator = Paginator(seminars, 4)  # Show 4 seminars per page
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        # Calculate the number of placeholders needed to maintain the layout
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-
-        # For the timeline
-        seminars_all = Seminar.objects.all().order_by('date')
-        context['seminars_all'] = seminars_all
-
-        # Next upcoming seminar
+        search = self.request.GET.get('search', '')
+        seminars = Seminar.objects.filter(title__icontains=search).order_by('date') if search \
+            else Seminar.objects.all().order_by('date')
+        context.update(self.paginate_seminars(seminars))
+        context['seminars_all'] = Seminar.objects.all().order_by('date')
         now = timezone.now()
         next_seminar = Seminar.objects.filter(date__gte=now).order_by('date').first()
         context['next_seminar'] = next_seminar
-
-        # Flag to check if all events have passed
         context['all_events_over'] = not next_seminar
-
-        landing = landing_page.objects.last()
-
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
         return context
 
 
-class about_us_view(ListView):
+class AboutUsView(ListView):
     model = about_us
     template_name = 'about_us.html'
     context_object_name = "about_us"
@@ -247,8 +235,7 @@ def register(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Your account has been created! You are now able to log in')
+            messages.success(request, 'Your account has been created! You are now able to log in')
             return redirect('login')
     else:
         form = UserRegisterForm()
@@ -274,60 +261,45 @@ class CheckoutView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         cart = get_object_or_404(Cart, user=request.user)
-        total_str = request.POST.get('final_total', None)
-
-        if total_str is not None:
-            try:
-                total = float(total_str)
-            except ValueError:
-                total = sum(item.total_price() for item in cart.cartitem_set.all())
-        else:
+        total_str = request.POST.get('final_total')
+        try:
+            total = float(total_str) if total_str is not None else sum(item.total_price() for item in cart.cartitem_set.all())
+        except ValueError:
             total = sum(item.total_price() for item in cart.cartitem_set.all())
 
         order = Order.objects.create(user=request.user)
-
-        # Create OrderItems from CartItems and update ticket categories
         for cart_item in cart.cartitem_set.all():
             OrderItem.objects.create(
                 order=order,
                 ticket_category=cart_item.ticket_category,
                 quantity=cart_item.quantity,
-                price=cart_item.ticket_category.price,  # Store the price at time of purchase
+                price=cart_item.ticket_category.price,
             )
-            # Update ticket category
             ticket_category = cart_item.ticket_category
             ticket_category.booked_seats += cart_item.quantity
             ticket_category.reserved_seats -= cart_item.quantity
             ticket_category.save()
 
-        # Now we can safely delete the cart items
         cart.cartitem_set.all().delete()
 
-        # Process payment proof and send email
         form = PaymentProofForm(request.POST, request.FILES)
         if form.is_valid():
             proof = form.save(commit=False)
             proof.order = order
             proof.price_paid = total
             proof.save()
-
-            email_subject = 'Your Order Confirmation'
-            email_body = render_to_string('tickets/emails/payment_received.html', {
-                'user': request.user,
-                'cart': cart,
-                'order': order,
-                'total': int(total),
-            })
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jump2025.com',
-                [request.user.email],
+            send_html_email(
+                'Your Order Confirmation',
+                'tickets/emails/payment_received.html',
+                {
+                    'user': request.user,
+                    'cart': cart,
+                    'order': order,
+                    'total': int(total),
+                },
+                request.user.email
             )
-            email.content_subtype = 'html'
-            email.send()
 
-            # Handle discount code usage (if applicable)
             if request.POST.get('discount_code_form') == "True":
                 code = request.POST.get('discount_code_name')
                 discount_code = get_object_or_404(DiscountCode, code=code)
@@ -341,26 +313,20 @@ class CheckoutView(LoginRequiredMixin, View):
 def apply_discount(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        discount_code = data.get('discount_code', '')
+        code = data.get('discount_code', '')
         cart = get_object_or_404(Cart, user=request.user)
         total = sum(item.total_price() for item in cart.cartitem_set.all())
-
         try:
-            discount = DiscountCode.objects.get(code=discount_code)
+            discount = DiscountCode.objects.get(code=code)
             if discount.is_valid():
-                new_total = discount.apply_discount(total)
-                new_total = round(new_total)  # Round to the nearest integer
-
-                # Format the total for display
+                new_total = round(discount.apply_discount(total))
                 formatted_total = "Rp " + f"{int(new_total):,}".replace(",", ".")
-
                 return JsonResponse({
                     'success': True,
                     'new_total_formatted': formatted_total,
                     'new_total_numeric': str(new_total)
                 })
-            else:
-                return JsonResponse({'success': False, 'message': 'Invalid or expired discount code.'})
+            return JsonResponse({'success': False, 'message': 'Invalid or expired discount code.'})
         except DiscountCode.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Invalid discount code.'})
     return JsonResponse({'success': False, 'message': 'Invalid request.'})
@@ -371,35 +337,15 @@ def admin_dashboard(request):
     orders = Order.objects.all().order_by('-created_at')
     seminars = Seminar.objects.all().order_by('date')
 
-    # Aggregate order items for each order
     for order in orders:
-        # Aggregate order items by seminar and ticket category
-        items_dict = {}
-        for order_item in order.orderitem_set.all():
-            seminar = order_item.ticket_category.seminar
-            ticket_category = order_item.ticket_category
-            key = (seminar.id, ticket_category.id)
-            if key in items_dict:
-                items_dict[key]['quantity'] += order_item.quantity
-            else:
-                items_dict[key] = {
-                    'seminar': seminar,
-                    'ticket_category': ticket_category,
-                    'quantity': order_item.quantity,
-                }
-        # Convert the aggregated items to a list
-        order.aggregated_items = list(items_dict.values())
-
+        order.aggregated_items = aggregate_order_items(order)
     return render(request, 'tickets/admin_dashboard.html', {'orders': orders, 'seminars': seminars})
 
 
 @staff_member_required
 def scicom_dashboard(request):
     scicom = SciComSubmission.objects.all()
-    context = {
-        'scicom': scicom
-    }
-    return render(request, 'tickets/scicom_dashboard.html', context)
+    return render(request, 'tickets/scicom_dashboard.html', {'scicom': scicom})
 
 
 @login_required
@@ -411,74 +357,42 @@ def profile_view(request):
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-
     for order in orders:
-        # Aggregate order items by seminar and ticket category
-        items_dict = {}
-        for order_item in order.orderitem_set.all():
-            seminar = order_item.ticket_category.seminar
-            ticket_category = order_item.ticket_category
-            key = (seminar.id, ticket_category.id)
-            if key in items_dict:
-                items_dict[key]['quantity'] += order_item.quantity
-            else:
-                items_dict[key] = {
-                    'seminar': seminar,
-                    'ticket_category': ticket_category,
-                    'quantity': order_item.quantity,
-                }
-        # Convert the aggregated items to a list
-        order.aggregated_items = list(items_dict.values())
-
+        order.aggregated_items = aggregate_order_items(order)
     return render(request, 'tickets/order_history.html', {'orders': orders})
 
 
-class SeminarDetailView(DetailView):
+class SeminarDetailView(SeminarPaginationMixin, DetailView):
     model = Seminar
     template_name = 'tickets/ticket_detail.html'
     context_object_name = 'seminar'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        seminar = self.get_object()
-        context['ticket_categories'] = seminar.ticket_categories.all()
-
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date')
-        else:
-            seminars = Seminar.objects.all().order_by('date')
-
-        paginator = Paginator(seminars, 4)
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        # Calculate the number of placeholders needed to maintain the layout
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
+        context['ticket_categories'] = self.get_object().ticket_categories.all()
+        search = self.request.GET.get('search', '')
+        seminars = Seminar.objects.filter(title__icontains=search).order_by('date') if search \
+            else Seminar.objects.all().order_by('date')
+        context.update(self.paginate_seminars(seminars))
         return context
 
 
 @login_required
 def cart_item_count(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart, _ = Cart.objects.get_or_create(user=request.user)
     item_count = cart.cartitem_set.aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
     return JsonResponse({'item_count': item_count})
 
 
 class CartDetailView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        is_empty = not cart.cartitem_set.exists()
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         cart_items = cart.cartitem_set.all()
-        return render(request, 'tickets/cart_detail.html',
-                      {'cart': cart, 'is_empty': is_empty, 'cart_items': cart_items})
+        return render(request, 'tickets/cart_detail.html', {
+            'cart': cart,
+            'is_empty': not cart_items.exists(),
+            'cart_items': cart_items
+        })
 
 
 class RemoveFromCartView(LoginRequiredMixin, View):
@@ -493,35 +407,23 @@ class AddToCartView(View):
         if not request.user.is_authenticated:
             return JsonResponse({'success': False, 'message': 'not_authenticated'})
 
-        ticket_category_id = request.POST.get('ticket_category_id')
-        ticket_category = get_object_or_404(TicketCategory, id=ticket_category_id)
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        ticket_category = get_object_or_404(TicketCategory, id=request.POST.get('ticket_category_id'))
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            ticket_category=ticket_category,
-            defaults={'quantity': 0}
+            cart=cart, ticket_category=ticket_category, defaults={'quantity': 0}
         )
-
         quantity = int(request.POST.get('quantity', 1))
-
-        if created:
-            cart_item.quantity = quantity
-        else:
-            cart_item.quantity += quantity
-
         if ticket_category.remaining_seats < quantity:
             return JsonResponse({'success': False, 'message': 'Not enough remaining seats'})
-
+        cart_item.quantity = (cart_item.quantity + quantity) if not created else quantity
         cart_item.save()
-
-        response = {
+        return JsonResponse({
             'success': True,
             'message': 'Added to cart successfully!',
             'quantity': cart_item.quantity,
             'remaining_seats': ticket_category.remaining_seats,
             'item_count': cart.cartitem_set.count()
-        }
-        return JsonResponse(response)
+        })
 
 
 @staff_member_required
@@ -532,21 +434,13 @@ def confirm_order_view(request, order_id):
     order.confirmation_date = timezone.now()
     order.transaction_id = request.POST.get('transaction_id')
     order.save()
-
-    email_subject = 'Konfirmasi Pesanan Anda'
-    email_body = render_to_string('tickets/emails/order_confirmed.html', {
-        'user': order.user,
-    })
-    email = EmailMessage(
-        email_subject,
-        email_body,
-        'admin@jump2025.com',
-        [order.user.email],
-    )
-    email.content_subtype = 'html'
-
     try:
-        email.send()
+        send_html_email(
+            'Konfirmasi Pesanan Anda',
+            'tickets/emails/order_confirmed.html',
+            {'user': order.user},
+            order.user.email
+        )
     except Exception as e:
         messages.error(request, f"Failed to send email: {e}")
     return redirect('admin_dashboard')
@@ -557,159 +451,19 @@ def export_orders_view(request):
     wb = Workbook()
     ws = wb.active
     ws.title = "Orders"
-
-    # 1) Add "Email" to your headers:
     headers = [
         'Username', 'Email', 'Nama Lengkap', 'NIK', 'NPWP', 'Institution',
         'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
         'Confirmation Date', 'Seminars', 'Total Price'
     ]
     ws.append(headers)
-
-    # 2) Iterate over *all* orders:
-    all_orders = Order.objects.all()
-
-    for order in all_orders:
-        created_at_naive = order.created_at.replace(tzinfo=None) if order.created_at else None
-        confirmation_date_naive = (
-            order.confirmation_date.replace(tzinfo=None)
-            if order.confirmation_date
-            else None
-        )
-
-        # -- Aggregate seminars & tickets, same as before --
-        items_dict = {}
-        for order_item in order.orderitem_set.all():
-            seminar = order_item.ticket_category.seminar
-            ticket_category = order_item.ticket_category
-            key = (seminar.id, ticket_category.id)
-            if key in items_dict:
-                items_dict[key]['quantity'] += order_item.quantity
-            else:
-                items_dict[key] = {
-                    'seminar_title': seminar.title,
-                    'seminar_date': seminar.date.strftime('%Y-%m-%d'),
-                    'ticket_category_name': ticket_category.name,
-                    'quantity': order_item.quantity,
-                }
-
-        # Create a single string describing all seminars & categories
-        seminars_list = []
-        for item in items_dict.values():
-            seminars_list.append(
-                f"{item['seminar_title']} ({item['seminar_date']}) - "
-                f"{item['ticket_category_name']} - "
-                f"Quantity: {item['quantity']}"
-            )
-        seminars_str = "; ".join(seminars_list)
-
-        payment_proof = PaymentProof.objects.filter(order=order).first()
-        price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
-
+    for order in Order.objects.all():
+        created_at = order.created_at.replace(tzinfo=None) if order.created_at else None
+        confirmation_date = order.confirmation_date.replace(tzinfo=None) if order.confirmation_date else None
+        seminars_str = aggregate_order_items_str(order)
+        proof = PaymentProof.objects.filter(order=order).first()
+        price_paid = float(proof.price_paid) if proof else 0.0
         user = order.user
-        full_name = user.nama_lengkap
-        phone_number = user.Nomor_telpon
-        nik = user.nik
-        institution = user.institution
-        email = user.email  # <--- retrieve from user model
-
-
-        # 3) Append data including "Email" to the row:
-        ws.append([
-            user.username,
-            email,
-            full_name,
-            nik,
-            user.npwp,
-            institution,
-            phone_number,
-            order.id,
-            created_at_naive,
-            'Yes' if order.is_confirmed else 'No',
-            confirmation_date_naive,
-            seminars_str,
-            price_paid,
-        ])
-
-    # Optional number formatting for the price (the 12th column now)
-    for row in ws.iter_rows(min_row=2, min_col=12, max_col=12):  # 12 = 'L' column if starting at 'A' = 1
-        for cell in row:
-            cell.number_format = '#,##0'
-
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = 'attachment; filename="order_report.xlsx"'
-    wb.save(response)
-
-    return response
-
-
-@staff_member_required
-def export_orders_for_seminar_view(request, seminar_id):
-    from django.shortcuts import get_object_or_404
-    seminar = get_object_or_404(Seminar, pk=seminar_id)
-
-    # 1) Filter all Orders that have any OrderItem referencing this seminar
-    orders_for_seminar = (
-        Order.objects
-        .filter(orderitem__ticket_category__seminar=seminar)
-        .distinct()
-    )
-
-    wb = Workbook()
-    ws = wb.active
-    sanitized_title = re.sub(r'[\/:*?"<>|]', '', f"Orders for {seminar.title}")
-    ws.title = sanitized_title
-
-    # 2) Same headers (including "Email"):
-    headers = [
-        'Username', 'Email', 'Nama Lengkap', 'NIK', 'NPWP', 'Institution',
-        'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
-        'Confirmation Date', 'Seminars', 'Total Price'
-    ]
-    ws.append(headers)
-
-    for order in orders_for_seminar:
-        created_at_naive = (
-            order.created_at.replace(tzinfo=None) if order.created_at else None
-        )
-        confirmation_date_naive = (
-            order.confirmation_date.replace(tzinfo=None)
-            if order.confirmation_date
-            else None
-        )
-
-        # --- same item aggregation logic as before ---
-        items_dict = {}
-        for order_item in order.orderitem_set.all():
-            seminar_item = order_item.ticket_category.seminar
-            ticket_category = order_item.ticket_category
-            key = (seminar_item.id, ticket_category.id)
-            if key in items_dict:
-                items_dict[key]['quantity'] += order_item.quantity
-            else:
-                items_dict[key] = {
-                    'seminar_title': seminar_item.title,
-                    'seminar_date': seminar_item.date.strftime('%Y-%m-%d'),
-                    'ticket_category_name': ticket_category.name,
-                    'quantity': order_item.quantity,
-                }
-
-        seminars_list = []
-        for item in items_dict.values():
-            seminars_list.append(
-                f"{item['seminar_title']} ({item['seminar_date']}) "
-                f"- {item['ticket_category_name']} "
-                f"- Quantity: {item['quantity']}"
-            )
-        seminars_str = "; ".join(seminars_list)
-
-        payment_proof = PaymentProof.objects.filter(order=order).first()
-        price_paid = float(payment_proof.price_paid) if payment_proof else 0.0
-
-        user = order.user
-
         ws.append([
             user.username,
             user.email,
@@ -719,190 +473,154 @@ def export_orders_for_seminar_view(request, seminar_id):
             user.institution,
             user.Nomor_telpon,
             order.id,
-            created_at_naive,
+            created_at,
             'Yes' if order.is_confirmed else 'No',
-            confirmation_date_naive,
+            confirmation_date,
             seminars_str,
             price_paid,
         ])
-
-    # Optional: format the total price column
     for row in ws.iter_rows(min_row=2, min_col=12, max_col=12):
         for cell in row:
             cell.number_format = '#,##0'
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="order_report.xlsx"'
+    wb.save(response)
+    return response
 
+
+@staff_member_required
+def export_orders_for_seminar_view(request, seminar_id):
+    seminar = get_object_or_404(Seminar, pk=seminar_id)
+    orders = Order.objects.filter(orderitem__ticket_category__seminar=seminar).distinct()
+    wb = Workbook()
+    ws = wb.active
+    sanitized_title = re.sub(r'[\/:*?"<>|]', '', f"Orders for {seminar.title}")
+    ws.title = sanitized_title
+    headers = [
+        'Username', 'Email', 'Nama Lengkap', 'NIK', 'NPWP', 'Institution',
+        'No. Telfon', 'Order ID', 'Created At', 'Confirmed',
+        'Confirmation Date', 'Seminars', 'Total Price'
+    ]
+    ws.append(headers)
+    for order in orders:
+        created_at = order.created_at.replace(tzinfo=None) if order.created_at else None
+        confirmation_date = order.confirmation_date.replace(tzinfo=None) if order.confirmation_date else None
+        seminars_str = aggregate_order_items_str(order)
+        proof = PaymentProof.objects.filter(order=order).first()
+        price_paid = float(proof.price_paid) if proof else 0.0
+        user = order.user
+        ws.append([
+            user.username,
+            user.email,
+            user.nama_lengkap,
+            user.nik,
+            user.npwp,
+            user.institution,
+            user.Nomor_telpon,
+            order.id,
+            created_at,
+            'Yes' if order.is_confirmed else 'No',
+            confirmation_date,
+            seminars_str,
+            price_paid,
+        ])
+    for row in ws.iter_rows(min_row=2, min_col=12, max_col=12):
+        for cell in row:
+            cell.number_format = '#,##0'
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     filename = f"orders_for_{seminar.title.replace(' ', '_')}.xlsx"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
-
     return response
 
 
 def export_scicom_submissions_excel(request):
-    # Create a new workbook
     workbook = Workbook()
-
-    # We will create three querysets:
     abstracts = SciComSubmission.objects.filter(submission_type=SciComSubmission.ABSTRACT).select_related('user')
-    videos   = SciComSubmission.objects.filter(submission_type=SciComSubmission.VIDEO).select_related('user')
-    flyers   = SciComSubmission.objects.filter(submission_type=SciComSubmission.FLYER).select_related('user')
+    videos = SciComSubmission.objects.filter(submission_type=SciComSubmission.VIDEO).select_related('user')
+    flyers = SciComSubmission.objects.filter(submission_type=SciComSubmission.FLYER).select_related('user')
 
-    # ---------------------------------------------------
-    # 1) ABSTRACT Submissions (first sheet)
-    # ---------------------------------------------------
-    abstract_ws = workbook.active  # The first sheet is active by default
+    # ABSTRACT Submissions
+    abstract_ws = workbook.active
     abstract_ws.title = "Abstract Submissions"
-
-    # Columns we want for abstracts
     abstract_columns = [
-        "ID",
-        "Name",
-        "Occupation",
-        "Email",
-        "Phone",
-        "Affiliation",
-        "Address",
-        "Already Registered?",
-        "Created At",
-        "Abstract Title",
-        "Paper Type",
-        "Abstract Authors",
-        "Abstract Text",
-        "Link Abstract",
+        "ID", "Name", "Occupation", "Email", "Phone", "Affiliation", "Address",
+        "Already Registered?", "Created At", "Abstract Title", "Paper Type", "Abstract Authors",
+        "Abstract Text", "Link Abstract",
     ]
-
-    # Write the header row
-    row_num = 1
-    for col_num, column_title in enumerate(abstract_columns, start=1):
-        cell = abstract_ws.cell(row=row_num, column=col_num, value=column_title)
-
-    # Populate data rows for abstracts
+    abstract_ws.append(abstract_columns)
     for submission in abstracts:
-        row_num += 1
-        # Convert booleans or other fields to readable strings
-        registered_str = "Yes" if submission.already_registered else "No"
-        occupation_str = submission.get_occupation_display()
+        abstract_ws.append([
+            submission.id,
+            submission.name,
+            submission.get_occupation_display(),
+            submission.email,
+            submission.phone,
+            submission.affiliation,
+            submission.address,
+            "Yes" if submission.already_registered else "No",
+            submission.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            submission.abstract_title,
+            submission.paper_type,
+            submission.abstract_authors,
+            submission.abstract_text,
+            submission.link_abstract,
+        ])
 
-        abstract_ws.cell(row=row_num, column=1,  value=submission.id)
-        abstract_ws.cell(row=row_num, column=2,  value=submission.name)
-        abstract_ws.cell(row=row_num, column=3,  value=occupation_str)
-        abstract_ws.cell(row=row_num, column=4,  value=submission.email)
-        abstract_ws.cell(row=row_num, column=5,  value=submission.phone)
-        abstract_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        abstract_ws.cell(row=row_num, column=7,  value=submission.address)
-        abstract_ws.cell(row=row_num, column=8,  value=registered_str)
-        # format created_at
-        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        abstract_ws.cell(row=row_num, column=9,  value=created_str)
-
-        abstract_ws.cell(row=row_num, column=10, value=submission.abstract_title)
-        abstract_ws.cell(row=row_num, column=11, value=submission.paper_type)
-        abstract_ws.cell(row=row_num, column=12, value=submission.abstract_authors)
-        abstract_ws.cell(row=row_num, column=13, value=submission.abstract_text)
-        abstract_ws.cell(row=row_num, column=14, value=submission.link_abstract)
-
-    # ---------------------------------------------------
-    # 2) VIDEO Submissions (second sheet)
-    # ---------------------------------------------------
+    # VIDEO Submissions
     video_ws = workbook.create_sheet("Video Submissions")
-
-    # Columns for video
     video_columns = [
-        "ID",
-        "Name",
-        "Occupation",
-        "Email",
-        "Phone",
-        "Affiliation",
-        "Address",
-        "Already Registered?",
-        "Created At",
-        "Video Title",
-        "Video Authors",
-        "Link Video",
+        "ID", "Name", "Occupation", "Email", "Phone", "Affiliation", "Address",
+        "Already Registered?", "Created At", "Video Title", "Video Authors", "Link Video",
     ]
-
-    # Header
-    row_num = 1
-    for col_num, column_title in enumerate(video_columns, start=1):
-        cell = video_ws.cell(row=row_num, column=col_num, value=column_title)
-
-    # Populate data for videos
+    video_ws.append(video_columns)
     for submission in videos:
-        row_num += 1
-        registered_str = "Yes" if submission.already_registered else "No"
-        occupation_str = submission.get_occupation_display()
-        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        video_ws.append([
+            submission.id,
+            submission.name,
+            submission.get_occupation_display(),
+            submission.email,
+            submission.phone,
+            submission.affiliation,
+            submission.address,
+            "Yes" if submission.already_registered else "No",
+            submission.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            submission.video_title,
+            submission.video_authors,
+            submission.link_video,
+        ])
 
-        video_ws.cell(row=row_num, column=1,  value=submission.id)
-        video_ws.cell(row=row_num, column=2,  value=submission.name)
-        video_ws.cell(row=row_num, column=3,  value=occupation_str)
-        video_ws.cell(row=row_num, column=4,  value=submission.email)
-        video_ws.cell(row=row_num, column=5,  value=submission.phone)
-        video_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        video_ws.cell(row=row_num, column=7,  value=submission.address)
-        video_ws.cell(row=row_num, column=8,  value=registered_str)
-        video_ws.cell(row=row_num, column=9,  value=created_str)
-
-        video_ws.cell(row=row_num, column=10, value=submission.video_title)
-        video_ws.cell(row=row_num, column=11, value=submission.video_authors)
-        video_ws.cell(row=row_num, column=12, value=submission.link_video)
-
-    # ---------------------------------------------------
-    # 3) FLYER Submissions (third sheet)
-    # ---------------------------------------------------
+    # FLYER Submissions
     flyer_ws = workbook.create_sheet("Flyer Submissions")
-
     flyer_columns = [
-        "ID",
-        "Name",
-        "Occupation",
-        "Email",
-        "Phone",
-        "Affiliation",
-        "Address",
-        "Already Registered?",
-        "Created At",
-        "Flyer Title",
-        "Flyer Authors",
-        "Link Flyer",
+        "ID", "Name", "Occupation", "Email", "Phone", "Affiliation", "Address",
+        "Already Registered?", "Created At", "Flyer Title", "Flyer Authors", "Link Flyer",
     ]
-
-    row_num = 1
-    for col_num, column_title in enumerate(flyer_columns, start=1):
-        cell = flyer_ws.cell(row=row_num, column=col_num, value=column_title)
-
+    flyer_ws.append(flyer_columns)
     for submission in flyers:
-        row_num += 1
-        registered_str = "Yes" if submission.already_registered else "No"
-        occupation_str = submission.get_occupation_display()
-        created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        flyer_ws.append([
+            submission.id,
+            submission.name,
+            submission.get_occupation_display(),
+            submission.email,
+            submission.phone,
+            submission.affiliation,
+            submission.address,
+            "Yes" if submission.already_registered else "No",
+            submission.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            submission.flyer_title,
+            submission.flyer_authors,
+            submission.link_flyer,
+        ])
 
-        flyer_ws.cell(row=row_num, column=1,  value=submission.id)
-        flyer_ws.cell(row=row_num, column=2,  value=submission.name)
-        flyer_ws.cell(row=row_num, column=3,  value=occupation_str)
-        flyer_ws.cell(row=row_num, column=4,  value=submission.email)
-        flyer_ws.cell(row=row_num, column=5,  value=submission.phone)
-        flyer_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        flyer_ws.cell(row=row_num, column=7,  value=submission.address)
-        flyer_ws.cell(row=row_num, column=8,  value=registered_str)
-        flyer_ws.cell(row=row_num, column=9,  value=created_str)
-
-        flyer_ws.cell(row=row_num, column=10, value=submission.flyer_title)
-        flyer_ws.cell(row=row_num, column=11, value=submission.flyer_authors)
-        flyer_ws.cell(row=row_num, column=12, value=submission.link_flyer)
-
-    # ---------------------------------------------------
-    # Generate Response
-    # ---------------------------------------------------
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     filename = "scicom_submissions_multi_" + datetime.datetime.now().strftime("%Y%m%d") + ".xlsx"
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
-
     workbook.save(response)
     return response
