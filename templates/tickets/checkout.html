@@ -28,7 +28,7 @@
                                 id="subtotal">{{ total|idr_format }}</span></p>
                         <div class="border-checkout"></div>
                     </div>
-                    <form id="discount-form" method="post">
+                    <form id="discount-form" method="post" style="display: none;">
                         {% csrf_token %}
                         <label for="discount_code">Discount code:</label>
                         <div class="d-flex mt-2">
