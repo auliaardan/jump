@@ -88,9 +88,9 @@ class ScicomView(ListView):
         search_query = self.request.GET.get('search', '')
 
         if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date').last()
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date').last()
         else:
-            seminars = Seminar.objects.all().order_by('date').last()
+            seminars = Seminar.objects.all().order_by('-date').last()
 
         paginator = Paginator(seminars, 4)  # Show 4 seminars per page
         page_number = self.request.GET.get('page', 1)
@@ -125,9 +125,9 @@ class WorkshopView(ListView):
         search_query = self.request.GET.get('search', '')
 
         if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date').last()
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date').last()
         else:
-            seminars = Seminar.objects.filter(category=Seminar.WORKSHOP).order_by('date').last()
+            seminars = Seminar.objects.filter(category=Seminar.WORKSHOP).order_by('-date')
 
         paginator = Paginator(seminars, 4)
         page_number = self.request.GET.get('page', 1)
@@ -158,9 +158,9 @@ class SeminarsView(ListView):
         search_query = self.request.GET.get('search', '')
 
         if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date').last()
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date')
         else:
-            seminars = Seminar.objects.filter(category=Seminar.SEMINAR).order_by('date').last()
+            seminars = Seminar.objects.filter(category=Seminar.SEMINAR).order_by('-date')
 
         paginator = Paginator(seminars, 4)
         page_number = self.request.GET.get('page', 1)
@@ -191,9 +191,9 @@ class baseView(ListView):
         search_query = self.request.GET.get('search', '')
 
         if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('date').last()
+            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date')
         else:
-            seminars = Seminar.objects.all().order_by('date').last()
+            seminars = Seminar.objects.all().order_by('-date')
 
         paginator = Paginator(seminars, 4)  # Show 4 seminars per page
         page_number = self.request.GET.get('page', 1)
