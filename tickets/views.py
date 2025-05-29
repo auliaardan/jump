@@ -59,11 +59,11 @@ def submit_accepted_abstract(request):
 
 @login_required
 def create_submission(request):
-    if request.method == 'POST':
-        if not settings.SCI_COM_OPEN:
-            messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
-            return redirect('scicom_page')
+    if not settings.SCI_COM_OPEN:
+        messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
+        return redirect('scicom_page')
 
+    if request.method == 'POST':
         form = SciComSubmissionForm(request.POST)
         if form.is_valid():
             new_submission = form.save(commit=False)
