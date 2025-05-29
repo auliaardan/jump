@@ -19,15 +19,51 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
 
-from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm
+from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission
 from .models import TicketCategory, OrderItem
+from django.conf import settings
 
+ACCEPTED_START = datetime.datetime(
+    2025, 6, 5, 0, 0,
+    tzinfo=timezone.get_current_timezone()
+)
+
+@login_required
+def submit_accepted_abstract(request):
+    now = timezone.now()
+
+    # Not yet time or feature disabled
+    if not settings.SCI_COM_ABSTRACT_OPEN or now < ACCEPTED_START:
+        messages.error(request, "Formulir untuk penyampaian Presentasi & e-Poster belum dibuka.")
+        return redirect('scicom_page')
+
+    if request.method == 'POST':
+        form = AcceptedAbstractForm(request.POST)
+        if form.is_valid():
+            sub = form.save(commit=False)
+            sub.user = request.user
+            sub.save()
+            messages.success(request, "Terima kasih, abstrak diterima–link Anda telah tercatat.")
+            return redirect('scicom_page')
+    else:
+        form = AcceptedAbstractForm()
+        # only show this user's own abstracts
+        form.fields['abstract'].queryset = SciComSubmission.objects.filter(
+            user=request.user,
+            submission_type=SciComSubmission.ABSTRACT
+        )
+
+    return render(request, 'tickets/submit_accepted_abstract.html', {'form': form})
 
 @login_required
 def create_submission(request):
     if request.method == 'POST':
+        if not settings.SCI_COM_OPEN:
+            messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
+            return redirect('scicom_page')
+
         form = SciComSubmissionForm(request.POST)
         if form.is_valid():
             new_submission = form.save(commit=False)

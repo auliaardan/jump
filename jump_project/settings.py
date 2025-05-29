@@ -200,6 +200,11 @@ AXES_COOLOFF_TIME = 1
 
 SITE_ID = 1
 
+# Toggle for initial SciCom competition submission
+SCI_COM_OPEN = False
+
+# Toggle for accepted-abstract submission
+SCI_COM_ABSTRACT_OPEN = False
 
 if env.bool("DEBUG", default=False) == False:
     SECURE_CONTENT_TYPE_NOSNIFF = True

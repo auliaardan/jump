@@ -1,12 +1,13 @@
+import os
+
 from PIL import Image
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
-import os
 
+from jump_project import settings
 from jump_project.settings import AUTH_USER_MODEL as User
 
 
@@ -520,8 +521,6 @@ class SciComSubmission(models.Model):
         default=ABSTRACT
     )
 
-
-
     # For Abstract
     abstract_title = models.CharField(max_length=250, blank=True, null=True)
     paper_type = models.CharField(
@@ -613,7 +612,8 @@ class SciComSubmission(models.Model):
             for field_name in required_fields:
                 value = getattr(self, field_name)
                 if not value:
-                    raise ValidationError(f"{field_name.replace('_', ' ').title()} is required for Abstract submissions.")
+                    raise ValidationError(
+                        f"{field_name.replace('_', ' ').title()} is required for Abstract submissions.")
 
             # Check only the allowed paper types
             valid_paper_types = [choice[0] for choice in self.PAPER_TYPE_CHOICES]
@@ -638,3 +638,17 @@ class SciComSubmission(models.Model):
         # run model validation
         self.clean()
         super().save(*args, **kwargs)
+
+
+class AcceptedAbstractSubmission(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    abstract = models.ForeignKey(
+        SciComSubmission,
+        on_delete=models.CASCADE,
+        limit_choices_to={'submission_type': SciComSubmission.ABSTRACT}
+    )
+    gdrive_link = models.URLField(help_text="Link ke folder GDrive (PPT & e-Poster)")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Accepted Abstract #{self.id} by {self.user.nama_lengkap}"

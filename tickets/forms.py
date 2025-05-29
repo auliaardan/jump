@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import PaymentProof, CartItem
+from .models import PaymentProof, CartItem, AcceptedAbstractSubmission
 
 from .models import SciComSubmission
 
@@ -74,6 +74,14 @@ class SciComSubmissionForm(forms.ModelForm):
                 if fieldname in self.fields:
                     del self.fields[fieldname]
 
+class AcceptedAbstractForm(forms.ModelForm):
+    class Meta:
+        model = AcceptedAbstractSubmission
+        fields = ['abstract', 'gdrive_link']
+        widgets = {
+          'abstract': forms.Select(attrs={'class':'form-control'}),
+          'gdrive_link': forms.URLInput(attrs={'class':'form-control', 'placeholder':'https://…'}),
+        }
 
 class PaymentProofForm(forms.ModelForm):
     class Meta:
