@@ -32,13 +32,6 @@ ACCEPTED_START = datetime.datetime(
 
 @login_required
 def submit_accepted_abstract(request):
-    now = timezone.now()
-
-    # Not yet time or feature disabled
-    if not settings.SCI_COM_ABSTRACT_OPEN or now < ACCEPTED_START:
-        messages.error(request, "Formulir untuk penyampaian Presentasi & e-Poster belum dibuka.")
-        return redirect('scicom_page')
-
     if request.method == 'POST':
         form = AcceptedAbstractForm(request.POST)
         if form.is_valid():
