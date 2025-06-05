@@ -561,6 +561,11 @@ class SciComSubmission(models.Model):
     )
     link_flyer = models.URLField(blank=True, null=True)
 
+    is_accepted = models.BooleanField(
+        default = False,
+        help_text = "Tick to mark this abstract as accepted."
+        )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     # --------------------------------

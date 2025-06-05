@@ -12,8 +12,19 @@ admin.site.register(PaymentProof)
 admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 admin.site.register(ImageForPage)
-admin.site.register(SciComSubmission)
-
+@admin.register(SciComSubmission)
+class SciComSubmissionAdmin(admin.ModelAdmin):
+     list_display = (
+        'id',
+        'user',
+        'submission_type',
+        'abstract_title',
+        'created_at',
+        'is_accepted',
+     )
+     list_filter = ('submission_type', 'is_accepted')
+     list_editable = ('is_accepted',)
+     search_fields = ('user__nama_lengkap', 'abstract_title', 'abstract_authors')
 
 class TicketCategoryInline(admin.TabularInline):
     model = TicketCategory

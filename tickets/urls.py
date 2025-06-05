@@ -5,12 +5,13 @@ from django.urls import path
 from . import views
 from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view, SeminarsView, \
     WorkshopView, CheckoutView, apply_discount, cart_item_count, ScicomView, baseView, SponsorsView, create_submission, \
-    scicom_dashboard, export_scicom_submissions_excel, submit_accepted_abstract
+    scicom_dashboard, export_scicom_submissions_excel, submit_accepted_abstract, accepted_submissions_dashboard
 
 urlpatterns = [
                   path('', baseView.as_view(), name='seminar_list'),
                   path('submission/create/', create_submission, name='create_submission'),
                   path('submission/accepted/', submit_accepted_abstract, name='submit_accepted_abstract'),
+                  path('accepted/dashboard/', accepted_submissions_dashboard, name='accepted_submissions_dashboard'),
                   path('sponsors/', SponsorsView.as_view(), name='sponsors'),
                   path('cart_item_count/', cart_item_count, name='cart_item_count'),
                   path('seminar/<int:pk>/', SeminarDetailView.as_view(), name='seminar_detail'),

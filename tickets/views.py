@@ -21,7 +21,8 @@ from openpyxl.workbook import Workbook
 
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
-    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission
+    workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
+    AcceptedAbstractSubmission
 from .models import TicketCategory, OrderItem
 from django.conf import settings
 
@@ -29,6 +30,21 @@ ACCEPTED_START = datetime.datetime(
     2025, 6, 5, 0, 0,
     tzinfo=timezone.get_current_timezone()
 )
+@staff_member_required
+def accepted_submissions_dashboard(request):
+    """
+    List all AcceptedAbstractSubmission records, showing:
+    - ID
+    - Abstract Title (pulled from the related SciComSubmission)
+    - Author (user.nama_lengkap)
+    - GDrive Link (clickable)
+    - Submitted At (timestamp)
+    """
+    accepted_list = AcceptedAbstractSubmission.objects.select_related('user', 'abstract').all()
+    return render(request, 'tickets/accepted_submissions_dashboard.html', {
+        'accepted_list': accepted_list
+    })
+
 
 @login_required
 def submit_accepted_abstract(request):
@@ -45,7 +61,8 @@ def submit_accepted_abstract(request):
         # only show this user's own abstracts
         form.fields['abstract'].queryset = SciComSubmission.objects.filter(
             user=request.user,
-            submission_type=SciComSubmission.ABSTRACT
+            submission_type=SciComSubmission.ABSTRACT,
+            is_accepted=True
         )
 
     return render(request, 'tickets/submit_accepted_abstract.html', {'form': form})
