@@ -12,19 +12,43 @@ admin.site.register(PaymentProof)
 admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 admin.site.register(ImageForPage)
+
+
 @admin.register(SciComSubmission)
 class SciComSubmissionAdmin(admin.ModelAdmin):
-     list_display = (
+    list_display = (
         'id',
         'user',
         'submission_type',
         'abstract_title',
         'created_at',
         'is_accepted',
-     )
-     list_filter = ('submission_type', 'is_accepted')
-     list_editable = ('is_accepted',)
-     search_fields = ('user__nama_lengkap', 'abstract_title', 'abstract_authors')
+    )
+    list_filter = ('submission_type', 'is_accepted')
+    list_editable = ('is_accepted',)
+    search_fields = ('user__nama_lengkap', 'abstract_title', 'abstract_authors')
+
+    actions = ['mark_as_accepted']
+
+    @admin.action(description='Mark selected abstracts as accepted')
+    def mark_as_accepted(self, request, queryset):
+        """
+           For each SciComSubmission in the queryset that is not yet accepted,
+            flip is_accepted=True and save() so the post_save signal will send the email.
+        """
+        accepted_count = 0
+        # Only process those still False → avoid resending to already‐accepted rows
+        for submission in queryset.filter(is_accepted=False):
+            submission.is_accepted = True
+            submission.save()  # triggers post_save signal → sends email
+            accepted_count += 1
+        # Let the admin know how many were updated
+        self.message_user(
+            request,
+            f"✅ {accepted_count} abstract(s) marked as accepted and notification email sent."
+        )
+
+
 
 class TicketCategoryInline(admin.TabularInline):
     model = TicketCategory
@@ -65,9 +89,11 @@ class SponsorInline(admin.TabularInline):
     model = landing_page.sponsor.through
     extra = 1
 
+
 @admin.register(Sponsor)
 class SponsorAdmin(admin.ModelAdmin):
-    list_display = ('name', )
+    list_display = ('name',)
+
 
 @admin.register(landing_page)
 class LandingPageAdmin(admin.ModelAdmin):
