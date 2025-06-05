@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Abstract Accepted</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+      line-height: 1.5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header-img {
+      width: 100%;
+      max-width: 600px;
+      display: block;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+    }
+    p {
+      margin-bottom: 15px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #1a73e8;
+      color: #fff !important;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #777;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header image -->
+    <img
+      src="https://jump2025.com/Letterhead.png"
+      alt="Jump2025 Header"
+      class="header-img"
+    />
+
+    <!-- Greeting -->
+    <h1>Dear {{ name }},</h1>
+
+    <!-- Main message -->
+    <p>
+      Congratulations! Your abstract titled
+      <strong>“{{ abstract_title }}”</strong> has been <span style="color: #1a73e8; font-weight: bold;">accepted</span>
+      for presentation at our Scientific Competition.
+    </p>
+
+    <p>
+      We are excited to invite you to submit your PowerPoint presentation and
+      e-poster files. Please click the button below to upload your materials:
+    </p>
+
+    <!-- Call-to-action button -->
+    <p style="text-align: center;">
+      <a href="{{ submission_link }}" class="button">Submit Presentation &amp; e-Poster</a>
+    </p>
+
+    <p>
+      If you have any questions or need assistance, feel free to contact our
+      organizing committee at <a href="mailto:urology.jump@gmail.com">urology.jump@gmail.com</a>.
+    </p>
+
+    <p>
+      Thank you for contributing to the success of our event. We look forward to
+      seeing your presentation!
+    </p>
+
+    <!-- Closing and signature -->
+    <p>Warm regards,</p>
+    <p><strong>Tim Scientific Competition</strong><br>
+       Jump2025 Organizing Committee
+    </p>
+
+    <!-- Footer note -->
+    <div class="footer">
+      <p>
+        You are receiving this email because you submitted an abstract to Jump2025.
+        If you believe this was sent in error, please disregard.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
