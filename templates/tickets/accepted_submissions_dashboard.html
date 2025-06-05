@@ -3,67 +3,69 @@
 {% load static %}
 
 {% block title %}
-  Accepted Abstracts Dashboard
+    Accepted Abstracts Dashboard
 {% endblock %}
 
 {% block content %}
-  <div class="py-5">
-    <div class="container">
+    <div class="py-5">
+        <div class="container">
 
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-        <h1 class="h2">Accepted Abstracts</h1>
-        <div class="justify-content-end">
-          <!-- Optional: link back to main SciCom Dashboard -->
-          <a href="{% url 'scicom_dashboard' %}" class="btn btn-secondary">Back to SciCom Dashboard</a>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+                <h1 class="h2">Accepted Abstracts</h1>
+                <div class="justify-content-end">
+                    <a href="{% url 'export_orders' %}" class="btn btn-primary">Export
+                        Orders</a>
+                    <a href="{% url 'scicom_dashboard' %}" class="btn btn-success">SciCom</a>
+                    <a href="{% url 'accepted_submissions_dashboard' %}" class="btn btn-danger">Accapted Submission</a>
+                </div>
+            </div>
+
+            <div class="table-responsive small">
+                <table id="acceptedTable" class="table table-striped table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Abstract Title</th>
+                        <th scope="col">GDrive Link</th>
+                        <th scope="col">Submitted At</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in accepted_list %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.user.nama_lengkap }}</td>
+                            <td>{{ item.user.email }}</td>
+                            <td>{{ item.abstract.abstract_title }}</td>
+                            <td>
+                                {% if item.gdrive_link %}
+                                    <a href="{{ item.gdrive_link }}" target="_blank">
+                                        {{ item.gdrive_link }}
+                                    </a>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ item.submitted_at|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Tidak ada abstrak yang diterima.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
         </div>
-      </div>
-
-      <div class="table-responsive small">
-        <table id="acceptedTable" class="table table-striped table-sm align-middle">
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Author</th>
-              <th scope="col">Email</th>
-              <th scope="col">Abstract Title</th>
-              <th scope="col">GDrive Link</th>
-              <th scope="col">Submitted At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in accepted_list %}
-              <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.user.nama_lengkap }}</td>
-                <td>{{ item.user.email }}</td>
-                <td>{{ item.abstract.abstract_title }}</td>
-                <td>
-                  {% if item.gdrive_link %}
-                    <a href="{{ item.gdrive_link }}" target="_blank">
-                      {{ item.gdrive_link }}
-                    </a>
-                  {% else %}
-                    N/A
-                  {% endif %}
-                </td>
-                <td>{{ item.submitted_at|date:"Y-m-d H:i" }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-center">Tidak ada abstrak yang diterima.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
     </div>
-  </div>
 
-  <!-- DataTables initialization (same as in scicom_dashboard.html) -->
-  <script>
-    $(document).ready(function () {
-      $('#acceptedTable').DataTable();
-    });
-  </script>
+    <!-- DataTables initialization (same as in scicom_dashboard.html) -->
+    <script>
+        $(document).ready(function () {
+            $('#acceptedTable').DataTable();
+        });
+    </script>
 {% endblock %}
