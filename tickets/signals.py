@@ -113,6 +113,7 @@ def send_acceptance_email(sender, instance, created, **kwargs):
         # Prepare context for the email template
         context = {
             'name': instance.user.nama_lengkap,
+            'abstract_title': instance.abstract_title,
             'type': instance.get_submission_type_display(),
             'submission_link': "https://jump2025.com/submission/accepted/",
         }
@@ -122,7 +123,7 @@ def send_acceptance_email(sender, instance, created, **kwargs):
                                       context)  # :contentReference[oaicite:0]{index=0}
 
         # Compose and send the EmailMessage
-        email_subject = "Your Abstract Has Been Accepted!"
+        email_subject = "Announcement of Abstract Selection – JUMP 2025 Scientific Competition"
         email = EmailMessage(
             subject=email_subject,
             body=email_body,

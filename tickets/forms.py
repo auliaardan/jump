@@ -2,8 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import PaymentProof, CartItem, AcceptedAbstractSubmission
-
+from .models import PaymentProof, AcceptedAbstractSubmission
 from .models import SciComSubmission
 
 
@@ -30,9 +29,9 @@ class SciComSubmissionForm(forms.ModelForm):
         widgets = {
             'abstract_authors': forms.Textarea(attrs={'rows': 2}),
             'address': forms.Textarea(attrs={'rows': 2}),
-            'abstract_authors' : forms.Textarea(attrs={'rows': 2}),
-            'video_authors' : forms.Textarea(attrs={'rows': 2}),
-            'flyer_authors' : forms.Textarea(attrs={'rows': 2}),
+            'abstract_authors': forms.Textarea(attrs={'rows': 2}),
+            'video_authors': forms.Textarea(attrs={'rows': 2}),
+            'flyer_authors': forms.Textarea(attrs={'rows': 2}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -74,14 +73,21 @@ class SciComSubmissionForm(forms.ModelForm):
                 if fieldname in self.fields:
                     del self.fields[fieldname]
 
+
 class AcceptedAbstractForm(forms.ModelForm):
     class Meta:
         model = AcceptedAbstractSubmission
         fields = ['abstract', 'gdrive_link']
         widgets = {
-          'abstract': forms.Select(attrs={'class':'form-control'}),
-          'gdrive_link': forms.URLInput(attrs={'class':'form-control', 'placeholder':'https://…'}),
+            'abstract': forms.Select(attrs={'class': 'form-control'}),
+            'gdrive_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Show only the abstract_title instead of the default __str__()
+        self.fields['abstract'].label_from_instance = lambda obj: obj.abstract_title
+
 
 class PaymentProofForm(forms.ModelForm):
     class Meta:
@@ -103,5 +109,3 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
-
-

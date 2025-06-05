@@ -652,7 +652,7 @@ class AcceptedAbstractSubmission(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'submission_type': SciComSubmission.ABSTRACT}
     )
-    gdrive_link = models.URLField(help_text="Link ke folder GDrive (PPT & e-Poster)")
+    gdrive_link = models.URLField(help_text="Link to folder containing PPT and E-Poster")
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
