@@ -503,28 +503,36 @@ a {
     /* No need for flex properties here */
 }
 
-/* Sponsor card styling remains the same */
+/* 1) Base card: flex container, center the logo */
 .sponsor-card {
-    background-color: #ffffff;
-    position: relative;
-    width: 100%;
-    padding-top: 100%; /* 1:1 aspect ratio box */
-    overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  padding: 1rem;           /* space around logo */
+  overflow: hidden;
+  /* remove any padding-top / aspect-ratio hack here */
 }
 
-.sponsor-card .sponsor-logo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 80%;
-  max-height: 80%;
+/* 2) Tier-specific card heights */
+.platinum-sponsor .sponsor-card { height: 140px; }
+.gold-sponsor     .sponsor-card { height: 120px; }
+.silver-sponsor   .sponsor-card { height:  80px; }
+
+/* 3) Tier-specific logo sizing */
+.platinum-sponsor .sponsor-logo { max-width:  95%; max-height: 95%; }
+.gold-sponsor     .sponsor-logo { max-width:  75%; max-height: 75%; }
+.silver-sponsor   .sponsor-logo { max-width:  50%; max-height: 50%; }
+
+/* 4) Preserve logo aspect ratio */
+.sponsor-logo {
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 
-.platinum-sponsor .sponsor-logo { max-width: 90%; max-height: 90%; }
-.gold-sponsor     .sponsor-logo { max-width: 70%; max-height: 70%; }
-.silver-sponsor   .sponsor-logo { max-width: 50%; max-height: 50%; }
 
 /* Adjust sponsor video iframe */
 .sponsor-video iframe {
