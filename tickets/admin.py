@@ -49,7 +49,6 @@ class SciComSubmissionAdmin(admin.ModelAdmin):
         )
 
 
-
 class TicketCategoryInline(admin.TabularInline):
     model = TicketCategory
     extra = 1
@@ -57,6 +56,7 @@ class TicketCategoryInline(admin.TabularInline):
 
 @admin.register(Seminar)
 class SeminarAdmin(admin.ModelAdmin):
+    list_display = ('title', 'date', 'end_date', 'location', 'category')
     inlines = [TicketCategoryInline]
 
 

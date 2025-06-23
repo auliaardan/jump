@@ -310,6 +310,7 @@ class Seminar(models.Model):
     description = models.TextField(blank=False, default="Sample Description")
     image = models.ImageField(upload_to='seminar_images/', blank=True, null=True)
     date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank=True)
     location = models.CharField(max_length=200, null=True, blank=True, default="RSCM")
     category = models.CharField(max_length=8, choices=CATEGORY_CHOICES, default=SEMINAR)
 

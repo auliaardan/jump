@@ -14,8 +14,12 @@
             </div>
             <div class="col-lg-6">
                 <h1 class="fw-bold display-4 mb-3">{{ seminar.title }}</h1>
-                <h2 class="h4 text-muted mb-4">{{ seminar.date|date:"F j, Y - g:i A" }}</h2>
-
+                <h2 class="h4 text-muted mb-4">
+                    {{ seminar.date|date:"F j, Y g:i A" }}
+                    {% if seminar.end_date %}
+                        – {{ seminar.end_date|date:"F j, Y g:i A" }}
+                    {% endif %}
+                </h2>
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h3 class="h5 mb-3">Ticket Information</h3>
