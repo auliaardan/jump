@@ -1,15 +1,18 @@
-import json
 import datetime
+import json
 import re
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
+from django.db.models import Min
 from django.db.models import Sum
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
@@ -24,12 +27,48 @@ from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem,
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
     AcceptedAbstractSubmission
 from .models import TicketCategory, OrderItem
-from django.conf import settings
 
 ACCEPTED_START = datetime.datetime(
     2025, 6, 5, 0, 0,
     tzinfo=timezone.get_current_timezone()
 )
+
+
+# views.py
+
+
+def seminar_catalogue_partial(request):
+    """
+    Returns ONLY the seminar catalogue grid (the include).
+    Used by AJAX pagination + search.
+    """
+    search_query = request.GET.get('search', '').strip()
+    category = request.GET.get('category', '').strip()  # optional future filter
+    page_number = request.GET.get('page', 1)
+
+    qs = Seminar.objects.all().order_by('-date')
+
+    if search_query:
+        qs = qs.filter(title__icontains=search_query)
+
+    if category in [Seminar.SEMINAR, Seminar.WORKSHOP]:
+        qs = qs.filter(category=category)
+
+    # annotate cheapest price for display
+    qs = qs.annotate(min_price=Min('ticket_categories__price'))
+
+    paginator = Paginator(qs, 4)  # show more items per page for nicer catalogue
+    page_obj = paginator.get_page(page_number)
+
+    html = render_to_string(
+        'tickets/partials/seminar_grid_wrapper.html',
+        {'seminar_list': page_obj},
+        request=request
+    )
+
+    return HttpResponse(html)
+
+
 @staff_member_required
 def accepted_submissions_dashboard(request):
     """
@@ -66,6 +105,7 @@ def submit_accepted_abstract(request):
         )
 
     return render(request, 'tickets/submit_accepted_abstract.html', {'form': form})
+
 
 @login_required
 def create_submission(request):
@@ -223,6 +263,7 @@ class SeminarsView(ListView):
         context['has_previous'] = page_obj.has_previous()
         context['search_query'] = search_query
         return context
+
 
 class baseView(ListView):
     model = landing_page
@@ -654,7 +695,6 @@ def export_orders_view(request):
         institution = user.institution
         email = user.email  # <--- retrieve from user model
 
-
         # 3) Append data including "Email" to the row:
         ws.append([
             user.username,
@@ -788,8 +828,8 @@ def export_scicom_submissions_excel(request):
 
     # We will create three querysets:
     abstracts = SciComSubmission.objects.filter(submission_type=SciComSubmission.ABSTRACT).select_related('user')
-    videos   = SciComSubmission.objects.filter(submission_type=SciComSubmission.VIDEO).select_related('user')
-    flyers   = SciComSubmission.objects.filter(submission_type=SciComSubmission.FLYER).select_related('user')
+    videos = SciComSubmission.objects.filter(submission_type=SciComSubmission.VIDEO).select_related('user')
+    flyers = SciComSubmission.objects.filter(submission_type=SciComSubmission.FLYER).select_related('user')
 
     # ---------------------------------------------------
     # 1) ABSTRACT Submissions (first sheet)
@@ -827,17 +867,17 @@ def export_scicom_submissions_excel(request):
         registered_str = "Yes" if submission.already_registered else "No"
         occupation_str = submission.get_occupation_display()
 
-        abstract_ws.cell(row=row_num, column=1,  value=submission.id)
-        abstract_ws.cell(row=row_num, column=2,  value=submission.name)
-        abstract_ws.cell(row=row_num, column=3,  value=occupation_str)
-        abstract_ws.cell(row=row_num, column=4,  value=submission.email)
-        abstract_ws.cell(row=row_num, column=5,  value=submission.phone)
-        abstract_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        abstract_ws.cell(row=row_num, column=7,  value=submission.address)
-        abstract_ws.cell(row=row_num, column=8,  value=registered_str)
+        abstract_ws.cell(row=row_num, column=1, value=submission.id)
+        abstract_ws.cell(row=row_num, column=2, value=submission.name)
+        abstract_ws.cell(row=row_num, column=3, value=occupation_str)
+        abstract_ws.cell(row=row_num, column=4, value=submission.email)
+        abstract_ws.cell(row=row_num, column=5, value=submission.phone)
+        abstract_ws.cell(row=row_num, column=6, value=submission.affiliation)
+        abstract_ws.cell(row=row_num, column=7, value=submission.address)
+        abstract_ws.cell(row=row_num, column=8, value=registered_str)
         # format created_at
         created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        abstract_ws.cell(row=row_num, column=9,  value=created_str)
+        abstract_ws.cell(row=row_num, column=9, value=created_str)
 
         abstract_ws.cell(row=row_num, column=10, value=submission.abstract_title)
         abstract_ws.cell(row=row_num, column=11, value=submission.paper_type)
@@ -878,15 +918,15 @@ def export_scicom_submissions_excel(request):
         occupation_str = submission.get_occupation_display()
         created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
 
-        video_ws.cell(row=row_num, column=1,  value=submission.id)
-        video_ws.cell(row=row_num, column=2,  value=submission.name)
-        video_ws.cell(row=row_num, column=3,  value=occupation_str)
-        video_ws.cell(row=row_num, column=4,  value=submission.email)
-        video_ws.cell(row=row_num, column=5,  value=submission.phone)
-        video_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        video_ws.cell(row=row_num, column=7,  value=submission.address)
-        video_ws.cell(row=row_num, column=8,  value=registered_str)
-        video_ws.cell(row=row_num, column=9,  value=created_str)
+        video_ws.cell(row=row_num, column=1, value=submission.id)
+        video_ws.cell(row=row_num, column=2, value=submission.name)
+        video_ws.cell(row=row_num, column=3, value=occupation_str)
+        video_ws.cell(row=row_num, column=4, value=submission.email)
+        video_ws.cell(row=row_num, column=5, value=submission.phone)
+        video_ws.cell(row=row_num, column=6, value=submission.affiliation)
+        video_ws.cell(row=row_num, column=7, value=submission.address)
+        video_ws.cell(row=row_num, column=8, value=registered_str)
+        video_ws.cell(row=row_num, column=9, value=created_str)
 
         video_ws.cell(row=row_num, column=10, value=submission.video_title)
         video_ws.cell(row=row_num, column=11, value=submission.video_authors)
@@ -922,15 +962,15 @@ def export_scicom_submissions_excel(request):
         occupation_str = submission.get_occupation_display()
         created_str = submission.created_at.strftime("%Y-%m-%d %H:%M:%S")
 
-        flyer_ws.cell(row=row_num, column=1,  value=submission.id)
-        flyer_ws.cell(row=row_num, column=2,  value=submission.name)
-        flyer_ws.cell(row=row_num, column=3,  value=occupation_str)
-        flyer_ws.cell(row=row_num, column=4,  value=submission.email)
-        flyer_ws.cell(row=row_num, column=5,  value=submission.phone)
-        flyer_ws.cell(row=row_num, column=6,  value=submission.affiliation)
-        flyer_ws.cell(row=row_num, column=7,  value=submission.address)
-        flyer_ws.cell(row=row_num, column=8,  value=registered_str)
-        flyer_ws.cell(row=row_num, column=9,  value=created_str)
+        flyer_ws.cell(row=row_num, column=1, value=submission.id)
+        flyer_ws.cell(row=row_num, column=2, value=submission.name)
+        flyer_ws.cell(row=row_num, column=3, value=occupation_str)
+        flyer_ws.cell(row=row_num, column=4, value=submission.email)
+        flyer_ws.cell(row=row_num, column=5, value=submission.phone)
+        flyer_ws.cell(row=row_num, column=6, value=submission.affiliation)
+        flyer_ws.cell(row=row_num, column=7, value=submission.address)
+        flyer_ws.cell(row=row_num, column=8, value=registered_str)
+        flyer_ws.cell(row=row_num, column=9, value=created_str)
 
         flyer_ws.cell(row=row_num, column=10, value=submission.flyer_title)
         flyer_ws.cell(row=row_num, column=11, value=submission.flyer_authors)

@@ -19,6 +19,7 @@ urlpatterns = [
                   path('workshops/', WorkshopView.as_view(), name='workshop_page'),
                   path('scientific_competition/', ScicomView.as_view(), name='scicom_page'),
                   path('cart/', CartDetailView.as_view(), name='cart_detail'),
+                  path('programs/partial/', views.seminar_catalogue_partial, name='seminar_catalogue_partial'),
                   path('about_us/', about_us_view.as_view(), name='about_us'),
                   path('remove_from_cart/<int:item_id>/', RemoveFromCartView.as_view(), name='remove_from_cart'),
                   path('add_to_cart/<int:seminar_id>/', AddToCartView.as_view(), name='add_to_cart'),

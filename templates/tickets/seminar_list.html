@@ -1,122 +1,212 @@
-{% load custom_filters %}
+{# templates/tickets/seminar_list.html #}
+
 {% block head %}
     <script>
         $(document).ready(function () {
             let currentPage = 1;
             let searchTimeout;
 
-            function loadSeminars(page, query = '') {
+            function loadCatalogue(page) {
+                const query = $("#seminar-search").val().trim();
+                const category = $("#seminar-category").val();
+
                 $.ajax({
-                    url: "{% url 'seminar_list' %}",
-                    type: 'GET',
-                    data: {
-                        'page': page,
-                        'search': query,
-                    },
-                    success: function (response) {
-                        const newContent = $(response).find('#seminar-list').html();
-                        if (newContent.trim() === "" && query === "") {
-                            currentPage = 1;
-                            loadSeminars(currentPage);
-                        } else {
-                            $('#seminar-list').html(newContent);
-                            updateButtons(page);
-                        }
-                    },
+                    url: "{% url 'seminar_catalogue_partial' %}",
+                    type: "GET",
+                    data: {page: page, search: query, category: category},
+                    success: function (html) {
+  const $fragment = $(html);
+  const $inner = $fragment.filter("#seminar-list-inner");
+
+  // Replace ONLY the columns (prevents any accidental nesting / stacking)
+  $("#seminar-list").html($inner.html());
+
+  // Update the data attributes on the row wrapper
+  $("#seminar-list").attr("data-has-next", $inner.data("has-next"));
+  $("#seminar-list").attr("data-has-prev", $inner.data("has-prev"));
+
+  currentPage = page;
+
+  const hasNext = $("#seminar-list").data("has-next");
+  const hasPrev = $("#seminar-list").data("has-prev");
+
+  $("#next-btn").prop("disabled", !hasNext);
+  $("#prev-btn").prop("disabled", !hasPrev);
+},
+
                     error: function (xhr, status, error) {
-                        console.error('Error:', error);
+                        console.error("Error:", error);
                     }
                 });
             }
 
-            function updateButtons(page) {
-                $.ajax({
-                    url: "{% url 'seminar_list' %}",
-                    type: 'GET',
-                    data: {
-                        'page': page,
-                    },
-                    success: function (response) {
-                        const has_next = $(response).find('#next-btn').prop('disabled');
-                        const has_previous = $(response).find('#prev-btn').prop('disabled');
-                        $('#next-btn').prop('disabled', has_next);
-                        $('#prev-btn').prop('disabled', has_previous);
-                    }
-                });
-            }
+            // Initial load (optional; if server already rendered, you can skip)
+            // loadCatalogue(1);
 
-            $('#next-btn').click(function () {
-                currentPage++;
-                loadSeminars(currentPage);
+            $("#next-btn").click(function () {
+                loadCatalogue(currentPage + 1);
             });
 
-            $('#prev-btn').click(function () {
-                if (currentPage > 1) {
-                    currentPage--;
-                    loadSeminars(currentPage);
-                }
+            $("#prev-btn").click(function () {
+                if (currentPage > 1) loadCatalogue(currentPage - 1);
             });
 
-
-            $('#seminar-search').on('input', function () {
+            $("#seminar-search").on("input", function () {
                 clearTimeout(searchTimeout);
-                const query = $(this).val().trim();
+                searchTimeout = setTimeout(function () {
+                    loadCatalogue(1);
+                }, 350);
+            });
 
-                if (query) {
-                    currentPage = 1;
-                    loadSeminars(currentPage, query);
-                } else {
-                    searchTimeout = setTimeout(function () {
-                        loadSeminars(currentPage);
-                    }, 500);
-                }
+            $("#seminar-category").on("change", function () {
+                loadCatalogue(1);
             });
         });
     </script>
 {% endblock head %}
 
-
 <style>
-    .placeholder {
-        visibility: hidden;
+    .seminar-card {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    .seminar-poster {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #f3f4f6;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+        transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .seminar-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        transition: transform .35s ease;
+    }
+
+    .seminar-card:hover .seminar-poster {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.14);
+    }
+
+    .seminar-card:hover .seminar-poster img {
+        transform: scale(1.06);
+    }
+
+    .seminar-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 700;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(6px);
+    }
+
+    .seminar-meta {
+        padding: 12px 4px 0;
+        text-align: center;
+    }
+
+    .seminar-title {
+        margin: 0;
+        font-weight: 800;
+        font-size: 1rem;
+        line-height: 1.25;
+        min-height: 2.6em;
+    }
+
+    .seminar-info {
+        margin: 8px 0 0;
+        font-size: .86rem;
+        color: #6b7280;
+        line-height: 1.35;
+        min-height: 2.6em;
+    }
+
+    .seminar-bottom {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.04);
+        color: rgba(0, 0, 0, 0.72);
+    }
+
+    .chip-success {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+
+    .chip-danger {
+        background: rgba(220, 53, 69, 0.12);
+        color: #dc3545;
+    }
+
+    .chip-muted {
+        background: rgba(108, 117, 125, 0.12);
+        color: #6c757d;
+    }
+
+    .seminar-empty {
+        border: 1px dashed rgba(0, 0, 0, 0.18);
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        color: #6b7280;
     }
 </style>
+
 <div id="scroll_here" class="animate-on-scroll container py-6 pad-phone">
-    <div class="row mb-4">
-        <div class="col-12">
-            <input type="text" id="seminar-search" class="form-control" placeholder="Search seminars...">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-8">
+            <input type="text" id="seminar-search" class="form-control"
+                   placeholder="Search by title...">
+        </div>
+        <div class="col-12 col-md-4">
+            <select id="seminar-category" class="form-select">
+                <option value="">All Programs</option>
+                <option value="Seminar">Seminar</option>
+                <option value="Workshop">Workshop</option>
+            </select>
         </div>
     </div>
-    <div class="row" id="seminar-list">
-        {% for seminar in seminar_list %}
-            <li class="col-lg mt-r-3" style="list-style-type: none;">
-                <a href="{% url 'seminar_detail' seminar.id %}" style="color: black">
-                    <div class="zoom-effect-container">
-                        {% if seminar.image %}
-                            <img src="{{ seminar.image.url }}" alt="A picture of the seminar/workshop"
-                                 class="img-fluid"
-                                 alt="Jakarta Urology Medical Update Workshop past events documentations"
-                                 width="100%"
-                                 height="600px" loading="lazy" style="max-height: 500px">
-                        {% else %}
-                            <p>Image not Found</p>
-                        {% endif %}
-                    </div>
-                    <h4 style="font-weight: bold; text-align: center">{{ seminar.title }}</h4>
-                </a>
-            </li>
-        {% endfor %}
-        {% for i in num_placeholders|range_filter %}
-            <li class="col-lg placeholder" style="list-style-type: none; width: 25%;"></li>
-        {% endfor %}
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 seminar-catalogue" id="seminar-list"
+         data-has-next="{{ seminar_list.has_next }}"
+         data-has-prev="{{ seminar_list.has_previous }}">
+        {% include "tickets/partials/seminar_grid.html" with seminar_list=seminar_list %}
     </div>
+
     <div class="d-flex justify-content-center mt-4">
         <button id="prev-btn" class="btn btn-outline-primary me-2"
                 {% if not seminar_list.has_previous %}disabled{% endif %}>Previous
         </button>
-        <button id="next-btn" class="btn btn-outline-primary" {% if not seminar_list.has_next %}disabled{% endif %}>
-            Next
+        <button id="next-btn" class="btn btn-outline-primary"
+                {% if not seminar_list.has_next %}disabled{% endif %}>Next
         </button>
     </div>
 </div>
-

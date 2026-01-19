@@ -1,0 +1,53 @@
+{# templates/tickets/partials/seminar_grid.html #}
+
+{% for seminar in seminar_list %}
+  <div class="col">
+    <a href="{% url 'seminar_detail' seminar.id %}" class="seminar-card" aria-label="{{ seminar.title }}">
+      <div class="seminar-poster">
+        {% if seminar.image %}
+          <img src="{{ seminar.image.url }}" alt="{{ seminar.title }}" loading="lazy">
+        {% else %}
+          <div class="d-flex h-100 w-100 align-items-center justify-content-center seminar-empty">No image</div>
+        {% endif %}
+        <span class="seminar-badge">{{ seminar.category }}</span>
+      </div>
+
+      <div class="seminar-meta">
+        <h4 class="seminar-title">{{ seminar.title }}</h4>
+
+        <p class="seminar-info">
+          <i class="bi bi-calendar-event"></i>
+          {% if seminar.end_date %}
+            {{ seminar.date|date:"d M Y" }} – {{ seminar.end_date|date:"d M Y" }}
+          {% else %}
+            {{ seminar.date|date:"d M Y, H:i" }}
+          {% endif %}
+          <br>
+          <i class="bi bi-geo-alt"></i> {{ seminar.location|default:"TBA" }}
+        </p>
+
+        <div class="seminar-bottom">
+          {% if seminar.total_available_seats > 0 %}
+            {% if seminar.total_remaining_seats <= 0 %}
+              <span class="chip chip-danger"><i class="bi bi-x-circle"></i> Sold out</span>
+            {% elif seminar.total_remaining_seats <= 10 %}
+              <span class="chip chip-danger"><i class="bi bi-exclamation-triangle"></i> {{ seminar.total_remaining_seats }} left</span>
+            {% else %}
+              <span class="chip chip-success"><i class="bi bi-check-circle"></i> Seats available</span>
+            {% endif %}
+          {% else %}
+            <span class="chip chip-muted"><i class="bi bi-info-circle"></i> Coming soon</span>
+          {% endif %}
+
+          {% if seminar.min_price %}
+            <span class="chip"><i class="bi bi-cash"></i> From Rp {{ seminar.min_price|floatformat:0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+{% empty %}
+  <div class="col-12">
+    <div class="seminar-empty">No programs found.</div>
+  </div>
+{% endfor %}

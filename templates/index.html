@@ -167,79 +167,70 @@
     {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
     <!-- Start of Timeline Section -->
     <!-- Outer section with gradient background -->
+    {# --- Timeline Section (Upgraded) --- #}
     <div class="container py-6" id="timeline-section">
-        <h2 class="text-center mb-5">Event Timeline</h2>
         <div class="row justify-content-center">
-            <div class="col-md-10 col-lg-8">
+            <div class="col-md-10 col-lg-9">
+                <div class="text-center mb-4">
+                    <h2 class="mb-2">Event Timeline</h2>
+                    <p class="text-muted mb-0">Explore upcoming seminars & workshops</p>
+                </div>
 
-                <!-- OUTER BOX (gradient background),
-                     no max-height limit, can grow as tall as needed -->
-                <div
-                        class="timeline-container"
-                >
+                <div class="timeline-shell">
+                    <div class="timeline-scroll">
+                        {% regroup seminars_all by date|date:"Y-m-d" as grouped_events %}
 
-                    <!-- INNER BOX (optionally scrollable). If you don't want vertical
-                         scrolling at all, remove 'height: 600px;' and 'overflow-y: auto'. -->
-                    <div
-                            style="
-            height: 600px; /* remove this if you want unlimited height */
-            overflow-y: auto; /* remove if no scrolling is desired */
-          "
-                    >
-                        {% for seminar in seminars_all %}
-                            <!-- Single Event Card -->
-                            <div class="card mb-4 border-0 shadow-sm">
-                                <div class="row g-0 align-items-center">
+                        {% for day in grouped_events %}
+                            <div class="timeline-day">
+                                <div class="timeline-day-badge">
+                                    <div class="timeline-day-dow">{{ day.list.0.date|date:"D" }}</div>
+                                    <div class="timeline-day-date">{{ day.list.0.date|date:"d M" }}</div>
+                                    <div class="timeline-day-year">{{ day.list.0.date|date:"Y" }}</div>
+                                </div>
 
-                                    <div class="col-12 col-md-8 p-3 d-flex align-items-center">
-                                        <!-- Title & Subtitle -->
-                                        <div>
-                                            <h5 class="mb-1 text-wrap">
-                                                {{ seminar.title }}
-                                            </h5>
-                                        </div>
-                                    </div>
+                                <div class="timeline-events">
+                                    {% for seminar in day.list %}
+                                        <a href="{% url 'seminar_detail' seminar.id %}" class="timeline-card">
+                                            <div class="timeline-dot" aria-hidden="true"></div>
 
-                                    <!-- MIDDLE: Vertical Divider (on md+ screens only) -->
-                                    <div class="col-md-1 d-none d-md-flex justify-content-center">
-                                        <div style="
-        width: 1px;
-        background: #ddd;
-        height: 60px;
-        margin: auto;
-      "></div>
-                                    </div>
+                                            <div class="timeline-card-body">
+                                                <div class="timeline-card-top">
+                                                    <span class="timeline-category">{{ seminar.category }}</span>
 
-                                    <!-- RIGHT: Location, date/time, button (3/12 on md+) -->
-                                    <div class="col-12 col-md-3 p-3">
-                                        <p class="mb-2">
-                                            <i class="bi bi-geo-alt-fill me-2"></i>
-                                            {{ seminar.location }}
-                                        </p>
-                                        <p class="mb-2">
-                                            <i class="bi bi-calendar-event me-2"></i>
-                                            {{ seminar.date|date:"l, d F Y" }}
-                                        </p>
-                                        <p class="mb-3">
-                                            <i class="bi bi-clock me-2"></i>
-                                            {{ seminar.date|date:"H:i" }}
-                                        </p>
-                                        <a href="{% url 'seminar_detail' seminar.id %}"
-                                           class="btn btn-outline-primary btn-sm">
-                                            Learn More
+                                                    <span class="timeline-time">
+                          <i class="bi bi-clock me-1"></i>
+                          {{ seminar.date|date:"H:i" }}
+                                                        {% if seminar.end_date %}–
+                                                            {{ seminar.end_date|date:"H:i" }}{% endif %}
+                        </span>
+                                                </div>
+
+                                                <h5 class="timeline-title">{{ seminar.title }}</h5>
+
+                                                <div class="timeline-meta">
+                                                    <span><i
+                                                            class="bi bi-geo-alt me-1"></i>{{ seminar.location|default:"TBA" }}</span>
+                                                    <span class="timeline-cta">
+                          View details <i class="bi bi-arrow-right-short"></i>
+                        </span>
+                                                </div>
+                                            </div>
                                         </a>
-                                    </div>
-                                </div> <!-- row -->
-                            </div> <!-- card -->
-
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="timeline-empty">
+                                No events available yet.
+                            </div>
                         {% endfor %}
-
-                    </div> <!-- INNER BOX -->
-                </div> <!-- OUTER GRADIENT BOX -->
+                    </div>
+                </div>
 
             </div>
         </div>
     </div>
+
     <!-- End of Timeline Section -->
 
 

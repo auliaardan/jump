@@ -1,3 +1,34 @@
+/* Hard stop any accidental horizontal scroll on mobile */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Bootstrap rows use negative margins; ensure your custom wrappers don't create overflow */
+#seminar-list {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Prevent long titles/chips from stretching width */
+.seminar-title,
+.seminar-info {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Chips should wrap and never force container wider */
+.seminar-bottom {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.chip {
+  max-width: 100%;
+  white-space: normal;
+}
+
+
 nav .navbar-nav li a,
 nav .navbar-text a {
     color: white !important;
@@ -505,32 +536,51 @@ a {
 
 /* 1) Base card: flex container, center the logo */
 .sponsor-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  margin-bottom: 1rem;
-  padding: 1rem;           /* space around logo */
-  overflow: hidden;
-  /* remove any padding-top / aspect-ratio hack here */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    padding: 1rem; /* space around logo */
+    overflow: hidden;
+    /* remove any padding-top / aspect-ratio hack here */
 }
 
 /* 2) Tier-specific card heights */
-.platinum-sponsor .sponsor-card { height: 140px; }
-.gold-sponsor     .sponsor-card { height: 120px; }
-.silver-sponsor   .sponsor-card { height:  80px; }
+.platinum-sponsor .sponsor-card {
+    height: 140px;
+}
+
+.gold-sponsor .sponsor-card {
+    height: 120px;
+}
+
+.silver-sponsor .sponsor-card {
+    height: 80px;
+}
 
 /* 3) Tier-specific logo sizing */
-.platinum-sponsor .sponsor-logo { max-width:  95%; max-height: 95%; }
-.gold-sponsor     .sponsor-logo { max-width:  75%; max-height: 75%; }
-.silver-sponsor   .sponsor-logo { max-width:  50%; max-height: 50%; }
+.platinum-sponsor .sponsor-logo {
+    max-width: 95%;
+    max-height: 95%;
+}
+
+.gold-sponsor .sponsor-logo {
+    max-width: 75%;
+    max-height: 75%;
+}
+
+.silver-sponsor .sponsor-logo {
+    max-width: 50%;
+    max-height: 50%;
+}
 
 /* 4) Preserve logo aspect ratio */
 .sponsor-logo {
-  width: auto;
-  height: auto;
-  object-fit: contain;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 
@@ -682,4 +732,188 @@ a {
         height: 180px;
     }
 
+}
+
+
+/* =========================
+   Premium Timeline UI
+   ========================= */
+
+.timeline-shell {
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.00));
+    padding: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.timeline-scroll {
+    max-height: 650px; /* keep your scroll behavior */
+    overflow-y: auto;
+    padding: 8px 8px 8px 4px;
+}
+
+/* day grouping */
+.timeline-day {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.timeline-day-badge {
+    position: sticky;
+    top: 10px;
+    align-self: start;
+    border-radius: 16px;
+    padding: 12px 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    text-align: center;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+}
+
+.timeline-day-dow {
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.timeline-day-date {
+    font-weight: 900;
+    font-size: 1.35rem;
+    line-height: 1.1;
+    margin-top: 4px;
+}
+
+.timeline-day-year {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+
+/* events column: vertical line */
+.timeline-events {
+    position: relative;
+    padding-left: 26px;
+}
+
+.timeline-events::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+}
+
+/* timeline cards */
+.timeline-card {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: 14px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 2px;
+    top: 22px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #fff;
+    border: 3px solid rgba(13, 110, 253, 0.85); /* bootstrap primary-ish */
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.timeline-card-body {
+    margin-left: 0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.timeline-card:hover .timeline-card-body {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.10);
+}
+
+/* top row: badge + time pill */
+.timeline-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.timeline-category {
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(13, 110, 253, 0.12);
+    color: rgba(13, 110, 253, 1);
+}
+
+.timeline-time {
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.70);
+    white-space: nowrap;
+}
+
+.timeline-title {
+    font-weight: 900;
+    font-size: 1.02rem;
+    margin: 0 0 8px;
+    line-height: 1.25;
+}
+
+.timeline-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.timeline-cta {
+    font-weight: 800;
+    color: rgba(13, 110, 253, 1);
+    white-space: nowrap;
+}
+
+.timeline-empty {
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px dashed rgba(0, 0, 0, 0.18);
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+    .timeline-day {
+        grid-template-columns: 1fr;
+    }
+
+    .timeline-day-badge {
+        position: relative;
+        top: 0;
+    }
+
+    .timeline-events {
+        padding-left: 22px;
+    }
 }

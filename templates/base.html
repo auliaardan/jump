@@ -37,6 +37,18 @@
     <script>
         var cartItemCountUrl = "{% url 'cart_item_count' %}";
     </script>
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Event",
+          "name": "Jakarta Urology Medical Update",
+          "startDate": "2026-01-01",
+          "location": {
+            "@type": "Place",
+            "name": "RSCM Jakarta"
+          }
+        }
+    </script>
     <script src="{% static 'js/cart.js' %}" defer></script>
     {% block head %}{% endblock head %}
     <!-- Style -->

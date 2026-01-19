@@ -1,0 +1,6 @@
+{# templates/tickets/partials/seminar_grid_wrapper.html #}
+<div id="seminar-list-inner"
+     data-has-next="{{ seminar_list.has_next }}"
+     data-has-prev="{{ seminar_list.has_previous }}">
+  {% include "tickets/partials/seminar_grid.html" with seminar_list=seminar_list %}
+</div>
