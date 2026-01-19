@@ -1,33 +1,64 @@
 /* Hard stop any accidental horizontal scroll on mobile */
 html, body {
-  max-width: 100%;
-  overflow-x: hidden;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Bootstrap rows use negative margins; ensure your custom wrappers don't create overflow */
 #seminar-list {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* Prevent long titles/chips from stretching width */
 .seminar-title,
 .seminar-info {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* Chips should wrap and never force container wider */
 .seminar-bottom {
-  justify-content: center;
-  flex-wrap: wrap;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .chip {
-  max-width: 100%;
-  white-space: normal;
+    max-width: 100%;
+    white-space: normal;
 }
 
+@media (max-width: 991.98px) {
+    .jump-navbar .navbar-collapse {
+        text-align: left;
+    }
+
+    .jump-navbar .navbar-collapse .btn {
+        color: #fff;
+        border-color: rgba(255,255,255,0.6);
+    }
+}
+
+@media (min-width: 992px) {
+  .jump-navbar .navbar-collapse {
+    justify-content: center;
+  }
+}
+/* ============================= */
+/* Mobile Navbar (Collapsed)     */
+/* ============================= */
+
+/* Make ALL links white inside the toggled menu */
+.jump-navbar .navbar-collapse .nav-link,
+.jump-navbar .navbar-collapse a {
+    color: #ffffff !important;
+}
+
+/* Ensure hover/focus stays white */
+.jump-navbar .navbar-collapse .nav-link:hover,
+.jump-navbar .navbar-collapse .nav-link:focus {
+    color: #ffffff !important;
+}
 
 nav .navbar-nav li a,
 nav .navbar-text a {
