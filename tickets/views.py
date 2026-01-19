@@ -1,4 +1,5 @@
 import datetime
+import datetime
 import json
 import re
 
@@ -9,13 +10,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.db.models import Min
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_POST
@@ -23,10 +27,12 @@ from django.views.generic import ListView, DetailView
 from openpyxl.workbook import Workbook
 
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
-from .models import PaymentMethod, Seminar, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
+from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
     AcceptedAbstractSubmission
+from .models import Seminar, Ticket
 from .models import TicketCategory, OrderItem
+from django.utils.text import slugify
 
 ACCEPTED_START = datetime.datetime(
     2025, 6, 5, 0, 0,
@@ -34,7 +40,144 @@ ACCEPTED_START = datetime.datetime(
 )
 
 
-# views.py
+@staff_member_required
+def attendance_export_xlsx(request, seminar_id):
+    seminar = get_object_or_404(Seminar, id=seminar_id)
+
+    # OPTIONAL: respect current filters from attendance_detail (status + q)
+    status = request.GET.get("status", "all")
+    q = (request.GET.get("q", "") or "").strip()
+
+    tickets = Ticket.objects.select_related(
+        "order", "order__user",
+        "order_item", "order_item__ticket_category", "order_item__ticket_category__seminar"
+    ).filter(order_item__ticket_category__seminar=seminar).order_by("created_at")
+
+    if status == "checked_in":
+        tickets = tickets.filter(checked_in=True)
+    elif status == "not_checked_in":
+        tickets = tickets.filter(checked_in=False)
+
+    if q:
+        tickets = tickets.filter(
+            Q(id__icontains=q) |
+            Q(order__id__icontains=q) |
+            Q(order__user__username__icontains=q) |
+            Q(order__user__email__icontains=q) |
+            Q(order_item__ticket_category__name__icontains=q)
+        )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Attendance"
+
+    ws.append([
+        "ticket_id",
+        "order_id",
+        "username",
+        "email",
+        "category",
+        "checked_in",
+        "checked_in_at",
+        "created_at",
+    ])
+
+    for t in tickets:
+        ws.append([
+            str(t.id),
+            t.order.id if t.order_id else "",
+            t.order.user.username if t.order_id and t.order.user_id else "",
+            t.order.user.email if t.order_id and t.order.user_id else "",
+            t.order_item.ticket_category.name if t.order_item_id else "",
+            "YES" if t.checked_in else "NO",
+            t.checked_in_at.replace(tzinfo=None) if t.checked_in_at else "",
+            t.created_at.replace(tzinfo=None) if t.created_at else "",
+        ])
+
+    # Make the sheet a bit nicer (optional)
+    for col in ["A", "B", "C", "D", "E", "F", "G", "H"]:
+        ws.column_dimensions[col].width = 22
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    seminar_slug = slugify(seminar.title)
+    filename = f"attendance-{seminar_slug}-{timezone.now().strftime('%Y%m%d-%H%M')}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response
+
+
+@login_required
+def my_tickets(request):
+    tickets = Ticket.objects.select_related(
+        "order_item",
+        "order_item__ticket_category",
+        "order_item__ticket_category__seminar",
+    ).filter(order__user=request.user).order_by("-created_at")
+
+    return render(request, "tickets/my_tickets.html", {"tickets": tickets})
+
+
+@staff_member_required
+def attendance_dashboard(request):
+    seminars = Seminar.objects.annotate(
+        total_tickets=Count("ticket_categories__orderitem__tickets", distinct=True),
+        checked_in=Count(
+            "ticket_categories__orderitem__tickets",
+            filter=Q(ticket_categories__orderitem__tickets__checked_in=True),
+            distinct=True,
+        ),
+    ).order_by("-date")
+
+    for s in seminars:
+        s.not_yet = (s.total_tickets or 0) - (s.checked_in or 0)
+
+    return render(request, "tickets/staff/attendance_dashboard.html", {
+        "seminars": seminars,
+    })
+
+
+@staff_member_required
+def attendance_detail(request, seminar_id):
+    seminar = get_object_or_404(Seminar, id=seminar_id)
+
+    status = request.GET.get("status", "all")  # all / checked_in / not_checked_in
+    q = request.GET.get("q", "").strip()
+
+    tickets = Ticket.objects.select_related(
+        "order", "order__user",
+        "order_item", "order_item__ticket_category", "order_item__ticket_category__seminar"
+    ).filter(order_item__ticket_category__seminar=seminar).order_by("-checked_in_at", "-created_at")
+
+    if status == "checked_in":
+        tickets = tickets.filter(checked_in=True)
+    elif status == "not_checked_in":
+        tickets = tickets.filter(checked_in=False)
+
+    if q:
+        tickets = tickets.filter(
+            Q(id__icontains=q) |
+            Q(order__id__icontains=q) |
+            Q(order__user__username__icontains=q) |
+            Q(order__user__email__icontains=q) |
+            Q(order_item__ticket_category__name__icontains=q)
+        )
+
+    total = Ticket.objects.filter(order_item__ticket_category__seminar=seminar).count()
+    checked_in = Ticket.objects.filter(order_item__ticket_category__seminar=seminar, checked_in=True).count()
+    not_checked_in = total - checked_in
+
+    return render(request, "tickets/staff/attendance_detail.html", {
+        "seminar": seminar,
+        "tickets": tickets,
+        "total": total,
+        "checked_in": checked_in,
+        "not_checked_in": not_checked_in,
+        "status": status,
+        "q": q,
+    })
 
 
 def seminar_catalogue_partial(request):
@@ -610,28 +753,76 @@ class AddToCartView(View):
 @require_POST
 def confirm_order_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    order.is_confirmed = True
-    order.confirmation_date = timezone.now()
-    order.transaction_id = request.POST.get('transaction_id')
-    order.save()
 
-    email_subject = 'Konfirmasi Pesanan Anda'
-    email_body = render_to_string('tickets/emails/order_confirmed.html', {
-        'user': order.user,
+    # Idempotent: if already confirmed, don't create duplicate tickets
+    if not order.is_confirmed:
+        order.is_confirmed = True
+        order.save(update_fields=["is_confirmed"])
+
+        # Generate tickets (1 per quantity)
+        for item in order.orderitem_set.all():
+            for _ in range(item.quantity):
+                t = Ticket.objects.create(order=order, order_item=item)
+                ticket_url = request.build_absolute_uri(
+                    reverse("ticket_booked_detail", kwargs={"ticket_id": t.id})
+                )
+                t.generate_qr(ticket_url)
+                t.save()
+
+    # Build ticket links for email (works whether tickets were just created or already existed)
+    tickets = []
+    for t in order.tickets.select_related("order_item", "order_item__ticket_category",
+                                          "order_item__ticket_category__seminar").all():
+        tickets.append({
+            "id": str(t.id),
+            "url": request.build_absolute_uri(reverse("ticket_booked_detail", kwargs={"ticket_id": t.id})),
+        })
+
+    email_subject = "Konfirmasi Pesanan Anda"
+    email_body = render_to_string("tickets/emails/order_confirmed.html", {
+        "user": order.user,
+        "order": order,
+        "tickets": tickets,
     })
+
     email = EmailMessage(
         email_subject,
         email_body,
-        'admin@jump2025.com',
+        "admin@jump2025.com",
         [order.user.email],
     )
-    email.content_subtype = 'html'
+    email.content_subtype = "html"
 
     try:
         email.send()
     except Exception as e:
         messages.error(request, f"Failed to send email: {e}")
-    return redirect('admin_dashboard')
+
+    return redirect("admin_dashboard")
+
+
+def ticket_booked_detail(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    return render(request, "tickets/ticket_booked_detail.html", {
+        "ticket": ticket,
+        "order": ticket.order,
+        "item": ticket.order_item,
+    })
+
+
+@staff_member_required
+def staff_checkin(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    was_already_checked_in = ticket.checked_in
+    if not was_already_checked_in:
+        ticket.mark_checked_in()
+
+    return render(request, "tickets/checkin_result.html", {
+        "ticket": ticket,
+        "was_already_checked_in": was_already_checked_in,
+    })
 
 
 @staff_member_required

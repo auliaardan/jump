@@ -1,15 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Konfirmasi Pesanan untuk {{ user.username }}</title>
+  <title>Konfirmasi Pesanan untuk {{ user.username }}</title>
 </head>
 <body>
-    <img src="https://jump2025.com/Letterhead.png" alt="Gambar Header" style="width: 100%; max-width: 600px;">
-    <h1>Pesanan Anda Telah Dikonfirmasi, {{ user.first_name }} {{ user.last_name }}!</h1>
-    <p>Pesanan Anda telah dikonfirmasi. Terima kasih atas pembelian Anda!</p>
-    <p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.</p>
-    <p>Salam hangat,</p>
-    <p>Tim Jakarta Urology Medical Update</p>
+  <img src="https://jakartaurologymedicalupdate.com/Letterhead.png" alt="Gambar Header" style="width: 100%; max-width: 600px;">
+
+  <h1>Pesanan Anda Telah Dikonfirmasi, {{ user.first_name }} {{ user.last_name }}!</h1>
+  <p>Pesanan Anda telah dikonfirmasi. Terima kasih atas pembelian Anda!</p>
+  <p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.</p>
+  <p>Salam hangat,</p>
+  <p>Tim Jakarta Urology Medical Update</p>
+
+  <h3>Tiket Anda</h3>
+  <ul>
+    {% for t in tickets %}
+      <li>
+        Tiket #{{ t.id }}<br>
+        Link tiket: <a href="{{ t.url }}">{{ t.url }}</a>
+      </li>
+    {% empty %}
+      <li>Tiket belum tersedia.</li>
+    {% endfor %}
+  </ul>
+
+  <p>Silakan tunjukkan QR dari link tiket saat registrasi/check-in.</p>
 </body>
-</html>
 </html>

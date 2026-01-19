@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5" style="max-width:1100px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">Attendance Dashboard</h2>
+                <p class="text-muted mb-0">Pilih event untuk melihat daftar hadir.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="{% url 'admin_dashboard' %}">
+                ← Back to Main Dashboard
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Tanggal</th>
+                    <th>Total Tickets</th>
+                    <th>Checked-in</th>
+                    <th>Not Yet</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for s in seminars %}
+                    <tr>
+                        <td class="fw-bold">{{ s.title }}</td>
+                        <td>{{ s.date|date:"d M Y, H:i" }}</td>
+                        <td>{{ s.total_tickets }}</td>
+                        <td class="text-success fw-bold">{{ s.checked_in }}</td>
+                        <td class="text-danger fw-bold">{{ s.not_yet }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-primary btn-sm" href="{% url 'attendance_detail' s.id %}">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-muted">No events.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,7 +1,14 @@
 import os
+# models.py
+import uuid
+from io import BytesIO
+from django.urls import reverse
 
+# pip install qrcode[pil]
+import qrcode as qr_lib
 from PIL import Image
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
@@ -563,9 +570,9 @@ class SciComSubmission(models.Model):
     link_flyer = models.URLField(blank=True, null=True)
 
     is_accepted = models.BooleanField(
-        default = False,
-        help_text = "Tick to mark this abstract as accepted."
-        )
+        default=False,
+        help_text="Tick to mark this abstract as accepted."
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -658,3 +665,39 @@ class AcceptedAbstractSubmission(models.Model):
 
     def __str__(self):
         return f"Accepted Abstract #{self.id} by {self.user.nama_lengkap}"
+
+
+class Ticket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='tickets')
+    order_item = models.ForeignKey('OrderItem', on_delete=models.CASCADE, related_name='tickets')
+
+    attendee_name = models.CharField(max_length=255, blank=True, null=True)  # optional
+    checked_in = models.BooleanField(default=False)
+    checked_in_at = models.DateTimeField(blank=True, null=True)
+
+    qr_image = models.ImageField(upload_to="tickets/qr/", blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def mark_checked_in(self):
+        if not self.checked_in:
+            self.checked_in = True
+            self.checked_in_at = timezone.now()
+            self.save(update_fields=["checked_in", "checked_in_at"])
+
+    def get_absolute_url(self):
+        return reverse("ticket_booked_detail", kwargs={"ticket_id": self.id})
+
+    def generate_qr(self, absolute_ticket_url: str):
+        qr = qr_lib.QRCode(box_size=10, border=3)
+        qr.add_data(absolute_ticket_url)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        filename = f"ticket-{self.id}.png"
+        self.qr_image.save(filename, ContentFile(buffer.getvalue()), save=False)
+

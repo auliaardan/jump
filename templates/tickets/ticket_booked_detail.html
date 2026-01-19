@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  .ticket-wrap { max-width: 900px; margin: 0 auto; }
+  .ticket-card {
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .ticket-header {
+    padding: 18px 18px 12px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.04), rgba(0,0,0,0.01));
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .ticket-title { margin: 0; font-weight: 900; }
+  .ticket-sub { margin: 6px 0 0; color: rgba(0,0,0,0.6); }
+
+  .ticket-body { padding: 18px; }
+  .qr-box {
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    padding: 18px;
+    text-align: center;
+  }
+  .qr-img { width: 100%; max-width: 320px; height: auto; }
+  .code-pill {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 0.9rem;
+    background: rgba(0,0,0,0.06);
+    color: rgba(0,0,0,0.75);
+    padding: 8px 12px;
+    border-radius: 999px;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-box {
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    padding: 18px;
+  }
+  .detail-row { display: flex; gap: 10px; margin: 10px 0; }
+  .detail-label { min-width: 120px; color: rgba(0,0,0,0.55); font-weight: 700; }
+  .detail-value { color: rgba(0,0,0,0.85); font-weight: 700; overflow-wrap: anywhere; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 900;
+    padding: 10px 14px;
+    border-radius: 999px;
+  }
+  .status-valid { background: rgba(25,135,84,0.12); color: #198754; }
+  .status-used { background: rgba(220,53,69,0.12); color: #dc3545; }
+
+  .staff-actions {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 768px){
+    .detail-row { flex-direction: column; gap: 4px; }
+    .detail-label { min-width: 0; }
+  }
+</style>
+
+<div class="container py-5 ticket-wrap">
+  <div class="ticket-card">
+    <div class="ticket-header">
+      <h2 class="ticket-title">JUMP Ticket</h2>
+      <p class="ticket-sub mb-0">
+        Tunjukkan halaman ini (QR) saat registrasi / check-in.
+      </p>
+    </div>
+
+    <div class="ticket-body">
+      <div class="row g-4 align-items-stretch">
+        <!-- QR -->
+        <div class="col-12 col-lg-5">
+          <div class="qr-box h-100">
+            {% if ticket.qr_image %}
+              <img class="qr-img" src="{{ ticket.qr_image.url }}" alt="QR Ticket">
+            {% else %}
+              <div class="alert alert-warning mb-0">
+                QR belum tersedia. Silakan hubungi admin.
+              </div>
+            {% endif %}
+
+            <div class="code-pill">
+              Ticket ID: {{ ticket.id }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="col-12 col-lg-7">
+          <div class="detail-box h-100">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              {% if ticket.checked_in %}
+                <span class="status-pill status-used">
+                  <i class="bi bi-x-circle"></i> ALREADY USED
+                </span>
+              {% else %}
+                <span class="status-pill status-valid">
+                  <i class="bi bi-check-circle"></i> VALID
+                </span>
+              {% endif %}
+
+              {% if ticket.checked_in and ticket.checked_in_at %}
+                <small class="text-muted">
+                  Checked in: {{ ticket.checked_in_at|date:"d M Y, H:i" }}
+                </small>
+              {% endif %}
+            </div>
+
+            <hr>
+
+            <div class="detail-row">
+              <div class="detail-label">Nama</div>
+              <div class="detail-value">
+                {% if ticket.attendee_name %}
+                  {{ ticket.attendee_name }}
+                {% else %}
+                  {{ order.user.first_name }} {{ order.user.last_name }}
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Program</div>
+              <div class="detail-value">
+                {{ item.ticket_category.seminar.title }}
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Kategori</div>
+              <div class="detail-value">
+                {{ item.ticket_category.name }}
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Tanggal</div>
+              <div class="detail-value">
+                {{ item.ticket_category.seminar.date|date:"d M Y, H:i" }}
+                {% if item.ticket_category.seminar.end_date %}
+                  – {{ item.ticket_category.seminar.end_date|date:"d M Y, H:i" }}
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Lokasi</div>
+              <div class="detail-value">
+                {{ item.ticket_category.seminar.location|default:"TBA" }}
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Order</div>
+              <div class="detail-value">
+                #{{ order.id }}
+              </div>
+            </div>
+
+            <!-- Staff-only action -->
+            {% if request.user.is_staff %}
+              <div class="staff-actions">
+                {% if ticket.checked_in %}
+                  <div class="alert alert-danger mb-0">
+                    Ticket sudah pernah digunakan. Jika ada masalah, cek data order #{{ order.id }}.
+                  </div>
+                {% else %}
+                  <a href="{% url 'staff_checkin' ticket.id %}" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-qr-code-scan me-2"></i> CHECK IN NOW
+                  </a>
+                  <p class="text-muted mt-2 mb-0" style="font-size:0.9rem;">
+                    Tombol ini hanya muncul untuk staff/admin.
+                  </p>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-center">
+        <a href="{% url 'seminar_list' %}" class="btn btn-outline-primary">
+          Back to Home
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

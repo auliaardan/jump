@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <style>
+        .checkin-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            border-radius: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .result-body {
+            padding: 22px;
+            text-align: center;
+        }
+
+        .big-icon {
+            font-size: 64px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-weight: 1000;
+            margin: 0 0 6px;
+        }
+
+        .result-sub {
+            color: rgba(0, 0, 0, 0.65);
+            margin: 0 0 18px;
+        }
+
+        .mini-box {
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 14px;
+            text-align: left;
+            background: #fff;
+        }
+
+        .mini-row {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .mini-label {
+            min-width: 110px;
+            color: rgba(0, 0, 0, 0.55);
+            font-weight: 800;
+        }
+
+        .mini-val {
+            font-weight: 800;
+            color: rgba(0, 0, 0, 0.85);
+            overflow-wrap: anywhere;
+        }
+    </style>
+
+    <div class="container py-5 checkin-wrap">
+        <div class="result-card">
+            <div class="result-body">
+
+                {% if was_already_checked_in %}
+                    <div class="big-icon text-danger">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                    <h2 class="result-title text-danger">ALREADY USED</h2>
+                    <p class="result-sub">
+                        Ticket ini sudah pernah digunakan sebelumnya.
+                    </p>
+                {% else %}
+                    <div class="big-icon text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h2 class="result-title text-success">CHECKED IN</h2>
+                    <p class="result-sub">
+                        Ticket berhasil dicatat sebagai hadir.
+                        {% if ticket.checked_in_at %} ({{ ticket.checked_in_at|date:"d M Y, H:i" }}){% endif %}
+                    </p>
+                {% endif %}
+
+
+                <div class="mini-box">
+                    <div class="mini-row">
+                        <div class="mini-label">Ticket ID</div>
+                        <div class="mini-val">{{ ticket.id }}</div>
+                    </div>
+                    <div class="mini-row">
+                        <div class="mini-label">Order</div>
+                        <div class="mini-val">#{{ ticket.order.id }}</div>
+                    </div>
+                    <div class="mini-row">
+                        <div class="mini-label">Program</div>
+                        <div class="mini-val">{{ ticket.order_item.ticket_category.seminar.title }}</div>
+                    </div>
+                    <div class="mini-row">
+                        <div class="mini-label">Kategori</div>
+                        <div class="mini-val">{{ ticket.order_item.ticket_category.name }}</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{% url 'ticket_booked_detail' ticket.id %}" class="btn btn-outline-primary btn-lg">
+                        View Ticket
+                    </a>
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
