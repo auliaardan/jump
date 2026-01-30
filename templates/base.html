@@ -110,7 +110,24 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'about_us' %}">About Us</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'seminar_page' %}">Symposium</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'workshop_page' %}">Workshops</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'scicom_page' %}">Scientific Competition</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="{% url 'scicom_page' %}" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Scientific Competition
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'scicom_page' %}#scicom-rules">
+                                Rules &amp; Guidelines
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'scicom_page' %}#scicom-join">
+                                Join Now
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
 
             <!-- Mobile auth (after menu, left aligned) -->

@@ -3,7 +3,7 @@
 
 
 {% block content %}
-    <div class="bg-light py-6 animate-on-scroll">
+    <div class="bg-light py-6 animate-on-scroll" id="scicom-rules">
         <div class="container-fluid"> <!-- Changed to container-fluid for full-width -->
             <div class="row justify-content-center">
                 <div class="col-lg-7 text-center"> <!-- Increased column width -->
@@ -45,10 +45,18 @@
                         <p>No rules available.</p>
                     {% endif %}
                 </div>
-                <div class="row mt-5 justify-content-center">
+                <div class="row mt-5 justify-content-center" id="scicom-join">
                     <div class="col-lg-8 text-center">
                         <h4 class="bold mb-4">Join Now</h4>
-                        <a href="{% url 'submit_accepted_abstract' %}" class="btn btn-success mx-auto ">Accepted Submission</a>
+                        {% if scicom_settings.show_accepted_submissions %}
+                            <a href="{% url 'submit_accepted_abstract' %}" class="btn btn-success mx-auto">
+                                Accepted Submission
+                            </a>
+                        {% else %}
+                            <a href="{% url 'create_submission' %}" class="btn btn-success mx-auto">
+                                Register Scientific Competition
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

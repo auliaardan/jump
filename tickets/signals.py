@@ -116,11 +116,12 @@ def send_acceptance_email(sender, instance, created, **kwargs):
     new_state = instance.is_accepted
 
     # If it changed from False → True, send the “accepted” email
-    if not old_state and new_state:
+    if not old_state and new_state and not instance.accepted_email_sent:
+        submission_title = instance.abstract_title or instance.video_title or instance.flyer_title or "your submission"
         # Prepare context for the email template
         context = {
             'name': instance.user.nama_lengkap,
-            'abstract_title': instance.abstract_title,
+            'abstract_title': submission_title,
             'type': instance.get_submission_type_display(),
             'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
         }
@@ -139,3 +140,4 @@ def send_acceptance_email(sender, instance, created, **kwargs):
         )
         email.content_subtype = 'html'  # ensures the HTML template is rendered
         email.send(fail_silently=False)
+        SciComSubmission.objects.filter(pk=instance.pk, accepted_email_sent=False).update(accepted_email_sent=True)

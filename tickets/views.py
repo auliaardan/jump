@@ -29,7 +29,7 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
-    AcceptedAbstractSubmission, SymposiumFaculty
+    AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings
 from .models import Seminar, Ticket
 from .models import TicketCategory, OrderItem
 from django.utils.text import slugify
@@ -38,6 +38,11 @@ ACCEPTED_START = datetime.datetime(
     2025, 6, 5, 0, 0,
     tzinfo=timezone.get_current_timezone()
 )
+
+
+def get_scicom_settings():
+    settings_obj, _ = SciComSettings.objects.get_or_create(pk=1)
+    return settings_obj
 
 
 @staff_member_required
@@ -335,9 +340,11 @@ class ScicomView(ListView):
 
         qrcode_obj = qrcode.objects.last()
         images = ImageForPage.objects.filter(category=ImageForPage.SCICOM)
+        scicom_settings = get_scicom_settings()
 
         context['images'] = images
         context['qrcode'] = qrcode_obj
+        context['scicom_settings'] = scicom_settings
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()
@@ -622,10 +629,60 @@ def admin_dashboard(request):
 @staff_member_required
 def scicom_dashboard(request):
     scicom = SciComSubmission.objects.all()
+    scicom_settings = get_scicom_settings()
     context = {
-        'scicom': scicom
+        'scicom': scicom,
+        'scicom_settings': scicom_settings,
     }
     return render(request, 'tickets/scicom_dashboard.html', context)
+
+
+@staff_member_required
+@require_POST
+def toggle_scicom_submission_mode(request):
+    scicom_settings = get_scicom_settings()
+    scicom_settings.show_accepted_submissions = not scicom_settings.show_accepted_submissions
+    scicom_settings.save(update_fields=['show_accepted_submissions'])
+
+    if scicom_settings.show_accepted_submissions:
+        accepted_submissions = SciComSubmission.objects.filter(
+            is_accepted=True,
+            accepted_email_sent=False,
+        ).select_related('user')
+        sent_count = 0
+
+        for submission in accepted_submissions:
+            submission_title = (
+                submission.abstract_title
+                or submission.video_title
+                or submission.flyer_title
+                or "your submission"
+            )
+            email_body = render_to_string('tickets/emails/accepted_notification.html', {
+                'name': submission.user.nama_lengkap,
+                'abstract_title': submission_title,
+                'type': submission.get_submission_type_display(),
+                'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
+            })
+            email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                'admin@jakartaurologymedicalupdate.com',
+                [submission.user.email],
+            )
+            email.content_subtype = 'html'
+            email.send(fail_silently=False)
+            SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
+                accepted_email_sent=True
+            )
+            sent_count += 1
+
+        messages.success(request, f"Accepted submissions enabled. Sent {sent_count} acceptance email(s).")
+    else:
+        messages.success(request, "SciCom submissions are now open for new entries.")
+
+    return redirect('scicom_dashboard')
 
 
 @login_required

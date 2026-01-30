@@ -68,6 +68,17 @@ class scicom_rules(models.Model):
             return []
 
 
+class SciComSettings(models.Model):
+    show_accepted_submissions = models.BooleanField(
+        default=False,
+        help_text="When enabled, the Scientific Competition page will direct users to submit accepted abstracts."
+    )
+
+    def __str__(self):
+        status = "Accepted Submissions" if self.show_accepted_submissions else "Open Submissions"
+        return f"SciCom Settings ({status})"
+
+
 @receiver(post_delete, sender=scicom_rules)
 def delete_pdf_file(sender, instance, **kwargs):
     if instance.pdf_file:
@@ -605,6 +616,10 @@ class SciComSubmission(models.Model):
     is_accepted = models.BooleanField(
         default=False,
         help_text="Tick to mark this abstract as accepted."
+    )
+    accepted_email_sent = models.BooleanField(
+        default=False,
+        help_text="Set when the acceptance email has been sent to the submitter."
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
