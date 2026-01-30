@@ -29,7 +29,7 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
-    AcceptedAbstractSubmission
+    AcceptedAbstractSubmission, SymposiumFaculty
 from .models import Seminar, Ticket
 from .models import TicketCategory, OrderItem
 from django.utils.text import slugify
@@ -384,27 +384,12 @@ class SeminarsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
-
-        if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date')
+        symposium_page = seminars_page.objects.last()
+        context['seminars'] = symposium_page
+        if symposium_page:
+            context['faculties'] = symposium_page.faculties.all()
         else:
-            seminars = Seminar.objects.filter(category=Seminar.SEMINAR).order_by('-date')
-
-        paginator = Paginator(seminars, 4)
-        page_number = self.request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        # Calculate the number of placeholders needed to maintain the layout
-        num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
-        images = ImageForPage.objects.filter(category=ImageForPage.SEMINAR)
-
-        context['images'] = images
-        context['seminar_list'] = page_obj
-        context['num_placeholders'] = num_placeholders
-        context['has_next'] = page_obj.has_next()
-        context['has_previous'] = page_obj.has_previous()
-        context['search_query'] = search_query
+            context['faculties'] = SymposiumFaculty.objects.none()
         return context
 
 

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
     WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech, TicketCategory, scicom_rules, qrcode, \
-    Sponsor, ImageForPage, SciComSubmission
+    Sponsor, ImageForPage, SciComSubmission, SymposiumFaculty
 
 admin.site.register(TicketCategory)
 admin.site.register(scicom_rules)
@@ -90,6 +90,11 @@ class SponsorInline(admin.TabularInline):
     extra = 1
 
 
+class SymposiumFacultyInline(admin.TabularInline):
+    model = SymposiumFaculty
+    extra = 1
+
+
 @admin.register(Sponsor)
 class SponsorAdmin(admin.ModelAdmin):
     list_display = ('name',)
@@ -110,7 +115,16 @@ class PhoneNumberAdmin(admin.ModelAdmin):
     list_display = ['name', 'email']
 
 
-admin.site.register(seminars_page)
+@admin.register(seminars_page)
+class SeminarsPageAdmin(admin.ModelAdmin):
+    inlines = [SymposiumFacultyInline]
+
+
+@admin.register(SymposiumFaculty)
+class SymposiumFacultyAdmin(admin.ModelAdmin):
+    list_display = ("name", "title", "symposium_page", "display_order")
+
+
 admin.site.register(workshops_page)
 admin.site.register(Cart)
 admin.site.register(CartItem)
