@@ -164,7 +164,9 @@
         </div>
     </div>
     <!-- End of Section Seminar and WS Card -->
-    {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
+    <div id="scroll_here">
+        {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
+    </div>
     <!-- Start of Timeline Section -->
     <!-- Outer section with gradient background -->
     {# --- Timeline Section (Upgraded) --- #}

@@ -4,6 +4,28 @@ html, body {
     overflow-x: hidden;
 }
 
+/* Desktop: open dropdown on hover */
+@media (min-width: 992px) {
+    .jump-home-dropdown:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .jump-home-dropdown > .dropdown-toggle {
+        pointer-events: auto;
+    }
+
+    .jump-navbar .navbar-collapse {
+        justify-content: center;
+    }
+}
+
+/* Keep dropdown looking premium */
+.jump-navbar .dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px);
+}
+
 /* Bootstrap rows use negative margins; ensure your custom wrappers don't create overflow */
 #seminar-list {
     margin-left: 0 !important;
@@ -35,15 +57,10 @@ html, body {
 
     .jump-navbar .navbar-collapse .btn {
         color: #fff;
-        border-color: rgba(255,255,255,0.6);
+        border-color: rgba(255, 255, 255, 0.6);
     }
 }
 
-@media (min-width: 992px) {
-  .jump-navbar .navbar-collapse {
-    justify-content: center;
-  }
-}
 /* ============================= */
 /* Mobile Navbar (Collapsed)     */
 /* ============================= */
@@ -137,7 +154,7 @@ nav .navbar-text a {
 /*THIS IS RANDOM */
 
 .header-gradient {
-    background: linear-gradient(0deg, #ff7d0b, #ff1d8e);
+    background: linear-gradient(0deg, #ffa60c, #ff1d8e);
 }
 
 .footer-gradient {
