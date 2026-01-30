@@ -176,7 +176,7 @@ else:
 
 AUTH_USER_MODEL = "accounts.CustomUser"
 
-CSRF_TRUSTED_ORIGINS = ["https://jump2025.com", "https://www.jump2025.com"]
+CSRF_TRUSTED_ORIGINS = ["https://jakartaurologymedicalupdate.com", "https://www.jakartaurologymedicalupdate.com"]
 
 LOGIN_REDIRECT_URL = "seminar_list"
 LOGOUT_REDIRECT_URL = "seminar_list"
