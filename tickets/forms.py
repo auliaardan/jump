@@ -89,6 +89,16 @@ class AcceptedAbstractForm(forms.ModelForm):
         # Show only the abstract_title instead of the default __str__()
         self.fields['abstract'].label_from_instance = lambda obj: obj.abstract_title
 
+    def clean(self):
+        cleaned_data = super().clean()
+        ppt_link = cleaned_data.get('ppt_link')
+        poster_link = cleaned_data.get('poster_link')
+        if not ppt_link and not poster_link:
+            raise forms.ValidationError(
+                "Please provide at least one link (PPT or poster)."
+            )
+        return cleaned_data
+
 
 class PaymentProofForm(forms.ModelForm):
     class Meta:
