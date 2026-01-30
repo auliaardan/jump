@@ -104,6 +104,37 @@ class workshops_page(models.Model):
 class seminars_page(models.Model):
     text_section_one = models.TextField(blank=False, default="Sample Description")
     text_section_two = models.TextField(blank=False, default="Sample Description")
+    flyer_image = models.ImageField(upload_to='seminars_page/', blank=True, null=True)
+    at_a_glance_text = models.TextField(blank=True, default="Sample Description")
+    at_a_glance_image = models.ImageField(upload_to='seminars_page/', blank=True, null=True)
+    venue_name = models.CharField(max_length=200, blank=True, default="Sample Description")
+    venue_image = models.ImageField(upload_to='seminars_page/', blank=True, null=True)
+    venue_booking_link = models.URLField(blank=True, null=True)
+    register_seminar = models.ForeignKey(
+        "Seminar",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="symposium_register_pages",
+    )
+
+
+class SymposiumFaculty(models.Model):
+    symposium_page = models.ForeignKey(
+        seminars_page,
+        on_delete=models.CASCADE,
+        related_name="faculties",
+    )
+    name = models.CharField(max_length=120, blank=True)
+    title = models.CharField(max_length=120, blank=True)
+    image = models.ImageField(upload_to='seminars_page/faculties/')
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["display_order", "id"]
+
+    def __str__(self):
+        return self.name or f"Faculty {self.pk}"
 
 
 class WelcomingSpeech(models.Model):
