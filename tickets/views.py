@@ -29,7 +29,7 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
-    AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings
+    AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings, SymposiumCountdown
 from .models import Seminar, Ticket
 from .models import TicketCategory, OrderItem
 from django.utils.text import slugify
@@ -273,19 +273,6 @@ def create_submission(request):
             # Link the user from request
             new_submission.user = request.user
             new_submission.save()
-            email_subject = 'Your Submission Confirmation'
-            email_body = render_to_string('tickets/emails/submission_confirmed.html', {
-                'name': new_submission.user.nama_lengkap,
-                'type': new_submission.get_submission_type_display(),
-            })
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jakartaurologymedicalupdate.com',
-                [new_submission.user.email],
-            )
-            email.content_subtype = 'html'
-            email.send()
             return redirect('seminar_list')
     else:
         # Suppose we want to default to "abstract"
@@ -434,13 +421,8 @@ class baseView(ListView):
         # Calculate the number of placeholders needed to maintain the layout
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
 
-        # Next upcoming seminar
-        now = timezone.now()
-        next_seminar = Seminar.objects.filter(date__gte=now).order_by('date').first()
-        context['next_seminar'] = next_seminar
-
-        # Flag to check if all events have passed
-        context['all_events_over'] = not next_seminar
+        symposium_countdown = SymposiumCountdown.objects.order_by("-date").first()
+        context['symposium_countdown'] = symposium_countdown
 
         landing = landing_page.objects.last()
 

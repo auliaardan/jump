@@ -25,7 +25,7 @@
             </div>
             <div class="row mt-5">
                 <div class="col-12">
-                    <h2 class="text-center">Next Event Countdown</h2>
+                    <h2 class="text-center">Symposium Countdown</h2>
                     <div id="countdown" class="d-flex justify-content-center mt-3">
                         <div class="countdown-item">
                             <span id="days">00</span>
@@ -167,10 +167,10 @@
     <div id="scroll_here">
         {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
     </div>
-    {% if next_seminar %}
+    {% if symposium_countdown %}
         <script>
             // Set the date we're counting down to
-            var countDownDate = new Date("{{ next_seminar.date|date:'Y-m-d H:i:s' }}").getTime();
+            var countDownDate = new Date("{{ symposium_countdown.date|date:'Y-m-d H:i:s' }}").getTime();
 
             // Update the count-down every 1 second
             var x = setInterval(function () {

@@ -621,6 +621,10 @@ class SciComSubmission(models.Model):
         default=False,
         help_text="Set when the acceptance email has been sent to the submitter."
     )
+    confirmation_email_sent = models.BooleanField(
+        default=False,
+        help_text="Set when the submission confirmation email has been sent."
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -699,6 +703,15 @@ class SciComSubmission(models.Model):
         # run model validation
         self.clean()
         super().save(*args, **kwargs)
+
+
+class SymposiumCountdown(models.Model):
+    title = models.CharField(max_length=200, default="Symposium Countdown")
+    date = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.date:%Y-%m-%d %H:%M}"
 
 
 class AcceptedAbstractSubmission(models.Model):
