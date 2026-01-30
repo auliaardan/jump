@@ -20,9 +20,12 @@ html, body {
 }
 
 .jump-navbar {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 1020;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    --jump-navbar-height: 4.5rem;
 }
 
 .jump-auth-btn {
