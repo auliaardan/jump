@@ -154,6 +154,8 @@ nav .navbar-text a {
 /*THIS IS RANDOM */
 
 .header-gradient {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
     background: linear-gradient(0deg, #ffa60c, #ff1d8e);
 }
 
