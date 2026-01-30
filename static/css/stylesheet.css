@@ -19,6 +19,19 @@ html, body {
     }
 }
 
+.jump-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.jump-auth-btn {
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.35rem 1.1rem;
+}
+
 /* Keep dropdown looking premium */
 .jump-navbar .dropdown-menu {
     border-radius: 12px;

@@ -24,7 +24,8 @@
             <th scope="col">Author</th>
             <th scope="col">Email</th>
             <th scope="col">Abstract Title</th>
-            <th scope="col">GDrive Link</th>
+            <th scope="col">PPT Link</th>
+            <th scope="col">Poster Link</th>
             <th scope="col">Submitted At</th>
           </tr>
         </thead>
@@ -36,8 +37,15 @@
               <td>{{ item.user.email }}</td>
               <td>{{ item.abstract.abstract_title }}</td>
               <td>
-                {% if item.gdrive_link %}
-                  <a href="{{ item.gdrive_link }}" target="_blank">{{ item.gdrive_link }}</a>
+                {% if item.ppt_link %}
+                  <a href="{{ item.ppt_link }}" target="_blank">{{ item.ppt_link }}</a>
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+              <td>
+                {% if item.poster_link %}
+                  <a href="{{ item.poster_link }}" target="_blank">{{ item.poster_link }}</a>
                 {% else %}
                   N/A
                 {% endif %}
