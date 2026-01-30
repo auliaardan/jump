@@ -69,13 +69,25 @@ class scicom_rules(models.Model):
 
 
 class SciComSettings(models.Model):
-    show_accepted_submissions = models.BooleanField(
+    accepting_new_submissions = models.BooleanField(
+        verbose_name="Accepting new submissions",
         default=False,
-        help_text="When enabled, the Scientific Competition page will direct users to submit accepted abstracts."
+        help_text="When enabled, the Scientific Competition page will accept new submissions."
+    )
+    accepting_presentation_submissions = models.BooleanField(
+        verbose_name="Accepting presentation submissions",
+        default=False,
+        help_text="When enabled, the Scientific Competition page will accept presentation materials "
+                  "for accepted abstracts."
     )
 
     def __str__(self):
-        status = "Accepted Submissions" if self.show_accepted_submissions else "Open Submissions"
+        if self.accepting_presentation_submissions:
+            status = "Accepting Presentation Submissions"
+        elif self.accepting_new_submissions:
+            status = "Accepting New Submissions"
+        else:
+            status = "Submissions Closed"
         return f"SciCom Settings ({status})"
 
 

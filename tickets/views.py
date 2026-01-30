@@ -2,7 +2,6 @@ import datetime
 import json
 import re
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -240,6 +239,11 @@ def accepted_submissions_dashboard(request):
 
 @login_required
 def submit_accepted_abstract(request):
+    scicom_settings = get_scicom_settings()
+    if not scicom_settings.accepting_presentation_submissions:
+        messages.error(request, "Pengumpulan presentasi sudah ditutup.")
+        return redirect('scicom_page')
+
     if request.method == 'POST':
         form = AcceptedAbstractForm(request.POST)
         if form.is_valid():
@@ -262,7 +266,8 @@ def submit_accepted_abstract(request):
 
 @login_required
 def create_submission(request):
-    if not settings.SCI_COM_OPEN:
+    scicom_settings = get_scicom_settings()
+    if not scicom_settings.accepting_new_submissions:
         messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
         return redirect('scicom_page')
 
@@ -658,46 +663,51 @@ def scicom_dashboard(request):
 @require_POST
 def toggle_scicom_submission_mode(request):
     scicom_settings = get_scicom_settings()
-    scicom_settings.show_accepted_submissions = not scicom_settings.show_accepted_submissions
-    scicom_settings.save(update_fields=['show_accepted_submissions'])
-
-    if scicom_settings.show_accepted_submissions:
-        accepted_submissions = SciComSubmission.objects.filter(
-            is_accepted=True,
-            accepted_email_sent=False,
-        ).select_related('user')
-        sent_count = 0
-
-        for submission in accepted_submissions:
-            submission_title = (
-                submission.abstract_title
-                or submission.video_title
-                or submission.flyer_title
-                or "your submission"
-            )
-            email_body = render_to_string('tickets/emails/accepted_notification.html', {
-                'name': submission.user.nama_lengkap,
-                'abstract_title': submission_title,
-                'type': submission.get_submission_type_display(),
-                'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
-            })
-            email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jakartaurologymedicalupdate.com',
-                [submission.user.email],
-            )
-            email.content_subtype = 'html'
-            email.send(fail_silently=False)
-            SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
-                accepted_email_sent=True
-            )
-            sent_count += 1
-
-        messages.success(request, f"Accepted submissions enabled. Sent {sent_count} acceptance email(s).")
-    else:
+    if scicom_settings.accepting_presentation_submissions:
+        scicom_settings.accepting_presentation_submissions = False
+        scicom_settings.accepting_new_submissions = True
+        scicom_settings.save(update_fields=['accepting_presentation_submissions', 'accepting_new_submissions'])
         messages.success(request, "SciCom submissions are now open for new entries.")
+        return redirect('scicom_dashboard')
+
+    scicom_settings.accepting_presentation_submissions = True
+    scicom_settings.accepting_new_submissions = False
+    scicom_settings.save(update_fields=['accepting_presentation_submissions', 'accepting_new_submissions'])
+
+    accepted_submissions = SciComSubmission.objects.filter(
+        is_accepted=True,
+        accepted_email_sent=False,
+    ).select_related('user')
+    sent_count = 0
+
+    for submission in accepted_submissions:
+        submission_title = (
+            submission.abstract_title
+            or submission.video_title
+            or submission.flyer_title
+            or "your submission"
+        )
+        email_body = render_to_string('tickets/emails/accepted_notification.html', {
+            'name': submission.user.nama_lengkap,
+            'abstract_title': submission_title,
+            'type': submission.get_submission_type_display(),
+            'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
+        })
+        email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
+        email = EmailMessage(
+            email_subject,
+            email_body,
+            'admin@jakartaurologymedicalupdate.com',
+            [submission.user.email],
+        )
+        email.content_subtype = 'html'
+        email.send(fail_silently=False)
+        SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
+            accepted_email_sent=True
+        )
+        sent_count += 1
+
+    messages.success(request, f"Presentation submissions enabled. Sent {sent_count} acceptance email(s).")
 
     return redirect('scicom_dashboard')
 
