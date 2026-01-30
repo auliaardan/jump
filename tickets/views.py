@@ -23,7 +23,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from openpyxl.workbook import Workbook
 
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
@@ -432,10 +432,6 @@ class baseView(ListView):
         # Calculate the number of placeholders needed to maintain the layout
         num_placeholders = 4 - len(page_obj) if len(page_obj) < 4 else 0
 
-        # For the timeline
-        seminars_all = Seminar.objects.all().order_by('date')
-        context['seminars_all'] = seminars_all
-
         # Next upcoming seminar
         now = timezone.now()
         next_seminar = Seminar.objects.filter(date__gte=now).order_by('date').first()
@@ -451,6 +447,16 @@ class baseView(ListView):
         context['has_next'] = page_obj.has_next()
         context['has_previous'] = page_obj.has_previous()
         context['search_query'] = search_query
+        return context
+
+
+class TimelineView(TemplateView):
+    template_name = "timeline.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seminars_all = Seminar.objects.all().order_by("date")
+        context["seminars_all"] = seminars_all
         return context
 
 
