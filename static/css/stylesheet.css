@@ -1126,3 +1126,25 @@ a {
         text-align: center;
     }
 }
+
+.symposium-flyer img {
+    max-height: 520px;
+    object-fit: cover;
+}
+
+.symposium-flyer-placeholder {
+    min-height: 280px;
+    background: #f5f7fa;
+}
+
+.symposium-card-placeholder {
+    min-height: 240px;
+    background: #f5f7fa;
+    border-radius: 12px;
+}
+
+.symposium-faculty-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}

@@ -1,44 +1,110 @@
 {% extends 'base.html' %}
-{% block title %}Seminars | JUMP 2026{% endblock title %}
+{% block title %}Symposium | JUMP 2026{% endblock title %}
 
 {% block content %}
-    <div class="d-flex flex-column justify-content-center py-6 animate-on-scroll">
-        <div class="d-flex flex-column justify-content-center margin-auto text-center">
-            <h1 class="bold">JUMP 2026 Seminars</h1>
-            <h3>{{ seminars.text_section_one }}</h3>
-        </div>
-    </div>
-    {% include 'tickets/seminar_list.html' with seminars=seminar_list %}
-    <div class="animate-on-scroll py-5 bg-light pxn-5">
-        <div class="bg-light d-flex flex-column justify-content-center py-4">
-            <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
-                <h1 class="bold">Past Events</h1>
-                <h3>{{ seminars.text_section_two }}</h3>
+    <section class="symposium-flyer">
+        {% if seminars and seminars.flyer_image %}
+            <img src="{{ seminars.flyer_image.url }}" alt="Symposium flyer" class="img-fluid w-100">
+        {% else %}
+            <div class="symposium-flyer-placeholder d-flex align-items-center justify-content-center">
+                <span class="text-muted">Flyer coming soon</span>
             </div>
-        </div>
-        <div class="container margin-auto animate-on-scroll">
-            <div class="row">
-                <div id="carouselExampleRide" class="carousel slide" data-bs-ride="true">
-                    <div class="carousel-inner">
-                        {% for image in images %}
-                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                <img src="{{ image.image.url }}" class="d-block carousel-custom-width"
-                                     alt="A picture of past Seminars">
-                            </div>
-                        {% endfor %}
+        {% endif %}
+    </section>
+
+    <section class="container py-5 animate-on-scroll">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <h2 class="fw-bold mb-3">At a Glance</h2>
+                {% if seminars and seminars.at_a_glance_text %}
+                    <div class="text-muted">{{ seminars.at_a_glance_text|linebreaks }}</div>
+                {% else %}
+                    <p class="text-muted">Overview details will be announced soon.</p>
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                {% if seminars and seminars.at_a_glance_image %}
+                    <img src="{{ seminars.at_a_glance_image.url }}" alt="Symposium overview"
+                         class="img-fluid rounded shadow-sm">
+                {% else %}
+                    <div class="symposium-card-placeholder d-flex align-items-center justify-content-center">
+                        <span class="text-muted">Schedule preview coming soon</span>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleRide"
-                            data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleRide"
-                            data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
+                {% endif %}
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Faculties</h2>
+                <p class="text-muted mb-0">Meet the symposium speakers.</p>
+            </div>
+            <div class="row g-4">
+                {% if faculties %}
+                    {% for faculty in faculties %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="symposium-faculty-card text-center h-100">
+                                <img src="{{ faculty.image.url }}" alt="{{ faculty.name|default:'Symposium speaker' }}"
+                                     class="img-fluid rounded-3 mb-3">
+                                {% if faculty.name %}
+                                    <h5 class="mb-1">{{ faculty.name }}</h5>
+                                {% endif %}
+                                {% if faculty.title %}
+                                    <p class="text-muted small mb-0">{{ faculty.title }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center text-muted">
+                        Speaker lineup will be announced soon.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <h2 class="fw-bold mb-3">Venue</h2>
+                {% if seminars and seminars.venue_name %}
+                    <p class="h5 mb-2">{{ seminars.venue_name }}</p>
+                {% else %}
+                    <p class="text-muted">Venue details will be shared soon.</p>
+                {% endif %}
+                {% if seminars and seminars.venue_booking_link %}
+                    <a class="btn btn-outline-primary mt-2" href="{{ seminars.venue_booking_link }}"
+                       target="_blank" rel="noopener noreferrer">
+                        Book the hotel
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                {% if seminars and seminars.venue_image %}
+                    <img src="{{ seminars.venue_image.url }}" alt="{{ seminars.venue_name|default:'Symposium venue' }}"
+                         class="img-fluid rounded shadow-sm">
+                {% else %}
+                    <div class="symposium-card-placeholder d-flex align-items-center justify-content-center">
+                        <span class="text-muted">Venue photo coming soon</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="container pb-5 text-center">
+        {% if seminars and seminars.register_seminar %}
+            <a class="btn btn-primary btn-lg"
+               href="{% url 'seminar_detail' seminars.register_seminar.id %}">
+                Register to Symposium
+            </a>
+        {% else %}
+            <button class="btn btn-secondary btn-lg" disabled>
+                Registration opens soon
+            </button>
+        {% endif %}
+    </section>
 {% endblock content %}
