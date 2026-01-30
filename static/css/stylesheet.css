@@ -22,7 +22,7 @@ html, body {
 .jump-navbar {
     position: sticky;
     top: 0;
-    z-index: 1020;
+    z-index: 1030;
 }
 
 .jump-auth-btn {
