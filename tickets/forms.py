@@ -77,10 +77,11 @@ class SciComSubmissionForm(forms.ModelForm):
 class AcceptedAbstractForm(forms.ModelForm):
     class Meta:
         model = AcceptedAbstractSubmission
-        fields = ['abstract', 'gdrive_link']
+        fields = ['abstract', 'ppt_link', 'poster_link']
         widgets = {
             'abstract': forms.Select(attrs={'class': 'form-control'}),
-            'gdrive_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
+            'ppt_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
+            'poster_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
         }
 
     def __init__(self, *args, **kwargs):
