@@ -514,12 +514,14 @@ class SciComSubmission(models.Model):
     ]
 
     # Paper Types (only used if submission_type = ABSTRACT)
+    ORIGINAL_ARTICLE = 'Original Article'
     CASE_REPORT = 'Case Report'
     PRIMARY_STUDY = 'Primary Study'
     SECONDARY_STUDY = 'Secondary Study'
     SYSTEMATIC_REVIEW = 'Systematic Review'
     META_ANALYSIS = 'Meta Analysis'
     PAPER_TYPE_CHOICES = [
+        (ORIGINAL_ARTICLE, 'Original Article'),
         (CASE_REPORT, 'Case Report'),
         (PRIMARY_STUDY, 'Primary Study'),
         (SECONDARY_STUDY, 'Secondary Study'),
