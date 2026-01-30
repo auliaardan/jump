@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}Timeline | JUMP 2026{% endblock title %}
+
+{% block content %}
+    <div class="d-flex flex-column justify-content-center py-6 animate-on-scroll">
+        <div class="d-flex flex-column justify-content-center margin-auto text-center pad-phone">
+            <h1 class="bold">Event Timeline</h1>
+            <h3 class="text-muted">Browse upcoming seminars & workshops by date</h3>
+        </div>
+    </div>
+
+    <div class="container pb-6 animate-on-scroll">
+        <div class="calendar-shell">
+            <div class="calendar-header">
+                <button class="calendar-nav-btn" id="calendarPrev" type="button" aria-label="Previous month">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div class="calendar-title">
+                    <h2 class="mb-1" id="calendarMonth">Month</h2>
+                    <p class="mb-0 text-muted">Hover a highlighted date to preview events.</p>
+                </div>
+                <button class="calendar-nav-btn" id="calendarNext" type="button" aria-label="Next month">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid"></div>
+
+            <div class="calendar-legend">
+                <span class="calendar-legend-dot"></span>
+                <span>Days with events</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-6" id="timeline-section">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-9">
+                <div class="text-center mb-4">
+                    <h2 class="mb-2">Upcoming Schedule</h2>
+                    <p class="text-muted mb-0">Explore every event in chronological order</p>
+                </div>
+
+                <div class="timeline-shell">
+                    <div class="timeline-scroll">
+                        {% regroup seminars_all by date|date:"Y-m-d" as grouped_events %}
+
+                        {% for day in grouped_events %}
+                            <div class="timeline-day">
+                                <div class="timeline-day-badge">
+                                    <div class="timeline-day-dow">{{ day.list.0.date|date:"D" }}</div>
+                                    <div class="timeline-day-date">{{ day.list.0.date|date:"d M" }}</div>
+                                    <div class="timeline-day-year">{{ day.list.0.date|date:"Y" }}</div>
+                                </div>
+
+                                <div class="timeline-events">
+                                    {% for seminar in day.list %}
+                                        <a href="{% url 'seminar_detail' seminar.id %}" class="timeline-card">
+                                            <div class="timeline-dot" aria-hidden="true"></div>
+
+                                            <div class="timeline-card-body">
+                                                <div class="timeline-card-top">
+                                                    <span class="timeline-category">{{ seminar.category }}</span>
+
+                                                    <span class="timeline-time">
+                                                        <i class="bi bi-clock me-1"></i>
+                                                        {{ seminar.date|date:"H:i" }}
+                                                        {% if seminar.end_date %}–
+                                                            {{ seminar.end_date|date:"H:i" }}{% endif %}
+                                                    </span>
+                                                </div>
+
+                                                <h5 class="timeline-title">{{ seminar.title }}</h5>
+
+                                                <div class="timeline-meta">
+                                                    <span><i
+                                                            class="bi bi-geo-alt me-1"></i>{{ seminar.location|default:"TBA" }}</span>
+                                                    <span class="timeline-cta">
+                                                        View details <i class="bi bi-arrow-right-short"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="timeline-empty">
+                                No events available yet.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const timelineEvents = [
+            {% for seminar in seminars_all %}
+                {
+                    date: "{{ seminar.date|date:'Y-m-d' }}",
+                    title: "{{ seminar.title|escapejs }}",
+                    time: "{{ seminar.date|date:'H:i' }}{% if seminar.end_date %}–{{ seminar.end_date|date:'H:i' }}{% endif %}",
+                    location: "{{ seminar.location|default:'TBA'|escapejs }}",
+                    category: "{{ seminar.category|escapejs }}",
+                    url: "{% url 'seminar_detail' seminar.id %}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        const calendarMonthLabel = document.getElementById("calendarMonth");
+        const calendarGrid = document.getElementById("calendarGrid");
+        const calendarState = {
+            current: new Date(),
+        };
+
+        const eventsByDate = timelineEvents.reduce((acc, eventItem) => {
+            if (!acc[eventItem.date]) {
+                acc[eventItem.date] = [];
+            }
+            acc[eventItem.date].push(eventItem);
+            return acc;
+        }, {});
+
+        const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        const formatDateKey = (year, monthIndex, day) => {
+            const month = String(monthIndex + 1).padStart(2, "0");
+            const date = String(day).padStart(2, "0");
+            return `${year}-${month}-${date}`;
+        };
+
+        const buildTooltipContent = (events) => {
+            return events.map((eventItem) => {
+                const location = eventItem.location ? ` • ${eventItem.location}` : "";
+                return `<div class="calendar-tooltip-title">${eventItem.title}</div>
+                        <div class="calendar-tooltip-meta">${eventItem.time}${location}</div>`;
+            }).join("");
+        };
+
+        const renderCalendar = () => {
+            const year = calendarState.current.getFullYear();
+            const monthIndex = calendarState.current.getMonth();
+            const firstDay = new Date(year, monthIndex, 1);
+            const startDay = firstDay.getDay();
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+            calendarMonthLabel.textContent = firstDay.toLocaleString("default", {
+                month: "long",
+                year: "numeric",
+            });
+
+            calendarGrid.innerHTML = "";
+
+            weekdayLabels.forEach((dayLabel) => {
+                const weekdayCell = document.createElement("div");
+                weekdayCell.className = "calendar-weekday";
+                weekdayCell.textContent = dayLabel;
+                calendarGrid.appendChild(weekdayCell);
+            });
+
+            for (let i = 0; i < startDay; i += 1) {
+                const emptyCell = document.createElement("div");
+                emptyCell.className = "calendar-cell calendar-cell--empty";
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const dateKey = formatDateKey(year, monthIndex, day);
+                const dayCell = document.createElement("button");
+                dayCell.type = "button";
+                dayCell.className = "calendar-cell";
+                dayCell.textContent = day;
+
+                if (eventsByDate[dateKey]) {
+                    dayCell.classList.add("calendar-cell--event");
+                    dayCell.setAttribute("data-bs-toggle", "tooltip");
+                    dayCell.setAttribute("data-bs-placement", "top");
+                    dayCell.setAttribute("data-bs-html", "true");
+                    dayCell.setAttribute("title", buildTooltipContent(eventsByDate[dateKey]));
+                }
+
+                calendarGrid.appendChild(dayCell);
+            }
+
+            const tooltipTriggerList = [].slice.call(
+                calendarGrid.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+
+            tooltipTriggerList.forEach((tooltipTriggerEl) => {
+                bootstrap.Tooltip.getOrCreateInstance(tooltipTriggerEl);
+            });
+        };
+
+        document.getElementById("calendarPrev").addEventListener("click", () => {
+            calendarState.current = new Date(
+                calendarState.current.getFullYear(),
+                calendarState.current.getMonth() - 1,
+                1
+            );
+            renderCalendar();
+        });
+
+        document.getElementById("calendarNext").addEventListener("click", () => {
+            calendarState.current = new Date(
+                calendarState.current.getFullYear(),
+                calendarState.current.getMonth() + 1,
+                1
+            );
+            renderCalendar();
+        });
+
+        renderCalendar();
+    </script>
+{% endblock content %}
