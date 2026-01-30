@@ -141,3 +141,27 @@ def send_acceptance_email(sender, instance, created, **kwargs):
         email.content_subtype = 'html'  # ensures the HTML template is rendered
         email.send(fail_silently=False)
         SciComSubmission.objects.filter(pk=instance.pk, accepted_email_sent=False).update(accepted_email_sent=True)
+
+
+@receiver(post_save, sender=SciComSubmission)
+def send_submission_confirmation_email(sender, instance, created, **kwargs):
+    if not created or instance.confirmation_email_sent:
+        return
+
+    context = {
+        'name': instance.user.nama_lengkap,
+        'type': instance.get_submission_type_display(),
+    }
+    email_body = render_to_string('tickets/emails/submission_confirmed.html', context)
+    email_subject = 'Your Submission Confirmation'
+    email = EmailMessage(
+        subject=email_subject,
+        body=email_body,
+        from_email='admin@jakartaurologymedicalupdate.com',
+        to=[instance.user.email],
+    )
+    email.content_subtype = 'html'
+    email.send(fail_silently=False)
+    SciComSubmission.objects.filter(pk=instance.pk, confirmation_email_sent=False).update(
+        confirmation_email_sent=True
+    )
