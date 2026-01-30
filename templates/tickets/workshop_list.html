@@ -1,0 +1,220 @@
+{# templates/tickets/workshop_list.html #}
+
+{% block head %}
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+            let searchTimeout;
+
+            function loadCatalogue(page) {
+                const query = $("#seminar-search").val().trim();
+                const category = $("#seminar-category").val();
+
+                $.ajax({
+                    url: "{% url 'seminar_catalogue_partial' %}",
+                    type: "GET",
+                    data: {page: page, search: query, category: category, layout: "workshop"},
+                    success: function (html) {
+                        const $fragment = $(html);
+                        const $inner = $fragment.filter("#seminar-list-inner");
+
+                        $("#seminar-list").html($inner.html());
+                        $("#seminar-list").attr("data-has-next", $inner.data("has-next"));
+                        $("#seminar-list").attr("data-has-prev", $inner.data("has-prev"));
+
+                        currentPage = page;
+
+                        const hasNext = $("#seminar-list").data("has-next");
+                        const hasPrev = $("#seminar-list").data("has-prev");
+
+                        $("#next-btn").prop("disabled", !hasNext);
+                        $("#prev-btn").prop("disabled", !hasPrev);
+                    },
+
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
+            }
+
+            $("#next-btn").click(function () {
+                loadCatalogue(currentPage + 1);
+            });
+
+            $("#prev-btn").click(function () {
+                if (currentPage > 1) loadCatalogue(currentPage - 1);
+            });
+
+            $("#seminar-search").on("input", function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function () {
+                    loadCatalogue(1);
+                }, 350);
+            });
+
+            $("#seminar-category").on("change", function () {
+                loadCatalogue(1);
+            });
+        });
+    </script>
+{% endblock head %}
+
+<style>
+    .workshop-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .workshop-card {
+        display: grid;
+        grid-template-columns: minmax(180px, 240px) 1fr;
+        gap: 20px;
+        padding: 18px;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        align-items: center;
+    }
+
+    .workshop-poster {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #f3f4f6;
+    }
+
+    .workshop-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .35s ease;
+    }
+
+    .workshop-poster:hover img {
+        transform: scale(1.05);
+    }
+
+    .workshop-meta h3 {
+        margin: 0 0 8px;
+        font-weight: 800;
+    }
+
+    .workshop-meta .text-muted {
+        color: #6b7280;
+    }
+
+    .workshop-description {
+        color: rgba(15, 23, 42, 0.78);
+        margin: 12px 0;
+        line-height: 1.5;
+    }
+
+    .workshop-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .workshop-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        background: rgba(15, 23, 42, 0.06);
+        color: rgba(15, 23, 42, 0.7);
+    }
+
+    .workshop-chip-success {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+
+    .workshop-chip-danger {
+        background: rgba(220, 53, 69, 0.12);
+        color: #dc3545;
+    }
+
+    .workshop-chip-muted {
+        background: rgba(108, 117, 125, 0.12);
+        color: #6c757d;
+    }
+
+    .workshop-category-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .workshop-category {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: .75rem;
+        font-weight: 600;
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+
+    .workshop-empty {
+        border: 1px dashed rgba(0, 0, 0, 0.18);
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        color: #6b7280;
+    }
+
+    @media (max-width: 767.98px) {
+        .workshop-card {
+            grid-template-columns: 1fr;
+        }
+
+        .workshop-poster {
+            max-width: 260px;
+            margin: 0 auto;
+        }
+
+        .workshop-meta {
+            text-align: left;
+        }
+    }
+</style>
+
+<div id="scroll_here" class="animate-on-scroll container py-6 pad-phone">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-8">
+            <input type="text" id="seminar-search" class="form-control"
+                   placeholder="Search workshops by title...">
+        </div>
+        <div class="col-12 col-md-4">
+            <select id="seminar-category" class="form-select">
+                <option value="Workshop">Workshop</option>
+                <option value="">All Programs</option>
+                <option value="Seminar">Seminar</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="workshop-list" id="seminar-list"
+         data-has-next="{{ seminar_list.has_next }}"
+         data-has-prev="{{ seminar_list.has_previous }}">
+        {% include "tickets/partials/workshop_cards.html" with seminar_list=seminar_list %}
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        <button id="prev-btn" class="btn btn-outline-primary me-2"
+                {% if not seminar_list.has_previous %}disabled{% endif %}>Previous
+        </button>
+        <button id="next-btn" class="btn btn-outline-primary"
+                {% if not seminar_list.has_next %}disabled{% endif %}>Next
+        </button>
+    </div>
+</div>
