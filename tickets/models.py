@@ -660,7 +660,14 @@ class AcceptedAbstractSubmission(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'submission_type': SciComSubmission.ABSTRACT}
     )
-    gdrive_link = models.URLField(help_text="Link to folder containing PPT and E-Poster")
+    ppt_link = models.URLField(
+        help_text="Link to the PowerPoint presentation",
+        blank=True
+    )
+    poster_link = models.URLField(
+        help_text="Link to the E-Poster",
+        blank=True
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -700,4 +707,3 @@ class Ticket(models.Model):
         img.save(buffer, format="PNG")
         filename = f"ticket-{self.id}.png"
         self.qr_image.save(filename, ContentFile(buffer.getvalue()), save=False)
-

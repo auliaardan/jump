@@ -77,16 +77,27 @@ class SciComSubmissionForm(forms.ModelForm):
 class AcceptedAbstractForm(forms.ModelForm):
     class Meta:
         model = AcceptedAbstractSubmission
-        fields = ['abstract', 'gdrive_link']
+        fields = ['abstract', 'ppt_link', 'poster_link']
         widgets = {
             'abstract': forms.Select(attrs={'class': 'form-control'}),
-            'gdrive_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
+            'ppt_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
+            'poster_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Show only the abstract_title instead of the default __str__()
         self.fields['abstract'].label_from_instance = lambda obj: obj.abstract_title
+
+    def clean(self):
+        cleaned_data = super().clean()
+        ppt_link = cleaned_data.get('ppt_link')
+        poster_link = cleaned_data.get('poster_link')
+        if not ppt_link and not poster_link:
+            raise forms.ValidationError(
+                "Please provide at least one link (PPT or poster)."
+            )
+        return cleaned_data
 
 
 class PaymentProofForm(forms.ModelForm):

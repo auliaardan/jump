@@ -115,7 +115,7 @@ def send_acceptance_email(sender, instance, created, **kwargs):
             'name': instance.user.nama_lengkap,
             'abstract_title': instance.abstract_title,
             'type': instance.get_submission_type_display(),
-            'submission_link': "https://jump2025.com/submission/accepted/",
+            'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
         }
 
         # Render the HTML body (the template already includes the header image)
@@ -123,11 +123,11 @@ def send_acceptance_email(sender, instance, created, **kwargs):
                                       context)  # :contentReference[oaicite:0]{index=0}
 
         # Compose and send the EmailMessage
-        email_subject = "Announcement of Abstract Selection – JUMP 2025 Scientific Competition"
+        email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
         email = EmailMessage(
             subject=email_subject,
             body=email_body,
-            from_email='admin@jump2025.com',  # adjust as needed
+            from_email='admin@jakartaurologymedicalupdate.com',  # adjust as needed
             to=[instance.user.email],
         )
         email.content_subtype = 'html'  # ensures the HTML template is rendered

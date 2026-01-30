@@ -271,7 +271,7 @@ def create_submission(request):
             email = EmailMessage(
                 email_subject,
                 email_body,
-                'admin@jump2025.com',
+                'admin@jakartaurologymedicalupdate.com',
                 [new_submission.user.email],
             )
             email.content_subtype = 'html'
@@ -546,7 +546,7 @@ class CheckoutView(LoginRequiredMixin, View):
             email = EmailMessage(
                 email_subject,
                 email_body,
-                'admin@jump2025.com',
+                'admin@jakartaurologymedicalupdate.com',
                 [request.user.email],
             )
             email.content_subtype = 'html'
@@ -788,7 +788,7 @@ def confirm_order_view(request, order_id):
     email = EmailMessage(
         email_subject,
         email_body,
-        "admin@jump2025.com",
+        "admin@jakartaurologymedicalupdate.com",
         [order.user.email],
     )
     email.content_subtype = "html"
