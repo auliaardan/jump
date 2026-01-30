@@ -188,6 +188,7 @@ def seminar_catalogue_partial(request):
     search_query = request.GET.get('search', '').strip()
     category = request.GET.get('category', '').strip()  # optional future filter
     page_number = request.GET.get('page', 1)
+    layout = request.GET.get('layout', '').strip()
 
     qs = Seminar.objects.all().order_by('-date')
 
@@ -198,13 +199,17 @@ def seminar_catalogue_partial(request):
         qs = qs.filter(category=category)
 
     # annotate cheapest price for display
-    qs = qs.annotate(min_price=Min('ticket_categories__price'))
+    qs = qs.annotate(min_price=Min('ticket_categories__price')).prefetch_related('ticket_categories')
 
     paginator = Paginator(qs, 4)  # show more items per page for nicer catalogue
     page_obj = paginator.get_page(page_number)
 
+    template_name = 'tickets/partials/seminar_grid_wrapper.html'
+    if layout == 'workshop':
+        template_name = 'tickets/partials/workshop_cards_wrapper.html'
+
     html = render_to_string(
-        'tickets/partials/seminar_grid_wrapper.html',
+        template_name,
         {'seminar_list': page_obj},
         request=request
     )
@@ -354,9 +359,14 @@ class WorkshopView(ListView):
         search_query = self.request.GET.get('search', '')
 
         if search_query:
-            seminars = Seminar.objects.filter(title__icontains=search_query).order_by('-date')
+            seminars = Seminar.objects.filter(
+                category=Seminar.WORKSHOP,
+                title__icontains=search_query
+            ).order_by('-date')
         else:
             seminars = Seminar.objects.filter(category=Seminar.WORKSHOP).order_by('-date')
+
+        seminars = seminars.annotate(min_price=Min('ticket_categories__price')).prefetch_related('ticket_categories')
 
         paginator = Paginator(seminars, 4)
         page_number = self.request.GET.get('page', 1)

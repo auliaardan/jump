@@ -1,0 +1,77 @@
+{# templates/tickets/partials/workshop_cards.html #}
+
+{% for seminar in seminar_list %}
+  <div class="workshop-card">
+    <a href="{% url 'seminar_detail' seminar.id %}" class="workshop-poster" aria-label="{{ seminar.title }}">
+      {% if seminar.image %}
+        <img src="{{ seminar.image.url }}" alt="{{ seminar.title }}" loading="lazy">
+      {% else %}
+        <div class="d-flex h-100 w-100 align-items-center justify-content-center workshop-empty">No image</div>
+      {% endif %}
+    </a>
+
+    <div class="workshop-meta">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h3>{{ seminar.title }}</h3>
+        <span class="workshop-chip">{{ seminar.category }}</span>
+      </div>
+
+      <div class="text-muted">
+        <i class="bi bi-calendar-event"></i>
+        {% if seminar.end_date %}
+          {{ seminar.date|date:"d M Y" }} – {{ seminar.end_date|date:"d M Y" }}
+        {% else %}
+          {{ seminar.date|date:"d M Y, H:i" }}
+        {% endif %}
+        &nbsp;•&nbsp;
+        <i class="bi bi-geo-alt"></i> {{ seminar.location|default:"TBA" }}
+      </div>
+
+      <p class="workshop-description">
+        {{ seminar.description|truncatewords:38 }}
+      </p>
+
+      <div class="workshop-chips">
+        {% if seminar.total_available_seats > 0 %}
+          {% if seminar.total_remaining_seats <= 0 %}
+            <span class="workshop-chip workshop-chip-danger"><i class="bi bi-x-circle"></i> Sold out</span>
+          {% elif seminar.total_remaining_seats <= 10 %}
+            <span class="workshop-chip workshop-chip-danger"><i class="bi bi-exclamation-triangle"></i> {{ seminar.total_remaining_seats }} left</span>
+          {% else %}
+            <span class="workshop-chip workshop-chip-success"><i class="bi bi-check-circle"></i> {{ seminar.total_remaining_seats }} seats left</span>
+          {% endif %}
+        {% else %}
+          <span class="workshop-chip workshop-chip-muted"><i class="bi bi-info-circle"></i> Coming soon</span>
+        {% endif %}
+
+        {% if seminar.min_price %}
+          <span class="workshop-chip"><i class="bi bi-cash"></i> From Rp {{ seminar.min_price|floatformat:0 }}</span>
+        {% endif %}
+      </div>
+
+      {% if seminar.ticket_categories.all %}
+        <div class="mt-3">
+          <div class="fw-semibold">Available Categories</div>
+          <div class="workshop-category-list">
+            {% for category in seminar.ticket_categories.all %}
+              <span class="workshop-category">{{ category.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if seminar.ticket_categories.all %}
+        <div class="mt-3">
+          <div class="fw-semibold">Prices</div>
+          <div class="workshop-category-list">
+            {% for category in seminar.ticket_categories.all %}
+              <span class="workshop-category">{{ category.name }} • Rp {{ category.price|floatformat:0 }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% empty %}
+  <div class="workshop-empty">No workshops found.</div>
+{% endfor %}
