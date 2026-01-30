@@ -128,7 +128,7 @@ nav .navbar-text a {
 }
 
 .timeline-container {
-    background: linear-gradient(135deg, #040001, #360f3c);
+    background: linear-gradient(135deg, #ff7d0b, #ff1d8e);
     border-radius: 10px;
     padding: 3.5rem;
 }
@@ -137,15 +137,15 @@ nav .navbar-text a {
 /*THIS IS RANDOM */
 
 .header-gradient {
-    background: linear-gradient(0deg, #040001, #360f3c);
+    background: linear-gradient(0deg, #ff7d0b, #ff1d8e);
 }
 
 .footer-gradient {
-    background: linear-gradient(135deg, #040001, #360f3c);
+    background: linear-gradient(135deg, #ff7d0b, #ff1d8e);
 }
 
 .hero-section {
-    background: linear-gradient(180deg, #040001, #360f3c);
+    background: linear-gradient(180deg, #ffa90a, #ff1d8e);
     color: white;
     padding: 80px 0;
 }
