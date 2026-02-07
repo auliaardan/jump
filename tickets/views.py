@@ -1,15 +1,14 @@
 import datetime
-import datetime
 import json
 import re
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
 from django.db.models import Min
 from django.db.models import Sum
@@ -240,6 +239,11 @@ def accepted_submissions_dashboard(request):
 
 @login_required
 def submit_accepted_abstract(request):
+    scicom_settings = get_scicom_settings()
+    if not scicom_settings.accepting_presentation_submissions:
+        messages.error(request, "Pengumpulan presentasi sudah ditutup.")
+        return redirect('scicom_page')
+
     if request.method == 'POST':
         form = AcceptedAbstractForm(request.POST)
         if form.is_valid():
@@ -262,7 +266,8 @@ def submit_accepted_abstract(request):
 
 @login_required
 def create_submission(request):
-    if not settings.SCI_COM_OPEN:
+    scicom_settings = get_scicom_settings()
+    if not scicom_settings.accepting_new_submissions:
         messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
         return redirect('scicom_page')
 
@@ -488,67 +493,102 @@ class CheckoutView(LoginRequiredMixin, View):
         })
 
     def post(self, request, *args, **kwargs):
-        cart = get_object_or_404(Cart, user=request.user)
-        total_str = request.POST.get('final_total', None)
-
-        if total_str is not None:
-            try:
-                total = float(total_str)
-            except ValueError:
-                total = sum(item.total_price() for item in cart.cartitem_set.all())
-        else:
-            total = sum(item.total_price() for item in cart.cartitem_set.all())
-
-        order = Order.objects.create(user=request.user)
-
-        # Create OrderItems from CartItems and update ticket categories
-        for cart_item in cart.cartitem_set.all():
-            OrderItem.objects.create(
-                order=order,
-                ticket_category=cart_item.ticket_category,
-                quantity=cart_item.quantity,
-                price=cart_item.ticket_category.price,  # Store the price at time of purchase
-            )
-            # Update ticket category
-            ticket_category = cart_item.ticket_category
-            ticket_category.booked_seats += cart_item.quantity
-            ticket_category.reserved_seats -= cart_item.quantity
-            ticket_category.save()
-
-        # Now we can safely delete the cart items
-        cart.cartitem_set.all().delete()
-
-        # Process payment proof and send email
         form = PaymentProofForm(request.POST, request.FILES)
-        if form.is_valid():
-            proof = form.save(commit=False)
-            proof.order = order
-            proof.price_paid = total
-            proof.save()
-
-            email_subject = 'Your Order Confirmation'
-            email_body = render_to_string('tickets/emails/payment_received.html', {
-                'user': request.user,
+        if not form.is_valid():
+            cart = get_object_or_404(Cart, user=request.user)
+            total = sum(item.total_price() for item in cart.cartitem_set.all())
+            payment_method = PaymentMethod.objects.last()
+            return render(request, 'tickets/checkout.html', {
                 'cart': cart,
-                'order': order,
-                'total': int(total),
+                'total': total,
+                'form': form,
+                'payment_method': payment_method
             })
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jakartaurologymedicalupdate.com',
-                [request.user.email],
-            )
-            email.content_subtype = 'html'
-            email.send()
 
-            # Handle discount code usage (if applicable)
-            if request.POST.get('discount_code_form') == "True":
-                code = request.POST.get('discount_code_name')
-                discount_code = get_object_or_404(DiscountCode, code=code)
-                if discount_code.is_valid():
+        try:
+            with transaction.atomic():
+                cart = Cart.objects.select_for_update().get(user=request.user)
+                cart_items = list(
+                    cart.cartitem_set.select_related("ticket_category", "ticket_category__seminar")
+                )
+                ticket_category_ids = [item.ticket_category_id for item in cart_items]
+                TicketCategory.objects.select_for_update().filter(id__in=ticket_category_ids)
+
+                if not cart_items:
+                    messages.error(request, "Your cart is empty.")
+                    return redirect('cart_detail')
+
+                total = sum(item.total_price() for item in cart_items)
+                discount_code = None
+                if request.POST.get('discount_code_form') == "True":
+                    code = request.POST.get('discount_code_name')
+                    discount_code = DiscountCode.objects.filter(code=code).first()
+                    if discount_code and discount_code.is_valid():
+                        total = discount_code.apply_discount(total)
+
+                total_str = request.POST.get('final_total', None)
+                if total_str is not None:
+                    try:
+                        posted_total = float(total_str)
+                        if round(posted_total, 2) != round(float(total), 2):
+                            messages.warning(
+                                request,
+                                "The submitted total did not match the cart total. "
+                                "We used the current cart total instead."
+                            )
+                    except ValueError:
+                        messages.warning(request, "Invalid total submitted; using current cart total.")
+
+                order = Order.objects.create(user=request.user)
+
+                # Create OrderItems from CartItems and update ticket categories
+                for cart_item in cart_items:
+                    ticket_category = cart_item.ticket_category
+                    if ticket_category.reserved_seats < cart_item.quantity:
+                        raise ValueError("Not enough reserved seats to complete checkout.")
+
+                    OrderItem.objects.create(
+                        order=order,
+                        ticket_category=ticket_category,
+                        quantity=cart_item.quantity,
+                        price=ticket_category.price,  # Store the price at time of purchase
+                    )
+                    ticket_category.booked_seats += cart_item.quantity
+                    ticket_category.reserved_seats -= cart_item.quantity
+                    ticket_category.save()
+
+                # Now we can safely delete the cart items
+                cart.cartitem_set.all().delete()
+
+                proof = form.save(commit=False)
+                proof.order = order
+                proof.price_paid = total
+                proof.save()
+
+                # Handle discount code usage (if applicable)
+                if discount_code and discount_code.is_valid():
                     discount_code.used_count += 1
                     discount_code.save()
+
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect('cart_detail')
+
+        email_subject = 'Your Order Confirmation'
+        email_body = render_to_string('tickets/emails/payment_received.html', {
+            'user': request.user,
+            'cart': cart,
+            'order': order,
+            'total': int(total),
+        })
+        email = EmailMessage(
+            email_subject,
+            email_body,
+            'admin@jakartaurologymedicalupdate.com',
+            [request.user.email],
+        )
+        email.content_subtype = 'html'
+        email.send()
 
         return redirect('order_confirmed')
 
@@ -623,46 +663,51 @@ def scicom_dashboard(request):
 @require_POST
 def toggle_scicom_submission_mode(request):
     scicom_settings = get_scicom_settings()
-    scicom_settings.show_accepted_submissions = not scicom_settings.show_accepted_submissions
-    scicom_settings.save(update_fields=['show_accepted_submissions'])
-
-    if scicom_settings.show_accepted_submissions:
-        accepted_submissions = SciComSubmission.objects.filter(
-            is_accepted=True,
-            accepted_email_sent=False,
-        ).select_related('user')
-        sent_count = 0
-
-        for submission in accepted_submissions:
-            submission_title = (
-                submission.abstract_title
-                or submission.video_title
-                or submission.flyer_title
-                or "your submission"
-            )
-            email_body = render_to_string('tickets/emails/accepted_notification.html', {
-                'name': submission.user.nama_lengkap,
-                'abstract_title': submission_title,
-                'type': submission.get_submission_type_display(),
-                'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
-            })
-            email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
-            email = EmailMessage(
-                email_subject,
-                email_body,
-                'admin@jakartaurologymedicalupdate.com',
-                [submission.user.email],
-            )
-            email.content_subtype = 'html'
-            email.send(fail_silently=False)
-            SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
-                accepted_email_sent=True
-            )
-            sent_count += 1
-
-        messages.success(request, f"Accepted submissions enabled. Sent {sent_count} acceptance email(s).")
-    else:
+    if scicom_settings.accepting_presentation_submissions:
+        scicom_settings.accepting_presentation_submissions = False
+        scicom_settings.accepting_new_submissions = True
+        scicom_settings.save(update_fields=['accepting_presentation_submissions', 'accepting_new_submissions'])
         messages.success(request, "SciCom submissions are now open for new entries.")
+        return redirect('scicom_dashboard')
+
+    scicom_settings.accepting_presentation_submissions = True
+    scicom_settings.accepting_new_submissions = False
+    scicom_settings.save(update_fields=['accepting_presentation_submissions', 'accepting_new_submissions'])
+
+    accepted_submissions = SciComSubmission.objects.filter(
+        is_accepted=True,
+        accepted_email_sent=False,
+    ).select_related('user')
+    sent_count = 0
+
+    for submission in accepted_submissions:
+        submission_title = (
+            submission.abstract_title
+            or submission.video_title
+            or submission.flyer_title
+            or "your submission"
+        )
+        email_body = render_to_string('tickets/emails/accepted_notification.html', {
+            'name': submission.user.nama_lengkap,
+            'abstract_title': submission_title,
+            'type': submission.get_submission_type_display(),
+            'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
+        })
+        email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
+        email = EmailMessage(
+            email_subject,
+            email_body,
+            'admin@jakartaurologymedicalupdate.com',
+            [submission.user.email],
+        )
+        email.content_subtype = 'html'
+        email.send(fail_silently=False)
+        SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
+            accepted_email_sent=True
+        )
+        sent_count += 1
+
+    messages.success(request, f"Presentation submissions enabled. Sent {sent_count} acceptance email(s).")
 
     return redirect('scicom_dashboard')
 
@@ -777,7 +822,10 @@ class AddToCartView(View):
         if ticket_category.remaining_seats < quantity:
             return JsonResponse({'success': False, 'message': 'Not enough remaining seats'})
 
-        cart_item.save()
+        try:
+            cart_item.save()
+        except ValueError as exc:
+            return JsonResponse({'success': False, 'message': str(exc)})
 
         response = {
             'success': True,
@@ -797,7 +845,8 @@ def confirm_order_view(request, order_id):
     # Idempotent: if already confirmed, don't create duplicate tickets
     if not order.is_confirmed:
         order.is_confirmed = True
-        order.save(update_fields=["is_confirmed"])
+        order.confirmation_date = timezone.now()
+        order.save(update_fields=["is_confirmed", "confirmation_date"])
 
         # Generate tickets (1 per quantity)
         for item in order.orderitem_set.all():

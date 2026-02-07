@@ -48,14 +48,16 @@
                 <div class="row mt-5 justify-content-center" id="scicom-join">
                     <div class="col-lg-8 text-center">
                         <h4 class="bold mb-4">Join Now</h4>
-                        {% if scicom_settings.show_accepted_submissions %}
+                        {% if scicom_settings.accepting_presentation_submissions %}
                             <a href="{% url 'submit_accepted_abstract' %}" class="btn btn-success mx-auto">
                                 Accepted Submission
                             </a>
-                        {% else %}
+                        {% elif scicom_settings.accepting_new_submissions %}
                             <a href="{% url 'create_submission' %}" class="btn btn-success mx-auto">
                                 Register Scientific Competition
                             </a>
+                        {% else %}
+                            <span class="text-muted">Submissions are currently closed.</span>
                         {% endif %}
                     </div>
                 </div>
