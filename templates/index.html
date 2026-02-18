@@ -83,6 +83,14 @@
                                 </div>
                             </div>
                         </div>
+                    {% empty %}
+                        <div class="carousel-item active">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-9">
+                                    <p class="text-center">No welcoming speeches available yet.</p>
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#welcomeCarousel"
