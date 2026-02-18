@@ -55,59 +55,34 @@
             <h2 class="text-center mb-4 ">Welcome to JUMP 2026</h2>
             <p class="text-center mb-5">Hear from our esteemed organizers and keynote speakers</p>
 
-            <div id="welcomeCarousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner">
-                    {% for speech in landing.welcoming.all %}
-                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <div class="row justify-content-center">
-                                <div class="col-lg-9">
-                                    <h3 class="text-center fw-bold">{{ speech.title }}</h3>
-                                    <div class="card bg-white rounded-4 mt-4"
-                                         style="box-shadow: 0 1em 1em rgb(251, 0, 0) !important">
-                                        <div class="card-body p-5">
-                                            {% if speech.image %}
-                                                <img class="rounded-circle mx-auto d-block"
-                                                     style="width: 200px; height: 200px; object-fit: cover;"
-                                                     src="{{ speech.image.url }}"
-                                                     alt="A Picture of {{ speech.name }}"
-                                                     loading="lazy">
-                                            {% else %}
-                                                <p class="text-center">No image available</p>
-                                            {% endif %}
-                                            <h4 class="text-center fw-bold mt-4">{{ speech.name }}</h4>
-                                            <div class="mt-4">
-                                                <p class="card-text text-start">{{ speech.speech|linebreaks }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="row g-4 justify-content-center">
+                {% for speech in landing.welcoming.all %}
+                    <div class="col-lg-6">
+                        <h3 class="text-center fw-bold">{{ speech.title }}</h3>
+                        <div class="card bg-white rounded-4 mt-4"
+                             style="box-shadow: 0 1em 1em rgb(251, 0, 0) !important">
+                            <div class="card-body p-5">
+                                {% if speech.image %}
+                                    <img class="rounded-circle mx-auto d-block"
+                                         style="width: 200px; height: 200px; object-fit: cover;"
+                                         src="{{ speech.image.url }}"
+                                         alt="A Picture of {{ speech.name }}"
+                                         loading="lazy">
+                                {% else %}
+                                    <p class="text-center">No image available</p>
+                                {% endif %}
+                                <h4 class="text-center fw-bold mt-4">{{ speech.name }}</h4>
+                                <div class="mt-4">
+                                    <p class="card-text text-start">{{ speech.speech|linebreaks }}</p>
+                </div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#welcomeCarousel"
-                        data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#welcomeCarousel"
-                        data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
-
-            <!-- Carousel Indicators -->
-            <div class="text-center mt-4">
-                <div class="carousel-indicators position-relative">
-                    {% for speech in landing.welcoming.all %}
-                        <button type="button" data-bs-target="#welcomeCarousel"
-                                data-bs-slide-to="{{ forloop.counter0 }}"
-                                class="bg-primary {% if forloop.first %}active{% endif %}"
-                                aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
-                                aria-label="Slide {{ forloop.counter }}"></button>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p class="text-center">No welcoming speeches available yet.</p>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
