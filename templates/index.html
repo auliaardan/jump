@@ -57,7 +57,7 @@
 
             <div id="welcomeCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    {% for speech in landing.welcoming.all %}
+                    {% for speech in welcoming_speeches %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             <div class="row justify-content-center">
                                 <div class="col-lg-9">
@@ -83,6 +83,14 @@
                                 </div>
                             </div>
                         </div>
+                    {% empty %}
+                        <div class="carousel-item active">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-9">
+                                    <p class="text-center">No welcoming speeches available yet.</p>
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#welcomeCarousel"
@@ -100,7 +108,7 @@
             <!-- Carousel Indicators -->
             <div class="text-center mt-4">
                 <div class="carousel-indicators position-relative">
-                    {% for speech in landing.welcoming.all %}
+                    {% for speech in welcoming_speeches %}
                         <button type="button" data-bs-target="#welcomeCarousel"
                                 data-bs-slide-to="{{ forloop.counter0 }}"
                                 class="bg-primary {% if forloop.first %}active{% endif %}"

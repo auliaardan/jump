@@ -28,7 +28,7 @@ from openpyxl.workbook import Workbook
 from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
-    AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings, SymposiumCountdown
+    AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings, SymposiumCountdown, WelcomingSpeech
 from .models import Seminar, Ticket
 from .models import TicketCategory, OrderItem
 from django.utils.text import slugify
@@ -429,7 +429,7 @@ class baseView(ListView):
         symposium_countdown = SymposiumCountdown.objects.order_by("-date").first()
         context['symposium_countdown'] = symposium_countdown
 
-        landing = landing_page.objects.last()
+        context['welcoming_speeches'] = WelcomingSpeech.objects.all()
 
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
