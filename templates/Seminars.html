@@ -41,28 +41,48 @@
                 <h2 class="fw-bold">Faculties</h2>
                 <p class="text-muted mb-0">Meet the symposium speakers.</p>
             </div>
-            <div class="row g-4">
-                {% if faculties %}
-                    {% for faculty in faculties %}
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <div class="symposium-faculty-card text-center h-100">
-                                <img src="{{ faculty.image.url }}" alt="{{ faculty.name|default:'Symposium speaker' }}"
-                                     class="img-fluid rounded-3 mb-3">
-                                {% if faculty.name %}
-                                    <h5 class="mb-1">{{ faculty.name }}</h5>
+            {% if faculties %}
+                {% with items_per_slide=8 %}
+                    <div id="facultyCarousel" class="carousel slide" data-bs-ride="carousel"
+                         data-bs-interval="4000" data-bs-touch="true">
+                        <div class="carousel-inner">
+                            {% for faculty in faculties %}
+                                {% if forloop.first or forloop.counter0|divisibleby:items_per_slide %}
+                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                        <div class="faculty-slide-grid">
                                 {% endif %}
-                                {% if faculty.title %}
-                                    <p class="text-muted small mb-0">{{ faculty.title }}</p>
+                                            <div class="symposium-faculty-card text-center">
+                                                <img src="{{ faculty.image.url }}"
+                                                     alt="{{ faculty.name|default:'Symposium speaker' }}"
+                                                     class="faculty-avatar mb-3">
+                                                {% if faculty.name %}
+                                                    <h5 class="mb-1">{{ faculty.name }}</h5>
+                                                {% endif %}
+                                                {% if faculty.title %}
+                                                    <p class="text-muted small mb-0">{{ faculty.title }}</p>
+                                                {% endif %}
+                                            </div>
+                                {% if forloop.counter|divisibleby:items_per_slide or forloop.last %}
+                                        </div>
+                                    </div>
                                 {% endif %}
-                            </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="col-12 text-center text-muted">
-                        Speaker lineup will be announced soon.
+                        <button class="carousel-control-prev" type="button" data-bs-target="#facultyCarousel"
+                                data-bs-slide="prev" aria-label="Previous faculty set">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#facultyCarousel"
+                                data-bs-slide="next" aria-label="Next faculty set">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
                     </div>
-                {% endif %}
-            </div>
+                {% endwith %}
+            {% else %}
+                <div class="text-center text-muted">
+                    Speaker lineup will be announced soon.
+                </div>
+            {% endif %}
         </div>
     </section>
 

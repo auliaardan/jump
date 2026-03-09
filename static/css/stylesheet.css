@@ -1143,8 +1143,49 @@ a {
     border-radius: 12px;
 }
 
-.symposium-faculty-card img {
+.faculty-slide-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .faculty-slide-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 992px) {
+    .faculty-slide-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+#facultyCarousel .carousel-item {
+    padding: 0.25rem 2.5rem 0.75rem;
+}
+
+#facultyCarousel .carousel-control-prev,
+#facultyCarousel .carousel-control-next {
+    width: 48px;
+    height: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+#facultyCarousel .carousel-control-prev {
+    left: 0.5rem;
+}
+
+#facultyCarousel .carousel-control-next {
+    right: 0.5rem;
+}
+
+.faculty-avatar {
     width: 100%;
-    height: 220px;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
+    border-radius: 16px;
 }
