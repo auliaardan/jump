@@ -213,6 +213,8 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 
 SITE_ID = 1
+SITE_DOMAIN = env.str("SITE_DOMAIN", default="jakartaurologymedicalupdate.com")
+SITE_NAME = env.str("SITE_NAME", default=SITE_DOMAIN)
 
 if env.bool("DEBUG", default=False) == False:
     SECURE_CONTENT_TYPE_NOSNIFF = True

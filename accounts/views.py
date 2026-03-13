@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.contrib.auth.views import PasswordResetView
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -21,3 +23,8 @@ class CompleteProfileView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         # Ensure that the form edits the currently logged-in user
         return self.request.user
+
+
+class SitePasswordResetView(PasswordResetView):
+    domain_override = settings.SITE_DOMAIN
+    extra_email_context = {"site_name": settings.SITE_NAME}

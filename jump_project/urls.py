@@ -15,10 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from accounts.views import SitePasswordResetView
 from tickets import views as ticket_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("accounts/password_reset/", SitePasswordResetView.as_view(), name="password_reset"),
     path("accounts/", include("django.contrib.auth.urls")),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('allauth.urls')),  # allauth routes
