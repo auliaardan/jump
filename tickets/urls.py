@@ -33,7 +33,7 @@ urlpatterns = [
                   path('scicom_dashboard/toggle/', toggle_scicom_submission_mode,
                        name='toggle_scicom_submission_mode'),
                   path('confirm_order/<int:order_id>/', views.confirm_order_view, name='confirm_order'),
-                  path('admin/manual-ticket-upload/', views.manual_ticket_upload, name='manual_ticket_upload'),
+                  path('manual-ticket-upload/', views.manual_ticket_upload, name='manual_ticket_upload'),
                   path('export_orders/', views.export_orders_view, name='export_orders'),
                   path('export-orders/seminar/<int:seminar_id>/', views.export_orders_for_seminar_view,
                        name='export_orders_for_seminar'),

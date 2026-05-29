@@ -718,7 +718,7 @@ def _send_order_confirmed_email(request, order):
 @staff_member_required
 @require_POST
 def manual_ticket_upload(request):
-    form = ManualTicketUploadForm(request.POST)
+    form = ManualTicketUploadForm(request.POST, request.FILES)
     if not form.is_valid():
         for error in form.non_field_errors():
             messages.error(request, error)
@@ -730,6 +730,8 @@ def manual_ticket_upload(request):
     user = form.cleaned_data['user']
     submitted_ticket_category = form.cleaned_data['ticket_category']
     quantity = form.cleaned_data['quantity']
+    payment_proof = form.cleaned_data['payment_proof']
+    submitted_price_paid = form.cleaned_data.get('price_paid')
 
     try:
         with transaction.atomic():
@@ -753,6 +755,15 @@ def manual_ticket_upload(request):
                 quantity=quantity,
                 price=ticket_category.price,
             )
+            PaymentProof.objects.create(
+                order=order,
+                proof=payment_proof,
+                price_paid=(
+                    submitted_price_paid
+                    if submitted_price_paid is not None
+                    else ticket_category.price * quantity
+                ),
+            )
             ticket_category.booked_seats += quantity
             ticket_category.save(update_fields=['booked_seats'])
             _generate_missing_tickets(request, order)
@@ -767,7 +778,7 @@ def manual_ticket_upload(request):
         _send_order_confirmed_email(request, order)
         messages.success(
             request,
-            f"Uploaded {quantity} confirmed ticket(s) for {user} and sent the confirmation email."
+            f"Uploaded {quantity} confirmed ticket(s) with payment proof for {user} and sent the confirmation email."
         )
     except Exception as exc:
         messages.error(

@@ -30,10 +30,10 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">
-                        Create confirmed tickets for a user without requiring checkout or payment proof.
-                        Submission automatically generates the QR ticket(s) and sends the confirmed order email.
+                        Create confirmed tickets for a user after uploading their payment proof.
+                        Submission automatically marks the order confirmed, generates the QR ticket(s), and sends the confirmed order email.
                     </p>
-                    <form action="{% url 'manual_ticket_upload' %}" method="post" class="row g-3 align-items-end">
+                    <form action="{% url 'manual_ticket_upload' %}" method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
                         {% csrf_token %}
                         <div class="col-md-4">
                             <label class="form-label" for="{{ manual_ticket_form.user.id_for_label }}">User</label>
@@ -42,13 +42,27 @@
                                 <small class="form-text text-muted">{{ manual_ticket_form.user.help_text }}</small>
                             {% endif %}
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label" for="{{ manual_ticket_form.ticket_category.id_for_label }}">Seminar / Workshop</label>
                             {{ manual_ticket_form.ticket_category }}
                         </div>
                         <div class="col-md-1">
                             <label class="form-label" for="{{ manual_ticket_form.quantity.id_for_label }}">Qty</label>
                             {{ manual_ticket_form.quantity }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ manual_ticket_form.payment_proof.id_for_label }}">Payment Proof</label>
+                            {{ manual_ticket_form.payment_proof }}
+                            {% if manual_ticket_form.payment_proof.help_text %}
+                                <small class="form-text text-muted">{{ manual_ticket_form.payment_proof.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ manual_ticket_form.price_paid.id_for_label }}">Amount Paid</label>
+                            {{ manual_ticket_form.price_paid }}
+                            {% if manual_ticket_form.price_paid.help_text %}
+                                <small class="form-text text-muted">{{ manual_ticket_form.price_paid.help_text }}</small>
+                            {% endif %}
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-success w-100">
