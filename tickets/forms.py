@@ -1,12 +1,14 @@
 import datetime
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 from django.utils import timezone
 
 from .models import PaymentProof, AcceptedAbstractSubmission
-from .models import SciComSubmission
+from .models import SciComSubmission, TicketCategory
+
+User = get_user_model()
 
 SCICOM_MEDIA_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 6, 0, 0)
 SCICOM_MEDIA_DEADLINE_LABEL = "5 June 2026"
@@ -142,6 +144,45 @@ class AcceptedAbstractForm(forms.ModelForm):
             raise forms.ValidationError(
                 "Please provide at least one link (PPT or poster)."
             )
+        return cleaned_data
+
+
+class ManualTicketUploadForm(forms.Form):
+    user = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        label="User",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Select the user who should receive the confirmed ticket email.",
+    )
+    ticket_category = forms.ModelChoiceField(
+        queryset=TicketCategory.objects.none(),
+        label="Seminar / Workshop ticket",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+    quantity = forms.IntegerField(
+        min_value=1,
+        initial=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user'].queryset = User.objects.order_by('nama_lengkap', 'username')
+        self.fields['ticket_category'].queryset = (
+            TicketCategory.objects.select_related('seminar')
+            .order_by('seminar__date', 'seminar__title', 'name')
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        ticket_category = cleaned_data.get('ticket_category')
+        quantity = cleaned_data.get('quantity')
+
+        if ticket_category and quantity and ticket_category.remaining_seats < quantity:
+            raise forms.ValidationError(
+                f"Only {ticket_category.remaining_seats} seat(s) remain for {ticket_category}."
+            )
+
         return cleaned_data
 
 
