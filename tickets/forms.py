@@ -3,6 +3,7 @@ import datetime
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 from .models import PaymentProof, AcceptedAbstractSubmission
@@ -163,6 +164,26 @@ class ManualTicketUploadForm(forms.Form):
         min_value=1,
         initial=1,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+    )
+    payment_proof = forms.FileField(
+        label="Payment proof",
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'])
+        ],
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*,application/pdf,.pdf',
+        }),
+        help_text="Upload the buyer's payment proof before creating confirmed tickets.",
+    )
+    price_paid = forms.DecimalField(
+        label="Amount paid",
+        max_digits=12,
+        decimal_places=0,
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+        help_text="Leave blank to use the ticket total.",
     )
 
     def __init__(self, *args, **kwargs):
