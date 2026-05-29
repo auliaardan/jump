@@ -24,6 +24,41 @@
 
             </div>
 
+            <div class="card my-4">
+                <div class="card-header">
+                    <strong>Manual Ticket Upload</strong>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Create confirmed tickets for a user without requiring checkout or payment proof.
+                        Submission automatically generates the QR ticket(s) and sends the confirmed order email.
+                    </p>
+                    <form action="{% url 'manual_ticket_upload' %}" method="post" class="row g-3 align-items-end">
+                        {% csrf_token %}
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ manual_ticket_form.user.id_for_label }}">User</label>
+                            {{ manual_ticket_form.user }}
+                            {% if manual_ticket_form.user.help_text %}
+                                <small class="form-text text-muted">{{ manual_ticket_form.user.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label" for="{{ manual_ticket_form.ticket_category.id_for_label }}">Seminar / Workshop</label>
+                            {{ manual_ticket_form.ticket_category }}
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label" for="{{ manual_ticket_form.quantity.id_for_label }}">Qty</label>
+                            {{ manual_ticket_form.quantity }}
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                Upload & Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="table-responsive small">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead>
@@ -59,7 +94,13 @@
                                     {% endfor %}
                                 </ul>
                             </td>
-                            <td>{{ order.paymentproof_set.first.price_paid|idr_format }}</td>
+                            <td>
+                                {% if order.paymentproof_set.exists %}
+                                    {{ order.paymentproof_set.first.price_paid|idr_format }}
+                                {% else %}
+                                    {{ order.calculated_total|idr_format }}
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if order.paymentproof_set.exists %}
                                     <a href="{{ order.paymentproof_set.first.proof.url }}">Proof</a>

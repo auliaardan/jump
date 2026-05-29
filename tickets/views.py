@@ -27,6 +27,7 @@ from openpyxl.workbook import Workbook
 
 from .forms import (
     PaymentProofForm,
+    ManualTicketUploadForm,
     UserRegisterForm,
     SciComSubmissionForm,
     AcceptedAbstractForm,
@@ -634,8 +635,12 @@ def apply_discount(request):
 
 @staff_member_required
 def admin_dashboard(request):
-    orders = Order.objects.all().order_by('-created_at')
-    seminars = Seminar.objects.all().order_by('date')
+    orders = (
+        Order.objects.select_related('user')
+        .prefetch_related('orderitem_set__ticket_category__seminar', 'paymentproof_set')
+        .order_by('-created_at')
+    )
+    seminars = Seminar.objects.prefetch_related('ticket_categories').all().order_by('date')
 
     # Aggregate order items for each order
     for order in orders:
@@ -647,16 +652,130 @@ def admin_dashboard(request):
             key = (seminar.id, ticket_category.id)
             if key in items_dict:
                 items_dict[key]['quantity'] += order_item.quantity
+                items_dict[key]['total_price'] += order_item.quantity * order_item.price
             else:
                 items_dict[key] = {
                     'seminar': seminar,
                     'ticket_category': ticket_category,
                     'quantity': order_item.quantity,
+                    'total_price': order_item.quantity * order_item.price,
                 }
         # Convert the aggregated items to a list
         order.aggregated_items = list(items_dict.values())
+        order.calculated_total = sum(item['total_price'] for item in order.aggregated_items)
 
-    return render(request, 'tickets/admin_dashboard.html', {'orders': orders, 'seminars': seminars})
+    return render(request, 'tickets/admin_dashboard.html', {
+        'orders': orders,
+        'seminars': seminars,
+        'manual_ticket_form': ManualTicketUploadForm(),
+    })
+
+
+def _generate_missing_tickets(request, order):
+    for item in order.orderitem_set.all():
+        existing_tickets = item.tickets.count()
+        missing_tickets = max(item.quantity - existing_tickets, 0)
+        for _ in range(missing_tickets):
+            ticket = Ticket.objects.create(order=order, order_item=item)
+            ticket_url = request.build_absolute_uri(
+                reverse("ticket_booked_detail", kwargs={"ticket_id": ticket.id})
+            )
+            ticket.generate_qr(ticket_url)
+            ticket.save()
+
+
+def _send_order_confirmed_email(request, order):
+    tickets = []
+    for ticket in order.tickets.select_related(
+        "order_item",
+        "order_item__ticket_category",
+        "order_item__ticket_category__seminar",
+    ).all():
+        tickets.append({
+            "id": str(ticket.id),
+            "url": request.build_absolute_uri(
+                reverse("ticket_booked_detail", kwargs={"ticket_id": ticket.id})
+            ),
+        })
+
+    email_subject = "Konfirmasi Pesanan Anda"
+    email_body = render_to_string("tickets/emails/order_confirmed.html", {
+        "user": order.user,
+        "order": order,
+        "tickets": tickets,
+    })
+
+    email = EmailMessage(
+        email_subject,
+        email_body,
+        "admin@jakartaurologymedicalupdate.com",
+        [order.user.email],
+    )
+    email.content_subtype = "html"
+    email.send()
+
+
+@staff_member_required
+@require_POST
+def manual_ticket_upload(request):
+    form = ManualTicketUploadForm(request.POST)
+    if not form.is_valid():
+        for error in form.non_field_errors():
+            messages.error(request, error)
+        for field, errors in form.errors.items():
+            if field != '__all__':
+                messages.error(request, f"{form.fields[field].label}: {' '.join(errors)}")
+        return redirect('admin_dashboard')
+
+    user = form.cleaned_data['user']
+    submitted_ticket_category = form.cleaned_data['ticket_category']
+    quantity = form.cleaned_data['quantity']
+
+    try:
+        with transaction.atomic():
+            ticket_category = TicketCategory.objects.select_for_update().select_related('seminar').get(
+                pk=submitted_ticket_category.pk
+            )
+            if ticket_category.remaining_seats < quantity:
+                raise ValueError(
+                    f"Only {ticket_category.remaining_seats} seat(s) remain for {ticket_category}."
+                )
+
+            order = Order.objects.create(
+                user=user,
+                is_confirmed=True,
+                confirmation_date=timezone.now(),
+                transaction_id="Manual admin ticket upload",
+            )
+            OrderItem.objects.create(
+                order=order,
+                ticket_category=ticket_category,
+                quantity=quantity,
+                price=ticket_category.price,
+            )
+            ticket_category.booked_seats += quantity
+            ticket_category.save(update_fields=['booked_seats'])
+            _generate_missing_tickets(request, order)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect('admin_dashboard')
+    except Exception as exc:
+        messages.error(request, f"Could not upload tickets: {exc}")
+        return redirect('admin_dashboard')
+
+    try:
+        _send_order_confirmed_email(request, order)
+        messages.success(
+            request,
+            f"Uploaded {quantity} confirmed ticket(s) for {user} and sent the confirmation email."
+        )
+    except Exception as exc:
+        messages.error(
+            request,
+            f"Tickets were created, but the confirmation email could not be sent: {exc}"
+        )
+
+    return redirect('admin_dashboard')
 
 
 @staff_member_required
@@ -851,7 +970,7 @@ class AddToCartView(View):
 @staff_member_required
 @require_POST
 def confirm_order_view(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(Order.objects.prefetch_related('orderitem_set__tickets'), id=order_id)
 
     # Idempotent: if already confirmed, don't create duplicate tickets
     if not order.is_confirmed:
@@ -859,42 +978,11 @@ def confirm_order_view(request, order_id):
         order.confirmation_date = timezone.now()
         order.save(update_fields=["is_confirmed", "confirmation_date"])
 
-        # Generate tickets (1 per quantity)
-        for item in order.orderitem_set.all():
-            for _ in range(item.quantity):
-                t = Ticket.objects.create(order=order, order_item=item)
-                ticket_url = request.build_absolute_uri(
-                    reverse("ticket_booked_detail", kwargs={"ticket_id": t.id})
-                )
-                t.generate_qr(ticket_url)
-                t.save()
-
-    # Build ticket links for email (works whether tickets were just created or already existed)
-    tickets = []
-    for t in order.tickets.select_related("order_item", "order_item__ticket_category",
-                                          "order_item__ticket_category__seminar").all():
-        tickets.append({
-            "id": str(t.id),
-            "url": request.build_absolute_uri(reverse("ticket_booked_detail", kwargs={"ticket_id": t.id})),
-        })
-
-    email_subject = "Konfirmasi Pesanan Anda"
-    email_body = render_to_string("tickets/emails/order_confirmed.html", {
-        "user": order.user,
-        "order": order,
-        "tickets": tickets,
-    })
-
-    email = EmailMessage(
-        email_subject,
-        email_body,
-        "admin@jakartaurologymedicalupdate.com",
-        [order.user.email],
-    )
-    email.content_subtype = "html"
+    _generate_missing_tickets(request, order)
 
     try:
-        email.send()
+        _send_order_confirmed_email(request, order)
+        messages.success(request, "Order confirmed and confirmation email sent.")
     except Exception as e:
         messages.error(request, f"Failed to send email: {e}")
 
