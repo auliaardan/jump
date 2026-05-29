@@ -25,7 +25,14 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, TemplateView
 from openpyxl.workbook import Workbook
 
-from .forms import PaymentProofForm, UserRegisterForm, SciComSubmissionForm, AcceptedAbstractForm
+from .forms import (
+    PaymentProofForm,
+    UserRegisterForm,
+    SciComSubmissionForm,
+    AcceptedAbstractForm,
+    SCICOM_MEDIA_DEADLINE_LABEL,
+    is_scicom_media_submission_open,
+)
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
     AcceptedAbstractSubmission, SymposiumFaculty, SciComSettings, SymposiumCountdown, WelcomingSpeech
@@ -267,8 +274,8 @@ def submit_accepted_abstract(request):
 @login_required
 def create_submission(request):
     scicom_settings = get_scicom_settings()
-    if not scicom_settings.accepting_new_submissions:
-        messages.error(request, "Pendaftaran Scientific Competition telah ditutup.")
+    if not scicom_settings.accepting_new_submissions or not is_scicom_media_submission_open():
+        messages.error(request, "Pendaftaran Video dan Flyer Scientific Competition telah ditutup.")
         return redirect('scicom_page')
 
     if request.method == 'POST':
@@ -280,11 +287,13 @@ def create_submission(request):
             new_submission.save()
             return redirect('seminar_list')
     else:
-        # Suppose we want to default to "abstract"
-        form = SciComSubmissionForm(initial={'submission_type': 'abstract'})
+        form = SciComSubmissionForm(initial={'submission_type': SciComSubmission.VIDEO})
         form.instance.user = request.user
 
-    return render(request, 'tickets/create_submission.html', {'form': form})
+    return render(request, 'tickets/create_submission.html', {
+        'form': form,
+        'scicom_media_deadline_label': SCICOM_MEDIA_DEADLINE_LABEL,
+    })
 
 
 class SponsorsView(ListView):
@@ -337,6 +346,8 @@ class ScicomView(ListView):
         context['images'] = images
         context['qrcode'] = qrcode_obj
         context['scicom_settings'] = scicom_settings
+        context['scicom_media_deadline_label'] = SCICOM_MEDIA_DEADLINE_LABEL
+        context['is_scicom_media_submission_open'] = is_scicom_media_submission_open()
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()
