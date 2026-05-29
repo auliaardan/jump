@@ -8,6 +8,7 @@ from django.urls import reverse
 import qrcode as qr_lib
 from PIL import Image
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.signals import post_save, post_delete, pre_save
@@ -517,7 +518,12 @@ class OrderItem(models.Model):
 
 class PaymentProof(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    proof = models.ImageField(upload_to='payment_proofs/')
+    proof = models.FileField(
+        upload_to='payment_proofs/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'])
+        ],
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     price_paid = models.DecimalField(max_digits=12, decimal_places=0, blank=True)
 
