@@ -718,7 +718,7 @@ def _send_order_confirmed_email(request, order):
 @staff_member_required
 @require_POST
 def manual_ticket_upload(request):
-    form = ManualTicketUploadForm(request.POST, request.FILES)
+    form = ManualTicketUploadForm(request.POST)
     if not form.is_valid():
         for error in form.non_field_errors():
             messages.error(request, error)
@@ -730,7 +730,6 @@ def manual_ticket_upload(request):
     user = form.cleaned_data['user']
     submitted_ticket_category = form.cleaned_data['ticket_category']
     quantity = form.cleaned_data['quantity']
-    proof = form.cleaned_data['proof']
 
     try:
         with transaction.atomic():
@@ -748,17 +747,11 @@ def manual_ticket_upload(request):
                 confirmation_date=timezone.now(),
                 transaction_id="Manual admin ticket upload",
             )
-            total_amount = quantity * ticket_category.price
             OrderItem.objects.create(
                 order=order,
                 ticket_category=ticket_category,
                 quantity=quantity,
                 price=ticket_category.price,
-            )
-            PaymentProof.objects.create(
-                order=order,
-                proof=proof,
-                price_paid=total_amount,
             )
             ticket_category.booked_seats += quantity
             ticket_category.save(update_fields=['booked_seats'])
