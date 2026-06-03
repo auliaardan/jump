@@ -35,18 +35,18 @@ class SciComSubmissionAdmin(admin.ModelAdmin):
     def mark_as_accepted(self, request, queryset):
         """
            For each SciComSubmission in the queryset that is not yet accepted,
-            flip is_accepted=True and save() so the post_save signal will send the email.
+            flip is_accepted=True and save(). Acceptance emails are sent manually.
         """
         accepted_count = 0
         # Only process those still False → avoid resending to already‐accepted rows
         for submission in queryset.filter(is_accepted=False):
             submission.is_accepted = True
-            submission.save()  # triggers post_save signal → sends email
+            submission.save()  # acceptance emails are sent manually
             accepted_count += 1
         # Let the admin know how many were updated
         self.message_user(
             request,
-            f"✅ {accepted_count} abstract(s) marked as accepted and notification email sent."
+            f"✅ {accepted_count} abstract(s) marked as accepted. Acceptance emails will be sent manually."
         )
 
 
