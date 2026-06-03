@@ -815,40 +815,44 @@ def toggle_scicom_submission_mode(request):
     scicom_settings.accepting_new_submissions = False
     scicom_settings.save(update_fields=['accepting_presentation_submissions', 'accepting_new_submissions'])
 
-    accepted_submissions = SciComSubmission.objects.filter(
-        is_accepted=True,
-        accepted_email_sent=False,
-    ).select_related('user')
-    sent_count = 0
+    # Acceptance emails are being sent manually from another email account.
+    # Keep this block disabled so switching to presentation submissions does not
+    # send automated competition acceptance notifications or mark them as emailed.
+    #
+    # accepted_submissions = SciComSubmission.objects.filter(
+    #     is_accepted=True,
+    #     accepted_email_sent=False,
+    # ).select_related('user')
+    # sent_count = 0
+    #
+    # for submission in accepted_submissions:
+    #     submission_title = (
+    #         submission.abstract_title
+    #         or submission.video_title
+    #         or submission.flyer_title
+    #         or "your submission"
+    #     )
+    #     email_body = render_to_string('tickets/emails/accepted_notification.html', {
+    #         'name': submission.user.nama_lengkap,
+    #         'abstract_title': submission_title,
+    #         'type': submission.get_submission_type_display(),
+    #         'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
+    #     })
+    #     email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
+    #     email = EmailMessage(
+    #         email_subject,
+    #         email_body,
+    #         'admin@jakartaurologymedicalupdate.com',
+    #         [submission.user.email],
+    #     )
+    #     email.content_subtype = 'html'
+    #     email.send(fail_silently=False)
+    #     SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
+    #         accepted_email_sent=True
+    #     )
+    #     sent_count += 1
 
-    for submission in accepted_submissions:
-        submission_title = (
-            submission.abstract_title
-            or submission.video_title
-            or submission.flyer_title
-            or "your submission"
-        )
-        email_body = render_to_string('tickets/emails/accepted_notification.html', {
-            'name': submission.user.nama_lengkap,
-            'abstract_title': submission_title,
-            'type': submission.get_submission_type_display(),
-            'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
-        })
-        email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
-        email = EmailMessage(
-            email_subject,
-            email_body,
-            'admin@jakartaurologymedicalupdate.com',
-            [submission.user.email],
-        )
-        email.content_subtype = 'html'
-        email.send(fail_silently=False)
-        SciComSubmission.objects.filter(pk=submission.pk, accepted_email_sent=False).update(
-            accepted_email_sent=True
-        )
-        sent_count += 1
-
-    messages.success(request, f"Presentation submissions enabled. Sent {sent_count} acceptance email(s).")
+    messages.success(request, "Presentation submissions enabled. Acceptance emails will be sent manually.")
 
     return redirect('scicom_dashboard')
 

@@ -115,32 +115,36 @@ def send_acceptance_email(sender, instance, created, **kwargs):
     old_state = getattr(instance, '_old_is_accepted', False)
     new_state = instance.is_accepted
 
+    # Acceptance emails are being sent manually from another email account.
+    # Keep this block disabled so marking a competition submission as accepted does
+    # not send the automated acceptance notification or mark it as emailed.
+    #
     # If it changed from False → True, send the “accepted” email
-    if not old_state and new_state and not instance.accepted_email_sent:
-        submission_title = instance.abstract_title or instance.video_title or instance.flyer_title or "your submission"
-        # Prepare context for the email template
-        context = {
-            'name': instance.user.nama_lengkap,
-            'abstract_title': submission_title,
-            'type': instance.get_submission_type_display(),
-            'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
-        }
-
-        # Render the HTML body (the template already includes the header image)
-        email_body = render_to_string('tickets/emails/accepted_notification.html',
-                                      context)  # :contentReference[oaicite:0]{index=0}
-
-        # Compose and send the EmailMessage
-        email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
-        email = EmailMessage(
-            subject=email_subject,
-            body=email_body,
-            from_email='admin@jakartaurologymedicalupdate.com',  # adjust as needed
-            to=[instance.user.email],
-        )
-        email.content_subtype = 'html'  # ensures the HTML template is rendered
-        email.send(fail_silently=False)
-        SciComSubmission.objects.filter(pk=instance.pk, accepted_email_sent=False).update(accepted_email_sent=True)
+    # if not old_state and new_state and not instance.accepted_email_sent:
+    #     submission_title = instance.abstract_title or instance.video_title or instance.flyer_title or "your submission"
+    #     # Prepare context for the email template
+    #     context = {
+    #         'name': instance.user.nama_lengkap,
+    #         'abstract_title': submission_title,
+    #         'type': instance.get_submission_type_display(),
+    #         'submission_link': "https://jakartaurologymedicalupdate.com/submission/accepted/",
+    #     }
+    #
+    #     # Render the HTML body (the template already includes the header image)
+    #     email_body = render_to_string('tickets/emails/accepted_notification.html',
+    #                                   context)  # :contentReference[oaicite:0]{index=0}
+    #
+    #     # Compose and send the EmailMessage
+    #     email_subject = "Announcement of Abstract Selection – JUMP 2026 Scientific Competition"
+    #     email = EmailMessage(
+    #         subject=email_subject,
+    #         body=email_body,
+    #         from_email='admin@jakartaurologymedicalupdate.com',  # adjust as needed
+    #         to=[instance.user.email],
+    #     )
+    #     email.content_subtype = 'html'  # ensures the HTML template is rendered
+    #     email.send(fail_silently=False)
+    #     SciComSubmission.objects.filter(pk=instance.pk, accepted_email_sent=False).update(accepted_email_sent=True)
 
 
 @receiver(post_save, sender=SciComSubmission)
