@@ -1,30 +1,138 @@
 import datetime
+import json
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 from .models import PaymentProof, AcceptedAbstractSubmission
-from .models import SciComSubmission, TicketCategory
+from .models import SciComSettings, SciComSubmission, TicketCategory
 
 User = get_user_model()
 
-SCICOM_MEDIA_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 6, 0, 0)
-SCICOM_MEDIA_DEADLINE_LABEL = "5 June 2026"
 SCICOM_ABSTRACT_CLOSED_MESSAGE = "Abstract submissions via the website are now closed."
+SCICOM_DEADLINE_STORAGE = settings.BASE_DIR / "scicom_deadlines.json"
+DEFAULT_NEW_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 5, 23, 59)
+DEFAULT_PRESENTATION_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 23, 23, 59)
+
+
+def _make_local_deadline(deadline):
+    return timezone.make_aware(deadline, timezone.get_current_timezone())
+
+
+def _default_deadlines():
+    return {
+        'new_submission_deadline': _make_local_deadline(DEFAULT_NEW_SUBMISSION_DEADLINE),
+        'presentation_submission_deadline': _make_local_deadline(DEFAULT_PRESENTATION_SUBMISSION_DEADLINE),
+    }
+
+
+def get_scicom_settings():
+    settings_obj, _ = SciComSettings.objects.get_or_create(pk=1)
+    return settings_obj
+
+
+def get_scicom_deadlines():
+    deadlines = _default_deadlines()
+    if SCICOM_DEADLINE_STORAGE.exists():
+        data = json.loads(SCICOM_DEADLINE_STORAGE.read_text())
+        for key in deadlines:
+            value = data.get(key)
+            if value:
+                parsed = datetime.datetime.fromisoformat(value)
+                if timezone.is_naive(parsed):
+                    parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                deadlines[key] = parsed
+    return deadlines
+
+
+def save_scicom_deadlines(new_submission_deadline, presentation_submission_deadline):
+    data = {
+        'new_submission_deadline': new_submission_deadline.isoformat(),
+        'presentation_submission_deadline': presentation_submission_deadline.isoformat(),
+    }
+    SCICOM_DEADLINE_STORAGE.write_text(json.dumps(data, indent=2))
 
 
 def get_scicom_media_submission_deadline():
-    return timezone.make_aware(
-        SCICOM_MEDIA_SUBMISSION_DEADLINE,
-        timezone.get_current_timezone(),
-    )
+    return get_scicom_deadlines()['new_submission_deadline']
+
+
+def get_scicom_presentation_submission_deadline():
+    return get_scicom_deadlines()['presentation_submission_deadline']
+
+
+def format_scicom_deadline(deadline):
+    return timezone.localtime(deadline).strftime("%-d %B %Y, %H:%M (%Z)")
+
+
+def get_scicom_media_deadline_label():
+    return format_scicom_deadline(get_scicom_media_submission_deadline())
+
+
+def get_scicom_presentation_deadline_label():
+    return format_scicom_deadline(get_scicom_presentation_submission_deadline())
 
 
 def is_scicom_media_submission_open():
     return timezone.now() < get_scicom_media_submission_deadline()
+
+
+def is_scicom_presentation_submission_open():
+    return timezone.now() < get_scicom_presentation_submission_deadline()
+
+
+class SciComSettingsForm(forms.Form):
+    new_submission_deadline = forms.DateTimeField(
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={'type': 'datetime-local', 'class': 'form-control'},
+            format='%Y-%m-%dT%H:%M',
+        ),
+    )
+    presentation_submission_deadline = forms.DateTimeField(
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={'type': 'datetime-local', 'class': 'form-control'},
+            format='%Y-%m-%dT%H:%M',
+        ),
+    )
+    accepting_new_submissions = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    accepting_presentation_submissions = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+
+    def __init__(self, *args, scicom_settings=None, **kwargs):
+        self.scicom_settings = scicom_settings or get_scicom_settings()
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            deadlines = get_scicom_deadlines()
+            self.initial.update({
+                'new_submission_deadline': timezone.localtime(deadlines['new_submission_deadline']),
+                'presentation_submission_deadline': timezone.localtime(deadlines['presentation_submission_deadline']),
+                'accepting_new_submissions': self.scicom_settings.accepting_new_submissions,
+                'accepting_presentation_submissions': self.scicom_settings.accepting_presentation_submissions,
+            })
+
+    def save(self):
+        self.scicom_settings.accepting_new_submissions = self.cleaned_data['accepting_new_submissions']
+        self.scicom_settings.accepting_presentation_submissions = self.cleaned_data['accepting_presentation_submissions']
+        self.scicom_settings.save(update_fields=[
+            'accepting_new_submissions',
+            'accepting_presentation_submissions',
+        ])
+        save_scicom_deadlines(
+            self.cleaned_data['new_submission_deadline'],
+            self.cleaned_data['presentation_submission_deadline'],
+        )
+        return self.scicom_settings
 
 
 class SciComSubmissionForm(forms.ModelForm):
@@ -65,7 +173,7 @@ class SciComSubmissionForm(forms.ModelForm):
         self.fields['submission_type'].help_text = (
             f"Abstract submissions via the website are closed. "
             f"Educative Video and Educative Flyer submissions are accepted until "
-            f"{SCICOM_MEDIA_DEADLINE_LABEL}."
+            f"{get_scicom_media_deadline_label()}."
         )
 
         # Figure out the submission_type
@@ -117,7 +225,7 @@ class SciComSubmissionForm(forms.ModelForm):
             and not is_scicom_media_submission_open()
         ):
             raise forms.ValidationError(
-                f"Video and flyer submissions closed after {SCICOM_MEDIA_DEADLINE_LABEL}."
+                f"Video and flyer submissions closed after {get_scicom_media_deadline_label()}."
             )
         return submission_type
 

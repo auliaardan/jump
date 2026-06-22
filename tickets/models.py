@@ -81,7 +81,6 @@ class SciComSettings(models.Model):
         help_text="When enabled, the Scientific Competition page will accept presentation materials "
                   "for accepted abstracts."
     )
-
     def __str__(self):
         if self.accepting_presentation_submissions:
             status = "Accepting Presentation Submissions"
