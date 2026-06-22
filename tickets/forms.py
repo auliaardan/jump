@@ -1,5 +1,3 @@
-import datetime
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
@@ -7,24 +5,72 @@ from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 from .models import PaymentProof, AcceptedAbstractSubmission
-from .models import SciComSubmission, TicketCategory
+from .models import SciComSettings, SciComSubmission, TicketCategory
 
 User = get_user_model()
 
-SCICOM_MEDIA_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 6, 0, 0)
-SCICOM_MEDIA_DEADLINE_LABEL = "5 June 2026"
 SCICOM_ABSTRACT_CLOSED_MESSAGE = "Abstract submissions via the website are now closed."
 
 
+def get_scicom_settings():
+    settings_obj, _ = SciComSettings.objects.get_or_create(pk=1)
+    return settings_obj
+
+
+def format_scicom_deadline(deadline):
+    local_deadline = timezone.localtime(deadline)
+    offset = local_deadline.strftime("%z")
+    offset_hours = int(offset[:3])
+    return local_deadline.strftime(f"%d %B %Y, %H:%M GMT{offset_hours:+d}")
+
+
 def get_scicom_media_submission_deadline():
-    return timezone.make_aware(
-        SCICOM_MEDIA_SUBMISSION_DEADLINE,
-        timezone.get_current_timezone(),
-    )
+    return get_scicom_settings().new_submission_deadline
+
+
+def get_scicom_presentation_submission_deadline():
+    return get_scicom_settings().presentation_submission_deadline
+
+
+def get_scicom_media_deadline_label():
+    return format_scicom_deadline(get_scicom_media_submission_deadline())
+
+
+def get_scicom_presentation_deadline_label():
+    return format_scicom_deadline(get_scicom_presentation_submission_deadline())
 
 
 def is_scicom_media_submission_open():
     return timezone.now() < get_scicom_media_submission_deadline()
+
+
+def is_scicom_presentation_submission_open():
+    return timezone.now() < get_scicom_presentation_submission_deadline()
+
+
+class SciComDeadlineForm(forms.ModelForm):
+    class Meta:
+        model = SciComSettings
+        fields = ['new_submission_deadline', 'presentation_submission_deadline']
+        widgets = {
+            'new_submission_deadline': forms.DateTimeInput(
+                attrs={'class': 'form-control', 'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M',
+            ),
+            'presentation_submission_deadline': forms.DateTimeInput(
+                attrs={'class': 'form-control', 'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M',
+            ),
+        }
+        help_texts = {
+            'new_submission_deadline': 'Use local site time (GMT+7 / Asia Jakarta).',
+            'presentation_submission_deadline': 'Use local site time (GMT+7 / Asia Jakarta).',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.input_formats = ['%Y-%m-%dT%H:%M']
 
 
 class SciComSubmissionForm(forms.ModelForm):
@@ -65,7 +111,7 @@ class SciComSubmissionForm(forms.ModelForm):
         self.fields['submission_type'].help_text = (
             f"Abstract submissions via the website are closed. "
             f"Educative Video and Educative Flyer submissions are accepted until "
-            f"{SCICOM_MEDIA_DEADLINE_LABEL}."
+            f"{get_scicom_media_deadline_label()}."
         )
 
         # Figure out the submission_type
@@ -117,7 +163,7 @@ class SciComSubmissionForm(forms.ModelForm):
             and not is_scicom_media_submission_open()
         ):
             raise forms.ValidationError(
-                f"Video and flyer submissions closed after {SCICOM_MEDIA_DEADLINE_LABEL}."
+                f"Video and flyer submissions closed after {get_scicom_media_deadline_label()}."
             )
         return submission_type
 
