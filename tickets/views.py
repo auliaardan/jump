@@ -811,13 +811,13 @@ def scicom_dashboard(request):
     scicom_settings = get_scicom_settings()
 
     if request.method == 'POST':
-        settings_form = SciComSettingsForm(request.POST, scicom_settings=scicom_settings)
+        settings_form = SciComSettingsForm(request.POST, instance=scicom_settings)
         if settings_form.is_valid():
             settings_form.save()
             messages.success(request, "SciCom submission settings updated.")
             return redirect('scicom_dashboard')
     else:
-        settings_form = SciComSettingsForm(scicom_settings=scicom_settings)
+        settings_form = SciComSettingsForm(instance=scicom_settings)
 
     context = {
         'scicom': scicom,
