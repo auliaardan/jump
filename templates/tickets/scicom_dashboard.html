@@ -21,16 +21,57 @@
                 <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
                         <h5 class="card-title mb-1">SciCom Submission Status</h5>
-                        <p class="mb-0 text-muted">
-                            {% if scicom_settings.accepting_presentation_submissions %}
+                        <p class="mb-1 text-muted">
+                            {% if scicom_settings.accepting_presentation_submissions and is_scicom_presentation_submission_open %}
                                 Accepting <strong>presentation submissions</strong> from accepted abstracts.
-                            {% elif scicom_settings.accepting_new_submissions %}
+                            {% elif scicom_settings.accepting_presentation_submissions %}
+                                <strong>Presentation submissions are closed</strong> after the configured deadline.
+                            {% elif scicom_settings.accepting_new_submissions and is_scicom_media_submission_open %}
                                 Accepting <strong>new SciCom submissions</strong>.
+                            {% elif scicom_settings.accepting_new_submissions %}
+                                <strong>New SciCom submissions are closed</strong> after the configured deadline.
                             {% else %}
                                 <strong>Submissions are closed</strong> on the public page.
                             {% endif %}
                         </p>
+                        <p class="mb-0 small text-muted">
+                            New submissions deadline: {{ scicom_media_deadline_label }}<br>
+                            Accepted abstract submissions deadline: {{ scicom_presentation_deadline_label }}
+                        </p>
                     </div>
+
+                    <form method="post" class="border-top pt-3 mt-3 w-100">
+                        {% csrf_token %}
+                        <h6 class="mb-3">Submission Settings</h6>
+                        {% if settings_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ settings_form.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ settings_form.new_submission_deadline.id_for_label }}">New submission deadline</label>
+                                {{ settings_form.new_submission_deadline }}
+                                {{ settings_form.new_submission_deadline.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ settings_form.presentation_submission_deadline.id_for_label }}">Accepted abstract deadline</label>
+                                {{ settings_form.presentation_submission_deadline }}
+                                {{ settings_form.presentation_submission_deadline.errors }}
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    {{ settings_form.accepting_new_submissions }}
+                                    <label class="form-check-label" for="{{ settings_form.accepting_new_submissions.id_for_label }}">Accept new</label>
+                                </div>
+                                <div class="form-check">
+                                    {{ settings_form.accepting_presentation_submissions }}
+                                    <label class="form-check-label" for="{{ settings_form.accepting_presentation_submissions.id_for_label }}">Accept accepted abstracts</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Save Settings</button>
+                            </div>
+                        </div>
+                    </form>
                     <form method="post" action="{% url 'toggle_scicom_submission_mode' %}">
                         {% csrf_token %}
                         {% if scicom_settings.accepting_presentation_submissions %}
