@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import FileExtensionValidator
@@ -10,6 +11,47 @@ from .models import SciComSettings, SciComSubmission, TicketCategory
 User = get_user_model()
 
 SCICOM_ABSTRACT_CLOSED_MESSAGE = "Abstract submissions via the website are now closed."
+SCICOM_DEADLINE_STORAGE = settings.BASE_DIR / "scicom_deadlines.json"
+DEFAULT_NEW_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 5, 23, 59)
+DEFAULT_PRESENTATION_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 23, 23, 59)
+
+
+def _make_local_deadline(deadline):
+    return timezone.make_aware(deadline, timezone.get_current_timezone())
+
+
+def _default_deadlines():
+    return {
+        'new_submission_deadline': _make_local_deadline(DEFAULT_NEW_SUBMISSION_DEADLINE),
+        'presentation_submission_deadline': _make_local_deadline(DEFAULT_PRESENTATION_SUBMISSION_DEADLINE),
+    }
+
+
+def get_scicom_settings():
+    settings_obj, _ = SciComSettings.objects.get_or_create(pk=1)
+    return settings_obj
+
+
+def get_scicom_deadlines():
+    deadlines = _default_deadlines()
+    if SCICOM_DEADLINE_STORAGE.exists():
+        data = json.loads(SCICOM_DEADLINE_STORAGE.read_text())
+        for key in deadlines:
+            value = data.get(key)
+            if value:
+                parsed = datetime.datetime.fromisoformat(value)
+                if timezone.is_naive(parsed):
+                    parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                deadlines[key] = parsed
+    return deadlines
+
+
+def save_scicom_deadlines(new_submission_deadline, presentation_submission_deadline):
+    data = {
+        'new_submission_deadline': new_submission_deadline.isoformat(),
+        'presentation_submission_deadline': presentation_submission_deadline.isoformat(),
+    }
+    SCICOM_DEADLINE_STORAGE.write_text(json.dumps(data, indent=2))
 
 
 def get_scicom_settings():
