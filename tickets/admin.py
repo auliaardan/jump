@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import Seminar, Order, PaymentProof, landing_page, about_us, seminars_page, workshops_page, Cart, CartItem, \
     WhatsAppNumber, email_contact, PaymentMethod, DiscountCode, WelcomingSpeech, TicketCategory, scicom_rules, qrcode, \
-    Sponsor, ImageForPage, SciComSubmission, SymposiumFaculty, SymposiumCountdown
+    Sponsor, ImageForPage, SciComSubmission, SciComSettings, SymposiumFaculty, SymposiumCountdown
 
 admin.site.register(TicketCategory)
 admin.site.register(scicom_rules)
@@ -13,6 +13,32 @@ admin.site.register(PaymentMethod)
 admin.site.register(DiscountCode)
 admin.site.register(ImageForPage)
 admin.site.register(SymposiumCountdown)
+
+
+@admin.register(SciComSettings)
+class SciComSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'accepting_new_submissions',
+        'accepting_presentation_submissions',
+        'new_submission_deadline',
+        'presentation_submission_deadline',
+    )
+    list_editable = (
+        'accepting_new_submissions',
+        'accepting_presentation_submissions',
+        'new_submission_deadline',
+        'presentation_submission_deadline',
+    )
+    fields = (
+        'accepting_new_submissions',
+        'accepting_presentation_submissions',
+        'new_submission_deadline',
+        'presentation_submission_deadline',
+    )
+
+    def has_add_permission(self, request):
+        return not SciComSettings.objects.exists()
 
 
 @admin.register(SciComSubmission)
