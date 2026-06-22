@@ -31,8 +31,11 @@ from .forms import (
     UserRegisterForm,
     SciComSubmissionForm,
     AcceptedAbstractForm,
-    SCICOM_MEDIA_DEADLINE_LABEL,
+    SciComDeadlineForm,
+    get_scicom_media_deadline_label,
+    get_scicom_presentation_deadline_label,
     is_scicom_media_submission_open,
+    is_scicom_presentation_submission_open,
 )
 from .models import PaymentMethod, Order, landing_page, Cart, CartItem, about_us, seminars_page, \
     workshops_page, DiscountCode, PaymentProof, scicom_rules, qrcode, ImageForPage, Sponsor, SciComSubmission, \
@@ -248,7 +251,7 @@ def accepted_submissions_dashboard(request):
 @login_required
 def submit_accepted_abstract(request):
     scicom_settings = get_scicom_settings()
-    if not scicom_settings.accepting_presentation_submissions:
+    if not scicom_settings.accepting_presentation_submissions or not is_scicom_presentation_submission_open():
         messages.error(request, "Pengumpulan presentasi sudah ditutup.")
         return redirect('scicom_page')
 
@@ -269,7 +272,10 @@ def submit_accepted_abstract(request):
             is_accepted=True
         )
 
-    return render(request, 'tickets/submit_accepted_abstract.html', {'form': form})
+    return render(request, 'tickets/submit_accepted_abstract.html', {
+        'form': form,
+        'scicom_presentation_deadline_label': get_scicom_presentation_deadline_label(),
+    })
 
 
 @login_required
@@ -293,7 +299,7 @@ def create_submission(request):
 
     return render(request, 'tickets/create_submission.html', {
         'form': form,
-        'scicom_media_deadline_label': SCICOM_MEDIA_DEADLINE_LABEL,
+        'scicom_media_deadline_label': get_scicom_media_deadline_label(),
     })
 
 
@@ -347,8 +353,10 @@ class ScicomView(ListView):
         context['images'] = images
         context['qrcode'] = qrcode_obj
         context['scicom_settings'] = scicom_settings
-        context['scicom_media_deadline_label'] = SCICOM_MEDIA_DEADLINE_LABEL
+        context['scicom_media_deadline_label'] = get_scicom_media_deadline_label()
+        context['scicom_presentation_deadline_label'] = get_scicom_presentation_deadline_label()
         context['is_scicom_media_submission_open'] = is_scicom_media_submission_open()
+        context['is_scicom_presentation_submission_open'] = is_scicom_presentation_submission_open()
         context['seminar_list'] = page_obj
         context['num_placeholders'] = num_placeholders
         context['has_next'] = page_obj.has_next()
@@ -796,8 +804,24 @@ def scicom_dashboard(request):
     context = {
         'scicom': scicom,
         'scicom_settings': scicom_settings,
+        'deadline_form': SciComDeadlineForm(instance=scicom_settings),
+        'scicom_media_deadline_label': get_scicom_media_deadline_label(),
+        'scicom_presentation_deadline_label': get_scicom_presentation_deadline_label(),
     }
     return render(request, 'tickets/scicom_dashboard.html', context)
+
+
+@staff_member_required
+@require_POST
+def update_scicom_deadlines(request):
+    scicom_settings = get_scicom_settings()
+    form = SciComDeadlineForm(request.POST, instance=scicom_settings)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "SciCom submission deadlines updated.")
+    else:
+        messages.error(request, "Please correct the deadline form errors and try again.")
+    return redirect('scicom_dashboard')
 
 
 @staff_member_required

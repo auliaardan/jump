@@ -6,7 +6,7 @@ from . import views
 from .views import SeminarDetailView, CartDetailView, RemoveFromCartView, AddToCartView, about_us_view, SeminarsView, \
     WorkshopView, CheckoutView, apply_discount, cart_item_count, ScicomView, baseView, SponsorsView, create_submission, \
     scicom_dashboard, export_scicom_submissions_excel, submit_accepted_abstract, accepted_submissions_dashboard, \
-    TimelineView, toggle_scicom_submission_mode
+    TimelineView, toggle_scicom_submission_mode, update_scicom_deadlines
 
 urlpatterns = [
                   path('', baseView.as_view(), name='seminar_list'),
@@ -32,6 +32,8 @@ urlpatterns = [
                   path('scicom_dashboard/', scicom_dashboard, name='scicom_dashboard'),
                   path('scicom_dashboard/toggle/', toggle_scicom_submission_mode,
                        name='toggle_scicom_submission_mode'),
+                  path('scicom_dashboard/deadlines/', update_scicom_deadlines,
+                       name='update_scicom_deadlines'),
                   path('confirm_order/<int:order_id>/', views.confirm_order_view, name='confirm_order'),
                   path('manual-ticket-upload/', views.manual_ticket_upload, name='manual_ticket_upload'),
                   path('export_orders/', views.export_orders_view, name='export_orders'),
