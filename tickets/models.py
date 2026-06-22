@@ -1,6 +1,5 @@
 import os
 # models.py
-import datetime
 import uuid
 from io import BytesIO
 from django.urls import reverse
@@ -71,9 +70,6 @@ class scicom_rules(models.Model):
 
 
 class SciComSettings(models.Model):
-    DEFAULT_NEW_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 5, 23, 59)
-    DEFAULT_PRESENTATION_SUBMISSION_DEADLINE = datetime.datetime(2026, 6, 23, 23, 59)
-
     accepting_new_submissions = models.BooleanField(
         verbose_name="Accepting new submissions",
         default=False,
@@ -84,16 +80,6 @@ class SciComSettings(models.Model):
         default=False,
         help_text="When enabled, the Scientific Competition page will accept presentation materials "
                   "for accepted abstracts."
-    )
-    new_submission_deadline = models.DateTimeField(
-        verbose_name="New submission deadline",
-        default=timezone.make_aware(DEFAULT_NEW_SUBMISSION_DEADLINE),
-        help_text="Deadline for new Scientific Competition submissions."
-    )
-    presentation_submission_deadline = models.DateTimeField(
-        verbose_name="Presentation submission deadline",
-        default=timezone.make_aware(DEFAULT_PRESENTATION_SUBMISSION_DEADLINE),
-        help_text="Deadline for accepted abstracts to submit presentation and e-poster links."
     )
 
     def __str__(self):
