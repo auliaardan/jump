@@ -69,6 +69,14 @@ class scicom_rules(models.Model):
             return []
 
 
+def default_scicom_new_submission_deadline():
+    return timezone.datetime(2026, 6, 6, 0, 0, tzinfo=timezone.get_fixed_timezone(420))
+
+
+def default_scicom_presentation_submission_deadline():
+    return timezone.datetime(2026, 6, 23, 23, 59, tzinfo=timezone.get_fixed_timezone(420))
+
+
 class SciComSettings(models.Model):
     accepting_new_submissions = models.BooleanField(
         verbose_name="Accepting new submissions",
@@ -80,6 +88,16 @@ class SciComSettings(models.Model):
         default=False,
         help_text="When enabled, the Scientific Competition page will accept presentation materials "
                   "for accepted abstracts."
+    )
+    new_submission_deadline = models.DateTimeField(
+        verbose_name="New submission deadline",
+        default=default_scicom_new_submission_deadline,
+        help_text="Deadline for accepting new Scientific Competition submissions."
+    )
+    presentation_submission_deadline = models.DateTimeField(
+        verbose_name="Presentation submission deadline",
+        default=default_scicom_presentation_submission_deadline,
+        help_text="Deadline for accepting presentation materials from accepted abstracts."
     )
 
     def __str__(self):
